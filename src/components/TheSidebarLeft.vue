@@ -124,20 +124,6 @@
         </v-list-item-content>
       </v-list-item>
 
-      <DonateDialog v-slot="{ on, attrs }">
-        <v-list-item
-          v-bind="attrs"
-          v-on="on"
-        >
-          <v-list-item-icon>
-            <v-icon>favorite</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>Donate</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </DonateDialog>
     </v-list>
   </v-navigation-drawer>
 </template>
@@ -150,7 +136,6 @@ export default {
 
   components: {
     TheSettingsDialog: () => import('@/components/TheSettingsDialog.vue'),
-    DonateDialog: () => import('@/components/DonateDialog.vue'),
   },
 
   computed: {
