@@ -25,6 +25,35 @@
       dense
       nav
     >
+      <template v-if="IS_IN_ROOM">
+        <v-subheader>MovieNight</v-subheader>
+
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon>meeting_room</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>
+            <v-list-item-title>Room {{ GET_ROOM }}</v-list-item-title>
+            <v-list-item-subtitle>
+              {{ AM_I_HOST ? 'You are the host' : `Host: ${hostName}` }}
+            </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon>groups</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>
+            <v-list-item-title>{{ participantCountText }}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider />
+      </template>
+
       <TheSettingsDialog v-slot="{ on, attrs }">
         <v-list-item
           v-bind="attrs"
@@ -138,6 +167,28 @@ export default {
     ...mapGetters('plex', [
       'GET_PLEX_USER',
     ]),
+
+    ...mapGetters('synclounge', [
+      'AM_I_HOST',
+      'GET_HOST_USER',
+      'GET_ROOM',
+      'GET_USERS',
+      'IS_IN_ROOM',
+    ]),
+
+    hostName() {
+      return this.GET_HOST_USER?.username || 'Unknown';
+    },
+
+    participantCount() {
+      return Object.keys(this.GET_USERS).length;
+    },
+
+    participantCountText() {
+      return this.participantCount === 1
+        ? '1 person in room'
+        : `${this.participantCount} people in room`;
+    },
   },
 
   methods: {
