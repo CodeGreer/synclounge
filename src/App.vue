@@ -65,17 +65,6 @@
           {{ item.title }}
         </v-btn>
 
-        <DonateDialog v-slot="{ on, attrs }">
-          <v-btn
-            small
-            class="hidden-sm-and-down"
-            text
-            v-bind="attrs"
-            v-on="on"
-          >
-            Donate ♥
-          </v-btn>
-        </DonateDialog>
       </v-toolbar-items>
 
       <router-view name="rightSidebarButton" />
@@ -172,7 +161,6 @@ export default {
     TheSidebarLeft: () => import('@/components/TheSidebarLeft.vue'),
     TheUpnextDialog: () => import('@/components/TheUpnextDialog.vue'),
     TheNowPlayingChip: () => import('@/components/TheNowPlayingChip.vue'),
-    DonateDialog: () => import('@/components/DonateDialog.vue'),
     TheAppBarCrumbs: () => import('@/components/TheAppBarCrumbs.vue'),
   },
 
