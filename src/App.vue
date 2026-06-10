@@ -221,7 +221,6 @@ export default {
 
     ...mapState([
       'repositoryUrl',
-      'discordUrl',
     ]),
 
     links() {
@@ -230,11 +229,6 @@ export default {
           title: 'Github',
           href: this.repositoryUrl,
           target: '_blank',
-        },
-        {
-          title: 'Discord',
-          target: '_blank',
-          href: this.discordUrl,
         },
       ];
     },
