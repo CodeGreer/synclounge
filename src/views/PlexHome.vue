@@ -1,5 +1,7 @@
 <template>
   <v-container fluid>
+    <MovieNightPanel v-if="IS_IN_ROOM" />
+
     <PlexOnDeck :machine-identifier="GET_LAST_SERVER_ID">
       <template #header>
         Continue watching from {{ GET_LAST_SERVER.name }}
@@ -100,6 +102,7 @@ export default {
   name: 'PlexHome',
 
   components: {
+    MovieNightPanel: () => import('@/components/MovieNightPanel.vue'),
     PlexOnDeck: () => import('@/components/PlexOnDeck.vue'),
   },
 
@@ -116,6 +119,10 @@ export default {
       'GET_LAST_SERVER',
       'GET_LAST_SERVER_ID',
       'GET_PLEX_SERVERS',
+    ]),
+
+    ...mapGetters('synclounge', [
+      'IS_IN_ROOM',
     ]),
   },
 
