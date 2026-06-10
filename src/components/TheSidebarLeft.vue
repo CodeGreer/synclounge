@@ -93,7 +93,8 @@
         </v-list-item-icon>
 
         <v-list-item-content>
-          <v-list-item-title>v{{ version }}</v-list-item-title>
+          <v-list-item-title>MovieNight</v-list-item-title>
+          <v-list-item-subtitle>Local build</v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
 
