@@ -1,7 +1,7 @@
 const defaults = {
   servers: [
     {
-      name: 'Local Server',
+      name: 'MovieNight Local',
       location: 'Local',
       url: '',
       image: 'synclounge-white.png',
