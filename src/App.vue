@@ -13,18 +13,17 @@
 
       <router-link
         :to="{ name: 'RoomCreation' }"
+        class="d-flex align-center text-decoration-none"
       >
-        <picture>
-          <source
-            srcset="@/assets/images/logos/logo-small-light.png"
-            :media="smallLogoMedia"
-          >
-          <img
-            height="42"
-            src="@/assets/images/logos/logo-long-light.png"
-            style="vertical-align: middle;"
-          >
-        </picture>
+        <img
+          height="42"
+          src="@/assets/images/logos/logo-small-light.png"
+          style="vertical-align: middle;"
+        >
+
+        <span class="ml-2 text-h5 font-weight-medium white--text hidden-xs-only">
+          MovieNight
+        </span>
       </router-link>
 
       <TheNowPlayingChip
@@ -227,10 +226,6 @@ export default {
 
     showAppBarExtension() {
       return this.$route.meta.showAppBarExtension;
-    },
-
-    smallLogoMedia() {
-      return `(max-width: ${this.$vuetify.breakpoint.thresholds.xs}px)`;
     },
 
     sheetColor() {
