@@ -84,10 +84,7 @@
 
       <v-subheader>About</v-subheader>
 
-      <v-list-item
-        :href="GET_RELEASE_URL"
-        target="_blank"
-      >
+      <v-list-item>
         <v-list-item-icon>
           <v-icon>info</v-icon>
         </v-list-item-icon>
@@ -133,7 +130,6 @@ export default {
     ]),
 
     ...mapGetters([
-      'GET_RELEASE_URL',
     ]),
 
     ...mapGetters('plex', [
