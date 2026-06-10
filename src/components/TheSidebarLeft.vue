@@ -99,19 +99,6 @@
       </v-list-item>
 
       <v-list-item
-        :href="discordUrl"
-        target="_blank"
-      >
-        <v-list-item-icon>
-          <v-icon>chat</v-icon>
-        </v-list-item-icon>
-
-        <v-list-item-content>
-          <v-list-item-title>Discord</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-
-      <v-list-item
         :href="repositoryUrl"
         target="_blank"
       >
@@ -143,7 +130,6 @@ export default {
       'isLeftSidebarOpen',
       'version',
       'repositoryUrl',
-      'discordUrl',
     ]),
 
     ...mapGetters([
