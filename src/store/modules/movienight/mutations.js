@@ -1,4 +1,12 @@
 export default {
+  SET_MOVIENIGHT_STATE: (state, movieNight = {}) => {
+    state.nextNominationId = movieNight.nextNominationId || 1;
+    state.nextPlaylistItemId = movieNight.nextPlaylistItemId || 1;
+    state.nominations = movieNight.nominations || [];
+    state.playlist = movieNight.playlist || [];
+    state.playlistVisibility = movieNight.playlistVisibility || 'next';
+  },
+
   ADD_NOMINATION: (state, nomination) => {
     if (
       nomination.nominationKey

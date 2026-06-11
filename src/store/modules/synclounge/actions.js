@@ -90,6 +90,7 @@ export default {
     // or duplicate tasks
     const {
       user: { id, ...rest }, users, isPartyPausingEnabled, isAutoHostEnabled, hostId,
+      movieNight,
     } = await dispatch('JOIN_ROOM');
     const updatedAt = Date.now();
 
@@ -118,6 +119,7 @@ export default {
 
     commit('SET_IS_PARTY_PAUSING_ENABLED', isPartyPausingEnabled);
     commit('SET_IS_AUTO_HOST_ENABLED', isAutoHostEnabled);
+    commit('movienight/SET_MOVIENIGHT_STATE', movieNight, { root: true });
     commit('SET_IS_IN_ROOM', true);
 
     // Purposefully not awaited
@@ -237,6 +239,7 @@ export default {
     registerListener({ eventName: 'slPing', action: 'HANDLE_SLPING' });
     registerListener({ eventName: 'playerStateUpdate', action: 'HANDLE_PLAYER_STATE_UPDATE' });
     registerListener({ eventName: 'mediaUpdate', action: 'HANDLE_MEDIA_UPDATE' });
+    registerListener({ eventName: 'movieNightState', action: 'HANDLE_MOVIENIGHT_STATE' });
     registerListener({
       eventName: 'syncFlexibilityUpdate',
       action: 'HANDLE_SYNC_FLEXIBILITY_UPDATE',
@@ -254,6 +257,10 @@ export default {
     registerListener({ eventName: 'disconnect', action: 'HANDLE_DISCONNECT' });
     registerListener({ eventName: 'connect', action: 'HANDLE_RECONNECT' });
     registerListener({ eventName: 'kicked', action: 'HANDLE_KICKED' });
+  },
+
+  HANDLE_MOVIENIGHT_STATE: ({ commit }, movieNight) => {
+    commit('movienight/SET_MOVIENIGHT_STATE', movieNight, { root: true });
   },
 
   CANCEL_UPNEXT: ({ getters, commit }) => {
