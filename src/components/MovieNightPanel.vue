@@ -8,7 +8,7 @@
     </v-card-title>
 
     <v-card-subtitle>
-      {{ showManualEntry ? 'Nominate movies for tonight.' : 'Current nominations' }}
+      {{ showManualEntry ? 'Nominate titles for tonight.' : 'Current nominations' }}
     </v-card-subtitle>
 
     <v-card-text>
@@ -19,42 +19,10 @@
         type="info"
         class="mb-3"
       >
-        Nominate real Plex movies from search, browse, or movie detail pages.
+        Nominate Plex movies, shows, or episodes from search, browse, or detail pages.
       </v-alert>
 
-      <v-form
-        v-if="showManualEntry"
-        @submit.prevent="addNomination"
-      >
-        <v-row dense>
-          <v-col
-            cols="12"
-            md="9"
-          >
-            <v-text-field
-              v-model.trim="newNomination"
-              label="Movie title"
-              dense
-              outlined
-              hide-details
-            />
-          </v-col>
-
-          <v-col
-            cols="12"
-            md="3"
-          >
-            <v-btn
-              block
-              color="primary"
-              type="submit"
-              :disabled="!canAddNomination"
-            >
-              Add
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-form>
+      <MovieNightNominationSearch v-if="showManualEntry" />
 
       <v-list
         v-if="nominations.length"
@@ -106,16 +74,16 @@ import { mapActions, mapGetters } from 'vuex';
 export default {
   name: 'MovieNightPanel',
 
+  components: {
+    MovieNightNominationSearch: () => import('@/components/MovieNightNominationSearch.vue'),
+  },
+
   props: {
     showManualEntry: {
       type: Boolean,
       default: true,
     },
   },
-
-  data: () => ({
-    newNomination: '',
-  }),
 
   computed: {
     ...mapGetters('movienight', [
@@ -125,30 +93,12 @@ export default {
     nominations() {
       return this.GET_NOMINATIONS;
     },
-
-    canAddNomination() {
-      return this.newNomination.length > 0;
-    },
   },
 
   methods: {
     ...mapActions('movienight', [
-      'ADD_NOMINATION',
       'REMOVE_NOMINATION',
     ]),
-
-    addNomination() {
-      if (!this.canAddNomination) {
-        return;
-      }
-
-      this.ADD_NOMINATION({
-        title: this.newNomination,
-      });
-
-      this.newNomination = '';
-    },
-
     removeNomination(id) {
       this.REMOVE_NOMINATION(id);
     },
