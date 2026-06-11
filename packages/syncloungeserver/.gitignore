@@ -108,3 +108,7 @@ settings.json
 
 # Dist
 /dist
+# MovieNight vendors the built server output so the root app can require this
+# local file dependency at runtime.
+!/dist
+!/dist/**
