@@ -50,6 +50,19 @@
 
           <v-list-item-action>
             <v-btn
+              v-if="canAddNominationToPlaylist(nomination)"
+              icon
+              small
+              :title="getPlaylistButtonTitle(nomination)"
+              :disabled="isNominationInPlaylist(nomination)"
+              @click="addNominationToPlaylist(nomination)"
+            >
+              <v-icon small>
+                playlist_add
+              </v-icon>
+            </v-btn>
+
+            <v-btn
               v-if="canOpenNomination(nomination)"
               icon
               small
@@ -106,8 +119,13 @@ export default {
   },
 
   computed: {
+    ...mapGetters('synclounge', [
+      'AM_I_HOST',
+    ]),
+
     ...mapGetters('movienight', [
       'GET_NOMINATIONS',
+      'IS_IN_PLAYLIST',
     ]),
 
     nominations() {
@@ -117,6 +135,7 @@ export default {
 
   methods: {
     ...mapActions('movienight', [
+      'ADD_PLEX_PLAYLIST_ITEM',
       'REMOVE_NOMINATION',
     ]),
     getNominationTypeLabel(nomination) {
@@ -151,6 +170,43 @@ export default {
         default:
           return 'theaters';
       }
+    },
+
+    playlistKey(nomination) {
+      return nomination.machineIdentifier && nomination.ratingKey
+        ? `plex:${nomination.machineIdentifier}:${nomination.ratingKey}`
+        : null;
+    },
+
+    isPlayableNomination(nomination) {
+      return nomination.type === 'movie' || nomination.type === 'episode';
+    },
+
+    isNominationInPlaylist(nomination) {
+      const key = this.playlistKey(nomination);
+      return key
+        ? this.IS_IN_PLAYLIST(key)
+        : false;
+    },
+
+    getPlaylistButtonTitle(nomination) {
+      return this.isNominationInPlaylist(nomination)
+        ? 'Already in playlist'
+        : 'Add to playlist';
+    },
+
+    canAddNominationToPlaylist(nomination) {
+      return this.AM_I_HOST
+        && this.isPlayableNomination(nomination)
+        && this.canOpenNomination(nomination);
+    },
+
+    addNominationToPlaylist(nomination) {
+      if (!this.canAddNominationToPlaylist(nomination)) {
+        return;
+      }
+
+      this.ADD_PLEX_PLAYLIST_ITEM(nomination);
     },
 
     canOpenNomination(nomination) {
