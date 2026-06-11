@@ -35,13 +35,17 @@
           :key="nomination.id"
         >
           <v-list-item-icon>
-            <v-icon>local_movies</v-icon>
+            <v-icon>{{ getNominationIcon(nomination) }}</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>
             <v-list-item-title>
               {{ nomination.title }}
             </v-list-item-title>
+
+            <v-list-item-subtitle>
+              {{ getNominationTypeLabel(nomination) }}
+            </v-list-item-subtitle>
           </v-list-item-content>
 
           <v-list-item-action>
@@ -99,6 +103,40 @@ export default {
     ...mapActions('movienight', [
       'REMOVE_NOMINATION',
     ]),
+    getNominationTypeLabel(nomination) {
+      switch (nomination.type) {
+        case 'movie':
+          return 'Movie';
+
+        case 'show':
+        case 'series':
+          return 'Show';
+
+        case 'episode':
+          return 'Episode';
+
+        default:
+          return 'Title';
+      }
+    },
+
+    getNominationIcon(nomination) {
+      switch (nomination.type) {
+        case 'movie':
+          return 'local_movies';
+
+        case 'show':
+        case 'series':
+          return 'live_tv';
+
+        case 'episode':
+          return 'slideshow';
+
+        default:
+          return 'theaters';
+      }
+    },
+
     removeNomination(id) {
       this.REMOVE_NOMINATION(id);
     },
