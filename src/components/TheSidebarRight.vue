@@ -120,6 +120,12 @@
       <UserList />
       <v-divider />
 
+      <div class="sidebar-movienight">
+        <MovieNightPanel :show-manual-entry="false" />
+      </div>
+
+      <v-divider />
+
       <MessageList class="messages" />
     </div>
 
@@ -142,6 +148,7 @@ export default {
   components: {
     MessageList: () => import('@/components/MessageList.vue'),
     MessageInput: () => import('@/components/MessageInput.vue'),
+    MovieNightPanel: () => import('@/components/MovieNightPanel.vue'),
     UserList: () => import('@/components/UserList.vue'),
   },
 
@@ -184,6 +191,11 @@ export default {
 .messages {
   overflow-y: auto;
   flex: 1 1 0;
+}
+
+.sidebar-movienight {
+  max-height: 45%;
+  overflow-y: auto;
 }
 
 .participant-count {

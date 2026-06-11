@@ -8,11 +8,24 @@
     </v-card-title>
 
     <v-card-subtitle>
-      Nominate movies for tonight.
+      {{ showManualEntry ? 'Nominate movies for tonight.' : 'Current nominations' }}
     </v-card-subtitle>
 
     <v-card-text>
-      <v-form @submit.prevent="addNomination">
+      <v-alert
+        v-if="!showManualEntry"
+        dense
+        text
+        type="info"
+        class="mb-3"
+      >
+        Nominate real Plex movies from search, browse, or movie detail pages.
+      </v-alert>
+
+      <v-form
+        v-if="showManualEntry"
+        @submit.prevent="addNomination"
+      >
         <v-row dense>
           <v-col
             cols="12"
@@ -92,6 +105,13 @@ import { mapActions, mapGetters } from 'vuex';
 
 export default {
   name: 'MovieNightPanel',
+
+  props: {
+    showManualEntry: {
+      type: Boolean,
+      default: true,
+    },
+  },
 
   data: () => ({
     newNomination: '',
