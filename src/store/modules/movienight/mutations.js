@@ -18,4 +18,54 @@ export default {
   REMOVE_NOMINATION: (state, id) => {
     state.nominations = state.nominations.filter((nomination) => nomination.id !== id);
   },
+
+  ADD_PLAYLIST_ITEM: (state, item) => {
+    if (
+      item.playlistKey
+      && state.playlist.some((existing) => existing.playlistKey === item.playlistKey)
+    ) {
+      return;
+    }
+
+    state.playlist.push({
+      id: state.nextPlaylistItemId,
+      ...item,
+    });
+
+    state.nextPlaylistItemId += 1;
+  },
+
+  REMOVE_PLAYLIST_ITEM: (state, id) => {
+    state.playlist = state.playlist.filter((item) => item.id !== id);
+  },
+
+  MOVE_PLAYLIST_ITEM_UP: (state, id) => {
+    const index = state.playlist.findIndex((item) => item.id === id);
+
+    if (index <= 0) {
+      return;
+    }
+
+    const playlist = state.playlist.slice();
+    const [item] = playlist.splice(index, 1);
+    playlist.splice(index - 1, 0, item);
+    state.playlist = playlist;
+  },
+
+  MOVE_PLAYLIST_ITEM_DOWN: (state, id) => {
+    const index = state.playlist.findIndex((item) => item.id === id);
+
+    if (index < 0 || index >= state.playlist.length - 1) {
+      return;
+    }
+
+    const playlist = state.playlist.slice();
+    const [item] = playlist.splice(index, 1);
+    playlist.splice(index + 1, 0, item);
+    state.playlist = playlist;
+  },
+
+  CLEAR_PLAYLIST: (state) => {
+    state.playlist = [];
+  },
 };
