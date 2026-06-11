@@ -78,6 +78,18 @@
 
         <v-list-item-action>
           <v-btn
+            v-if="AM_I_HOST"
+            icon
+            small
+            title="Play"
+            @click="playPlaylistItem(item)"
+          >
+            <v-icon small>
+              play_arrow
+            </v-icon>
+          </v-btn>
+
+          <v-btn
             icon
             small
             title="Open"
@@ -140,8 +152,14 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 
+import playMedia from '@/mixins/playmedia';
+
 export default {
   name: 'MovieNightPlaylist',
+
+  mixins: [
+    playMedia,
+  ],
 
   data: () => ({
     visibilityItems: [
@@ -188,6 +206,10 @@ export default {
   },
 
   methods: {
+    ...mapActions('plexservers', [
+      'FETCH_PLEX_METADATA',
+    ]),
+
     ...mapActions('movienight', [
       'CLEAR_PLAYLIST',
       'MOVE_PLAYLIST_ITEM_DOWN',
@@ -220,6 +242,15 @@ export default {
         default:
           return 'theaters';
       }
+    },
+
+    async playPlaylistItem(item) {
+      const metadata = await this.FETCH_PLEX_METADATA({
+        ratingKey: item.ratingKey,
+        machineIdentifier: item.machineIdentifier,
+      });
+
+      await this.playMedia(metadata, 0, 0);
     },
 
     openItem(item) {
