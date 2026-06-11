@@ -50,8 +50,21 @@
 
           <v-list-item-action>
             <v-btn
+              v-if="canOpenNomination(nomination)"
               icon
               small
+              title="Open"
+              @click="openNomination(nomination)"
+            >
+              <v-icon small>
+                open_in_new
+              </v-icon>
+            </v-btn>
+
+            <v-btn
+              icon
+              small
+              title="Remove"
               @click="removeNomination(nomination.id)"
             >
               <v-icon small>
@@ -135,6 +148,25 @@ export default {
         default:
           return 'theaters';
       }
+    },
+
+    canOpenNomination(nomination) {
+      return Boolean(nomination.machineIdentifier && nomination.ratingKey);
+    },
+
+    openNomination(nomination) {
+      if (!this.canOpenNomination(nomination)) {
+        return;
+      }
+
+      this.$router.push({
+        name: 'PlexMedia',
+        params: {
+          room: this.$route.params.room,
+          machineIdentifier: nomination.machineIdentifier,
+          ratingKey: nomination.ratingKey,
+        },
+      });
     },
 
     removeNomination(id) {
