@@ -20,12 +20,29 @@
       dense
       hide-details
       outlined
-      class="mb-3"
+      class="mb-2"
       label="Visibility"
       :items="visibilityItems"
       :value="GET_PLAYLIST_VISIBILITY"
       @change="SET_PLAYLIST_VISIBILITY"
     />
+
+    <v-btn
+      v-if="AM_I_HOST && playlist.length"
+      small
+      text
+      block
+      class="mb-3"
+      @click="CLEAR_PLAYLIST"
+    >
+      <v-icon
+        small
+        left
+      >
+        clear_all
+      </v-icon>
+      Clear Playlist
+    </v-btn>
 
     <v-alert
       v-if="!AM_I_HOST && GET_PLAYLIST_VISIBILITY === 'private'"
@@ -172,6 +189,7 @@ export default {
 
   methods: {
     ...mapActions('movienight', [
+      'CLEAR_PLAYLIST',
       'MOVE_PLAYLIST_ITEM_DOWN',
       'MOVE_PLAYLIST_ITEM_UP',
       'REMOVE_PLAYLIST_ITEM',
