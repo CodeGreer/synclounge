@@ -90,6 +90,18 @@
           </v-btn>
 
           <v-btn
+            v-if="AM_I_HOST"
+            icon
+            small
+            title="Play & Remove"
+            @click="playAndRemovePlaylistItem(item)"
+          >
+            <v-icon small>
+              playlist_remove
+            </v-icon>
+          </v-btn>
+
+          <v-btn
             icon
             small
             title="Open"
@@ -244,13 +256,22 @@ export default {
       }
     },
 
-    async playPlaylistItem(item) {
-      const metadata = await this.FETCH_PLEX_METADATA({
+    async getPlaylistItemMetadata(item) {
+      return this.FETCH_PLEX_METADATA({
         ratingKey: item.ratingKey,
         machineIdentifier: item.machineIdentifier,
       });
+    },
+
+    async playPlaylistItem(item) {
+      const metadata = await this.getPlaylistItemMetadata(item);
 
       await this.playMedia(metadata, 0, 0);
+    },
+
+    async playAndRemovePlaylistItem(item) {
+      await this.playPlaylistItem(item);
+      await this.REMOVE_PLAYLIST_ITEM(item.id);
     },
 
     openItem(item) {
