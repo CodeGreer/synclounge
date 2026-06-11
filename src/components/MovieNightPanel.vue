@@ -88,38 +88,49 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex';
+
 export default {
   name: 'MovieNightPanel',
 
   data: () => ({
-    nextNominationId: 1,
     newNomination: '',
-    nominations: [],
   }),
 
   computed: {
+    ...mapGetters('movienight', [
+      'GET_NOMINATIONS',
+    ]),
+
+    nominations() {
+      return this.GET_NOMINATIONS;
+    },
+
     canAddNomination() {
       return this.newNomination.length > 0;
     },
   },
 
   methods: {
+    ...mapActions('movienight', [
+      'ADD_NOMINATION',
+      'REMOVE_NOMINATION',
+    ]),
+
     addNomination() {
       if (!this.canAddNomination) {
         return;
       }
 
-      this.nominations.push({
-        id: this.nextNominationId,
+      this.ADD_NOMINATION({
         title: this.newNomination,
       });
 
-      this.nextNominationId += 1;
       this.newNomination = '';
     },
 
     removeNomination(id) {
-      this.nominations = this.nominations.filter((nomination) => nomination.id !== id);
+      this.REMOVE_NOMINATION(id);
     },
   },
 };
