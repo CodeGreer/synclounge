@@ -85,6 +85,18 @@
           >
             {{ isNominated ? 'Nominated' : 'Nominate' }}
           </v-btn>
+
+          <v-btn
+            v-if="showAddToPlaylistButton"
+            block
+            class="mt-3"
+            color="primary"
+            outlined
+            :disabled="isInPlaylist"
+            @click="addToPlaylist"
+          >
+            {{ isInPlaylist ? 'In Playlist' : 'Add to Playlist' }}
+          </v-btn>
         </v-col>
       </template>
     </template>
@@ -295,10 +307,17 @@ export default {
     ]),
 
     ...mapGetters('movienight', [
+      'IS_IN_PLAYLIST',
       'IS_NOMINATED',
     ]),
 
     nominationKey() {
+      return this.metadata.machineIdentifier && this.metadata.ratingKey
+        ? `plex:${this.metadata.machineIdentifier}:${this.metadata.ratingKey}`
+        : null;
+    },
+
+    playlistKey() {
       return this.metadata.machineIdentifier && this.metadata.ratingKey
         ? `plex:${this.metadata.machineIdentifier}:${this.metadata.ratingKey}`
         : null;
@@ -310,8 +329,27 @@ export default {
         : false;
     },
 
+    isInPlaylist() {
+      return this.playlistKey
+        ? this.IS_IN_PLAYLIST(this.playlistKey)
+        : false;
+    },
+
+    isPlayableMovieNightItem() {
+      return this.metadata.type === 'movie' || this.metadata.type === 'episode';
+    },
+
     showNominateButton() {
-      return this.IS_IN_ROOM && this.metadata.type === 'movie' && this.nominationKey;
+      return this.IS_IN_ROOM
+        && this.isPlayableMovieNightItem
+        && this.nominationKey;
+    },
+
+    showAddToPlaylistButton() {
+      return this.IS_IN_ROOM
+        && this.AM_I_HOST
+        && this.isPlayableMovieNightItem
+        && this.playlistKey;
     },
 
     // This exists so we can watch if either of these change
@@ -419,11 +457,18 @@ export default {
 
     ...mapActions('movienight', [
       'ADD_PLEX_NOMINATION',
+      'ADD_PLEX_PLAYLIST_ITEM',
     ]),
 
     nominateContent() {
       if (!this.isNominated) {
         this.ADD_PLEX_NOMINATION(this.metadata);
+      }
+    },
+
+    addToPlaylist() {
+      if (!this.isInPlaylist) {
+        this.ADD_PLEX_PLAYLIST_ITEM(this.metadata);
       }
     },
 
