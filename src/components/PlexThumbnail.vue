@@ -48,6 +48,16 @@
             >
               {{ content.Media.length }}
             </div>
+
+            <v-btn
+              v-if="showNominateButton"
+              x-small
+              color="primary"
+              class="nominate-button"
+              @click.stop.prevent="nominateContent"
+            >
+              {{ isNominated ? 'Nominated' : 'Nominate' }}
+            </v-btn>
           </v-col>
         </v-row>
       </v-container>
@@ -116,7 +126,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import VanillaTilt from 'vanilla-tilt';
 import contentTitle from '@/mixins/contentTitle';
 import { getAppWidth, getAppHeight } from '@/utils/sizing';
@@ -187,6 +197,30 @@ export default {
       'GET_MEDIA_IMAGE_URL',
       'GET_PLEX_SERVER',
     ]),
+
+    ...mapGetters('synclounge', [
+      'IS_IN_ROOM',
+    ]),
+
+    ...mapGetters('movienight', [
+      'IS_NOMINATED',
+    ]),
+
+    nominationKey() {
+      return this.content.machineIdentifier && this.content.ratingKey
+        ? `plex:${this.content.machineIdentifier}:${this.content.ratingKey}`
+        : null;
+    },
+
+    isNominated() {
+      return this.nominationKey
+        ? this.IS_NOMINATED(this.nominationKey)
+        : false;
+    },
+
+    showNominateButton() {
+      return this.IS_IN_ROOM && this.content.type === 'movie' && this.nominationKey;
+    },
 
     mediaUrl() {
       return (!this.hovering && this.spoilerFilter && !this.content.viewCount)
@@ -310,6 +344,16 @@ export default {
   },
 
   methods: {
+    ...mapActions('movienight', [
+      'ADD_PLEX_NOMINATION',
+    ]),
+
+    nominateContent() {
+      if (!this.isNominated) {
+        this.ADD_PLEX_NOMINATION(this.content);
+      }
+    },
+
     getImageUrl(width) {
       return this.GET_MEDIA_IMAGE_URL({
         machineIdentifier: this.content.machineIdentifier,
@@ -338,5 +382,12 @@ export default {
   text-align: right;
   right: 0;
   background: rgb(0 0 0 / 50%);
+}
+
+.nominate-button {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  z-index: 2;
 }
 </style>

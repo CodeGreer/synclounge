@@ -73,6 +73,18 @@
           >
             <v-icon>play_arrow</v-icon>
           </v-btn>
+
+          <v-btn
+            v-if="showNominateButton"
+            block
+            class="mt-3"
+            color="primary"
+            outlined
+            :disabled="isNominated"
+            @click="nominateContent"
+          >
+            {{ isNominated ? 'Nominated' : 'Nominate' }}
+          </v-btn>
         </v-col>
       </template>
     </template>
@@ -279,7 +291,28 @@ export default {
 
     ...mapGetters('synclounge', [
       'AM_I_HOST',
+      'IS_IN_ROOM',
     ]),
+
+    ...mapGetters('movienight', [
+      'IS_NOMINATED',
+    ]),
+
+    nominationKey() {
+      return this.metadata.machineIdentifier && this.metadata.ratingKey
+        ? `plex:${this.metadata.machineIdentifier}:${this.metadata.ratingKey}`
+        : null;
+    },
+
+    isNominated() {
+      return this.nominationKey
+        ? this.IS_NOMINATED(this.nominationKey)
+        : false;
+    },
+
+    showNominateButton() {
+      return this.IS_IN_ROOM && this.metadata.type === 'movie' && this.nominationKey;
+    },
 
     // This exists so we can watch if either of these change
     combinedKey() {
@@ -383,6 +416,16 @@ export default {
     ...mapActions('synclounge', [
       'MANUAL_SYNC',
     ]),
+
+    ...mapActions('movienight', [
+      'ADD_PLEX_NOMINATION',
+    ]),
+
+    nominateContent() {
+      if (!this.isNominated) {
+        this.ADD_PLEX_NOMINATION(this.metadata);
+      }
+    },
 
     abortRequests() {
       if (this.abortController) {
