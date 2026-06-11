@@ -102,6 +102,7 @@
           </v-btn>
 
           <v-btn
+            v-if="!AM_I_HOST"
             icon
             small
             title="Open"
@@ -112,42 +113,77 @@
             </v-icon>
           </v-btn>
 
-          <template v-if="AM_I_HOST">
-            <v-btn
-              icon
-              small
-              title="Move up"
-              :disabled="index === 0"
-              @click="MOVE_PLAYLIST_ITEM_UP(item.id)"
-            >
-              <v-icon small>
-                keyboard_arrow_up
-              </v-icon>
-            </v-btn>
+          <v-menu
+            v-if="AM_I_HOST"
+            offset-y
+            left
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                icon
+                small
+                title="More"
+                v-bind="attrs"
+                v-on="on"
+              >
+                <v-icon small>
+                  more_vert
+                </v-icon>
+              </v-btn>
+            </template>
 
-            <v-btn
-              icon
-              small
-              title="Move down"
-              :disabled="index === playlist.length - 1"
-              @click="MOVE_PLAYLIST_ITEM_DOWN(item.id)"
-            >
-              <v-icon small>
-                keyboard_arrow_down
-              </v-icon>
-            </v-btn>
+            <v-list dense>
+              <v-list-item @click="openItem(item)">
+                <v-list-item-icon>
+                  <v-icon small>
+                    open_in_new
+                  </v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Open
+                </v-list-item-title>
+              </v-list-item>
 
-            <v-btn
-              icon
-              small
-              title="Remove"
-              @click="REMOVE_PLAYLIST_ITEM(item.id)"
-            >
-              <v-icon small>
-                close
-              </v-icon>
-            </v-btn>
-          </template>
+              <v-list-item
+                :disabled="index === 0"
+                @click="MOVE_PLAYLIST_ITEM_UP(item.id)"
+              >
+                <v-list-item-icon>
+                  <v-icon small>
+                    keyboard_arrow_up
+                  </v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Move up
+                </v-list-item-title>
+              </v-list-item>
+
+              <v-list-item
+                :disabled="index === playlist.length - 1"
+                @click="MOVE_PLAYLIST_ITEM_DOWN(item.id)"
+              >
+                <v-list-item-icon>
+                  <v-icon small>
+                    keyboard_arrow_down
+                  </v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Move down
+                </v-list-item-title>
+              </v-list-item>
+
+              <v-list-item @click="REMOVE_PLAYLIST_ITEM(item.id)">
+                <v-list-item-icon>
+                  <v-icon small>
+                    close
+                  </v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Remove
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </v-list-item-action>
       </v-list-item>
     </v-list>
