@@ -121,7 +121,7 @@
       <v-divider />
 
       <div class="sidebar-movienight">
-        <MovieNightPanel :show-manual-entry="false" />
+        <MovieNightPanel />
       </div>
 
       <v-divider />
