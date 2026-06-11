@@ -68,4 +68,12 @@ export default {
   CLEAR_PLAYLIST: (state) => {
     state.playlist = [];
   },
+
+  SET_PLAYLIST_VISIBILITY: (state, visibility) => {
+    if (!['private', 'next', 'public'].includes(visibility)) {
+      return;
+    }
+
+    state.playlistVisibility = visibility;
+  },
 };

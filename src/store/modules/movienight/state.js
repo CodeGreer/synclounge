@@ -3,6 +3,7 @@ const state = () => ({
   nextPlaylistItemId: 1,
   nominations: [],
   playlist: [],
+  playlistVisibility: 'next',
 });
 
 export default state;

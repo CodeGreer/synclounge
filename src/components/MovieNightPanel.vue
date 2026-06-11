@@ -81,6 +81,8 @@
       >
         No nominations yet.
       </div>
+
+      <MovieNightPlaylist />
     </v-card-text>
   </v-card>
 </template>
@@ -93,6 +95,7 @@ export default {
 
   components: {
     MovieNightNominationSearch: () => import('@/components/MovieNightNominationSearch.vue'),
+    MovieNightPlaylist: () => import('@/components/MovieNightPlaylist.vue'),
   },
 
   props: {

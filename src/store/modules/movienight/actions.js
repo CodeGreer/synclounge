@@ -66,4 +66,8 @@ export default {
   CLEAR_PLAYLIST: ({ commit }) => {
     commit('CLEAR_PLAYLIST');
   },
+
+  SET_PLAYLIST_VISIBILITY: ({ commit }, visibility) => {
+    commit('SET_PLAYLIST_VISIBILITY', visibility);
+  },
 };

@@ -3,6 +3,8 @@ export default {
 
   GET_PLAYLIST: (state) => state.playlist,
 
+  GET_PLAYLIST_VISIBILITY: (state) => state.playlistVisibility,
+
   IS_NOMINATED: (state) => (nominationKey) => state.nominations
     .some((nomination) => nomination.nominationKey === nominationKey),
 
