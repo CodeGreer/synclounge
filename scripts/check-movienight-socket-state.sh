@@ -13,21 +13,36 @@ const io = require("socket.io-client");
 const appUrl = process.env.APP_URL;
 const roomId = process.env.ROOM_ID;
 
-const testItem = {
+const itemOne = {
   source: "plex",
-  playlistKey: "plex:smoke-server:smoke-rating-key",
-  title: "MovieNight Smoke Test",
+  playlistKey: "plex:smoke-server:smoke-rating-key-1",
+  title: "MovieNight Smoke Test One",
   year: 2026,
   type: "movie",
-  ratingKey: "smoke-rating-key",
-  key: "/library/metadata/smoke-rating-key",
+  ratingKey: "smoke-rating-key-1",
+  key: "/library/metadata/smoke-rating-key-1",
   machineIdentifier: "smoke-server",
-  thumb: "/library/metadata/smoke-rating-key/thumb",
-  art: "/library/metadata/smoke-rating-key/art",
+  thumb: "/library/metadata/smoke-rating-key-1/thumb",
+  art: "/library/metadata/smoke-rating-key-1/art",
   duration: 60000,
 };
 
+const itemTwo = {
+  source: "plex",
+  playlistKey: "plex:smoke-server:smoke-rating-key-2",
+  title: "MovieNight Smoke Test Two",
+  year: 2026,
+  type: "movie",
+  ratingKey: "smoke-rating-key-2",
+  key: "/library/metadata/smoke-rating-key-2",
+  machineIdentifier: "smoke-server",
+  thumb: "/library/metadata/smoke-rating-key-2/thumb",
+  art: "/library/metadata/smoke-rating-key-2/art",
+  duration: 70000,
+};
+
 const sockets = [];
+let latestState = null;
 
 const fail = (message) => {
   console.error("FAIL:", message);
@@ -41,9 +56,28 @@ const pass = (message) => {
   process.exit(0);
 };
 
-const timeout = setTimeout(() => {
-  fail("Timed out waiting for MovieNight socket state");
-}, 10000);
+const waitForState = (label, predicate) => new Promise((resolve, reject) => {
+  const timeout = setTimeout(() => {
+    reject(new Error("Timed out waiting for " + label));
+  }, 10000);
+
+  const check = (state) => {
+    if (!predicate(state)) {
+      return;
+    }
+
+    clearTimeout(timeout);
+    resolve(state);
+  };
+
+  if (latestState) {
+    check(latestState);
+  }
+
+  stateWaiters.push(check);
+});
+
+const stateWaiters = [];
 
 const joinSocket = ({ username }) => new Promise((resolve, reject) => {
   const socket = io(appUrl, {
@@ -55,7 +89,7 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
 
   socket.on("connect_error", reject);
 
-  socket.on("slPing", (secret) => {
+  socket.once("slPing", (secret) => {
     socket.emit("slPong", secret);
     socket.emit("join", {
       roomId,
@@ -88,19 +122,44 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
   const guest = await joinSocket({ username: "MovieNightSmokeGuest" });
 
   guest.on("movieNightState", (state) => {
-    const found = state.playlist.some((item) => item.playlistKey === testItem.playlistKey);
-
-    if (!found) {
-      return;
-    }
-
-    clearTimeout(timeout);
-    pass("Guest received host playlist update over movieNightState");
+    latestState = state;
+    stateWaiters.slice().forEach((check) => check(state));
   });
 
-  host.emit("movieNightAddPlaylistItem", testItem);
+  host.emit("movieNightAddPlaylistItem", itemOne);
+  await waitForState("first playlist item", (state) => (
+    state.playlist.length === 1
+    && state.playlist[0].playlistKey === itemOne.playlistKey
+  ));
+
+  host.emit("movieNightAddPlaylistItem", itemTwo);
+  const twoItemState = await waitForState("second playlist item", (state) => (
+    state.playlist.length === 2
+    && state.playlist[1].playlistKey === itemTwo.playlistKey
+  ));
+
+  host.emit("movieNightMovePlaylistItemUp", twoItemState.playlist[1].id);
+  await waitForState("playlist reorder", (state) => (
+    state.playlist.length === 2
+    && state.playlist[0].playlistKey === itemTwo.playlistKey
+  ));
+
+  host.emit("movieNightSetPlaylistVisibility", "public");
+  await waitForState("playlist visibility", (state) => (
+    state.playlistVisibility === "public"
+  ));
+
+  host.emit("movieNightRemovePlaylistItem", latestState.playlist[0].id);
+  await waitForState("playlist remove", (state) => (
+    state.playlist.length === 1
+    && state.playlist[0].playlistKey === itemOne.playlistKey
+  ));
+
+  host.emit("movieNightClearPlaylist");
+  await waitForState("playlist clear", (state) => state.playlist.length === 0);
+
+  pass("MovieNight playlist add/reorder/visibility/remove/clear synced to guest");
 })().catch((error) => {
-  clearTimeout(timeout);
   fail(error.message);
 });
 NODE
