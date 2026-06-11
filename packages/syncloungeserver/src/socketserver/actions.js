@@ -2,6 +2,7 @@ import {
   isUserInARoom, getRoomUserData, getUserRoomId, makeUserHost, getSocketCount, getRoomSize,
   getRoomSocketIds, removeUser, isRoomEmpty, removeRoom, getAnySocketIdInRoom, getRoomCount,
   generateAndSetSocketLatencySecret, formatUserData, getRoomHostId, getJoinedUserCount,
+  getMovieNightState,
 } from './state';
 
 export const log = (...args) => {
@@ -61,6 +62,15 @@ export const emitToSocketRoom = ({
 }) => {
   emitToRoom({
     server, roomId: getUserRoomId(socketId), eventName, data,
+  });
+};
+
+export const emitMovieNightStateToRoom = ({ server, socketId }) => {
+  emitToSocketRoom({
+    server,
+    socketId,
+    eventName: 'movieNightState',
+    data: getMovieNightState(getUserRoomId(socketId)),
   });
 };
 

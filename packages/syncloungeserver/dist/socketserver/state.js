@@ -3,16 +3,16 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.updateUserSyncFlexibility = exports.updateUserPlayerState = exports.updateUserMedia = exports.updateSocketLatency = exports.setSocketLatencyIntervalId = exports.setIsPartyPausingEnabledInSocketRoom = exports.setIsAutoHostEnabledInSocketRoom = exports.removeUser = exports.removeSocketLatencyData = exports.removeRoom = exports.makeUserHost = exports.isUserInRoom = exports.isUserInARoom = exports.isUserHost = exports.isRoomEmpty = exports.isPartyPausingEnabledInSocketRoom = exports.isAutoHostEnabledInSocketRoom = exports.initSocketLatencyData = exports.getUserRoomId = exports.getUserRoom = exports.getSocketPingSecret = exports.getSocketLatency = exports.getSocketCount = exports.getRoomUserData = exports.getRoomSocketIds = exports.getRoomSize = exports.getRoomHostId = exports.getRoomCount = exports.getJoinedUserCount = exports.getJoinData = exports.getHealth = exports.getAnySocketIdInRoom = exports.generateAndSetSocketLatencySecret = exports.formatUserData = exports.doesSocketHaveRtt = exports.doesRoomExist = exports.createRoom = exports.clearSocketLatencyInterval = exports.addUserToRoom = void 0;
+exports.updateUserSyncFlexibility = exports.updateUserPlayerState = exports.updateUserMedia = exports.updateSocketLatency = exports.setSocketLatencyIntervalId = exports.setMovieNightPlaylistVisibility = exports.setIsPartyPausingEnabledInSocketRoom = exports.setIsAutoHostEnabledInSocketRoom = exports.removeUser = exports.removeSocketLatencyData = exports.removeRoom = exports.removeMovieNightPlaylistItem = exports.removeMovieNightNomination = exports.moveMovieNightPlaylistItemUp = exports.moveMovieNightPlaylistItemDown = exports.makeUserHost = exports.isUserInRoom = exports.isUserInARoom = exports.isUserHost = exports.isRoomEmpty = exports.isPartyPausingEnabledInSocketRoom = exports.isAutoHostEnabledInSocketRoom = exports.initSocketLatencyData = exports.getUserRoomId = exports.getUserRoom = exports.getSocketPingSecret = exports.getSocketLatency = exports.getSocketCount = exports.getRoomUserData = exports.getRoomSocketIds = exports.getRoomSize = exports.getRoomHostId = exports.getRoomCount = exports.getMovieNightState = exports.getJoinedUserCount = exports.getJoinData = exports.getHealth = exports.getAnySocketIdInRoom = exports.generateAndSetSocketLatencySecret = exports.formatUserData = exports.doesSocketHaveRtt = exports.doesRoomExist = exports.createRoom = exports.clearSocketLatencyInterval = exports.clearMovieNightPlaylist = exports.addUserToRoom = exports.addMovieNightPlaylistItem = exports.addMovieNightNomination = void 0;
 var _uuid = require("uuid");
 const _excluded = ["recipientId", "updatedAt", "playbackRate", "state", "time"];
+function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var n = Object.getOwnPropertySymbols(e); for (r = 0; r < n.length; r++) o = n[r], t.indexOf(o) >= 0 || {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
+function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (e.indexOf(n) >= 0) continue; t[n] = r[n]; } return t; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var n = Object.getOwnPropertySymbols(e); for (r = 0; r < n.length; r++) o = n[r], t.indexOf(o) >= 0 || {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
-function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (e.indexOf(n) >= 0) continue; t[n] = r[n]; } return t; }
 const rooms = new Map();
 // Map from socket id to room name
 const socketRoomId = new Map();
@@ -24,6 +24,21 @@ const getUserRoom = socketId => rooms.get(getUserRoomId(socketId));
 exports.getUserRoom = getUserRoom;
 const getRoomUserData = socketId => getUserRoom(socketId).users.get(socketId);
 exports.getRoomUserData = getRoomUserData;
+const createMovieNightState = () => ({
+  nextNominationId: 1,
+  nextPlaylistItemId: 1,
+  nominations: [],
+  playlist: [],
+  playlistVisibility: 'next'
+});
+const cloneMovieNightState = movieNight => ({
+  nextNominationId: movieNight.nextNominationId,
+  nextPlaylistItemId: movieNight.nextPlaylistItemId,
+  nominations: movieNight.nominations.map(nomination => _objectSpread({}, nomination)),
+  playlist: movieNight.playlist.map(item => _objectSpread({}, item)),
+  playlistVisibility: movieNight.playlistVisibility
+});
+const getSocketMovieNightState = socketId => getUserRoom(socketId).movieNight;
 const getUniqueUsername = ({
   usernames,
   desiredUsername
@@ -107,6 +122,7 @@ const createRoom = ({
     isPartyPausingEnabled,
     isAutoHostEnabled,
     hostId,
+    movieNight: createMovieNightState(),
     users: new Map()
   });
 };
@@ -151,11 +167,13 @@ const getJoinData = ({
   } = getRoomUserData(socketId);
   const {
     isPartyPausingEnabled,
-    isAutoHostEnabled
+    isAutoHostEnabled,
+    movieNight
   } = rooms.get(roomId);
   return {
     isPartyPausingEnabled,
     isAutoHostEnabled,
+    movieNight: cloneMovieNightState(movieNight),
     hostId: getRoomHostId(roomId),
     user: {
       id: socketId,
@@ -276,5 +294,103 @@ const getHealth = () => ({
 exports.getHealth = getHealth;
 const getSocketCount = () => socketLatencyData.size;
 exports.getSocketCount = getSocketCount;
+const getMovieNightState = roomId => cloneMovieNightState(rooms.get(roomId).movieNight);
+exports.getMovieNightState = getMovieNightState;
+const addMovieNightNomination = ({
+  socketId,
+  nomination
+}) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  if (nomination.nominationKey && movieNight.nominations.some(existing => existing.nominationKey === nomination.nominationKey)) {
+    return;
+  }
+  movieNight.nominations.push(_objectSpread(_objectSpread({}, nomination), {}, {
+    id: movieNight.nextNominationId
+  }));
+  movieNight.nextNominationId += 1;
+};
+exports.addMovieNightNomination = addMovieNightNomination;
+const removeMovieNightNomination = ({
+  socketId,
+  id
+}) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  movieNight.nominations = movieNight.nominations.filter(nomination => nomination.id !== id);
+};
+exports.removeMovieNightNomination = removeMovieNightNomination;
+const addMovieNightPlaylistItem = ({
+  socketId,
+  item
+}) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  if (item.playlistKey && movieNight.playlist.some(existing => existing.playlistKey === item.playlistKey)) {
+    return;
+  }
+  movieNight.playlist.push(_objectSpread(_objectSpread({}, item), {}, {
+    id: movieNight.nextPlaylistItemId
+  }));
+  movieNight.nextPlaylistItemId += 1;
+};
+exports.addMovieNightPlaylistItem = addMovieNightPlaylistItem;
+const removeMovieNightPlaylistItem = ({
+  socketId,
+  id
+}) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  movieNight.playlist = movieNight.playlist.filter(item => item.id !== id);
+};
+exports.removeMovieNightPlaylistItem = removeMovieNightPlaylistItem;
+const moveMovieNightPlaylistItem = ({
+  socketId,
+  id,
+  offset
+}) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  const index = movieNight.playlist.findIndex(item => item.id === id);
+  const newIndex = index + offset;
+  if (index < 0 || newIndex < 0 || newIndex >= movieNight.playlist.length) {
+    return;
+  }
+  const playlist = movieNight.playlist.slice();
+  const [item] = playlist.splice(index, 1);
+  playlist.splice(newIndex, 0, item);
+  movieNight.playlist = playlist;
+};
+const moveMovieNightPlaylistItemUp = ({
+  socketId,
+  id
+}) => {
+  moveMovieNightPlaylistItem({
+    socketId,
+    id,
+    offset: -1
+  });
+};
+exports.moveMovieNightPlaylistItemUp = moveMovieNightPlaylistItemUp;
+const moveMovieNightPlaylistItemDown = ({
+  socketId,
+  id
+}) => {
+  moveMovieNightPlaylistItem({
+    socketId,
+    id,
+    offset: 1
+  });
+};
+exports.moveMovieNightPlaylistItemDown = moveMovieNightPlaylistItemDown;
+const clearMovieNightPlaylist = socketId => {
+  getSocketMovieNightState(socketId).playlist = [];
+};
+exports.clearMovieNightPlaylist = clearMovieNightPlaylist;
+const setMovieNightPlaylistVisibility = ({
+  socketId,
+  visibility
+}) => {
+  if (!['private', 'next', 'public'].includes(visibility)) {
+    return;
+  }
+  getSocketMovieNightState(socketId).playlistVisibility = visibility;
+};
+exports.setMovieNightPlaylistVisibility = setMovieNightPlaylistVisibility;
 const getRoomCount = () => rooms.size;
 exports.getRoomCount = getRoomCount;

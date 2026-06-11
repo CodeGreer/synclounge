@@ -14,6 +14,24 @@ export const getUserRoom = (socketId) => rooms.get(getUserRoomId(socketId));
 export const getRoomUserData = (socketId) => getUserRoom(socketId)
   .users.get(socketId);
 
+const createMovieNightState = () => ({
+  nextNominationId: 1,
+  nextPlaylistItemId: 1,
+  nominations: [],
+  playlist: [],
+  playlistVisibility: 'next',
+});
+
+const cloneMovieNightState = (movieNight) => ({
+  nextNominationId: movieNight.nextNominationId,
+  nextPlaylistItemId: movieNight.nextPlaylistItemId,
+  nominations: movieNight.nominations.map((nomination) => ({ ...nomination })),
+  playlist: movieNight.playlist.map((item) => ({ ...item })),
+  playlistVisibility: movieNight.playlistVisibility,
+});
+
+const getSocketMovieNightState = (socketId) => getUserRoom(socketId).movieNight;
+
 const getUniqueUsername = ({ usernames, desiredUsername }) => {
   if (!usernames.includes(desiredUsername)) {
     return desiredUsername;
@@ -83,6 +101,7 @@ export const createRoom = ({
     isPartyPausingEnabled,
     isAutoHostEnabled,
     hostId,
+    movieNight: createMovieNightState(),
     users: new Map(),
   });
 };
@@ -115,11 +134,14 @@ export const getRoomHostId = (roomId) => rooms.get(roomId).hostId;
 
 export const getJoinData = ({ roomId, socketId }) => {
   const { username } = getRoomUserData(socketId);
-  const { isPartyPausingEnabled, isAutoHostEnabled } = rooms.get(roomId);
+  const {
+    isPartyPausingEnabled, isAutoHostEnabled, movieNight,
+  } = rooms.get(roomId);
 
   return {
     isPartyPausingEnabled,
     isAutoHostEnabled,
+    movieNight: cloneMovieNightState(movieNight),
     hostId: getRoomHostId(roomId),
     user: {
       id: socketId,
@@ -223,5 +245,90 @@ export const getHealth = () => ({
 });
 
 export const getSocketCount = () => socketLatencyData.size;
+
+export const getMovieNightState = (roomId) => cloneMovieNightState(rooms.get(roomId).movieNight);
+
+export const addMovieNightNomination = ({ socketId, nomination }) => {
+  const movieNight = getSocketMovieNightState(socketId);
+
+  if (
+    nomination.nominationKey
+    && movieNight.nominations
+      .some((existing) => existing.nominationKey === nomination.nominationKey)
+  ) {
+    return;
+  }
+
+  movieNight.nominations.push({
+    ...nomination,
+    id: movieNight.nextNominationId,
+  });
+
+  movieNight.nextNominationId += 1;
+};
+
+export const removeMovieNightNomination = ({ socketId, id }) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  movieNight.nominations = movieNight.nominations
+    .filter((nomination) => nomination.id !== id);
+};
+
+export const addMovieNightPlaylistItem = ({ socketId, item }) => {
+  const movieNight = getSocketMovieNightState(socketId);
+
+  if (
+    item.playlistKey
+    && movieNight.playlist.some((existing) => existing.playlistKey === item.playlistKey)
+  ) {
+    return;
+  }
+
+  movieNight.playlist.push({
+    ...item,
+    id: movieNight.nextPlaylistItemId,
+  });
+
+  movieNight.nextPlaylistItemId += 1;
+};
+
+export const removeMovieNightPlaylistItem = ({ socketId, id }) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  movieNight.playlist = movieNight.playlist.filter((item) => item.id !== id);
+};
+
+const moveMovieNightPlaylistItem = ({ socketId, id, offset }) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  const index = movieNight.playlist.findIndex((item) => item.id === id);
+  const newIndex = index + offset;
+
+  if (index < 0 || newIndex < 0 || newIndex >= movieNight.playlist.length) {
+    return;
+  }
+
+  const playlist = movieNight.playlist.slice();
+  const [item] = playlist.splice(index, 1);
+  playlist.splice(newIndex, 0, item);
+  movieNight.playlist = playlist;
+};
+
+export const moveMovieNightPlaylistItemUp = ({ socketId, id }) => {
+  moveMovieNightPlaylistItem({ socketId, id, offset: -1 });
+};
+
+export const moveMovieNightPlaylistItemDown = ({ socketId, id }) => {
+  moveMovieNightPlaylistItem({ socketId, id, offset: 1 });
+};
+
+export const clearMovieNightPlaylist = (socketId) => {
+  getSocketMovieNightState(socketId).playlist = [];
+};
+
+export const setMovieNightPlaylistVisibility = ({ socketId, visibility }) => {
+  if (!['private', 'next', 'public'].includes(visibility)) {
+    return;
+  }
+
+  getSocketMovieNightState(socketId).playlistVisibility = visibility;
+};
 
 export const getRoomCount = () => rooms.size;

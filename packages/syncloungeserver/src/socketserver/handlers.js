@@ -5,12 +5,15 @@ import {
   getSocketPingSecret, updateSocketLatency, setSocketLatencyIntervalId, doesSocketHaveRtt,
   setIsPartyPausingEnabledInSocketRoom, updateUserSyncFlexibility, setIsAutoHostEnabledInSocketRoom,
   isPartyPausingEnabledInSocketRoom, isAutoHostEnabledInSocketRoom, initSocketLatencyData,
+  addMovieNightNomination, removeMovieNightNomination, addMovieNightPlaylistItem,
+  removeMovieNightPlaylistItem, moveMovieNightPlaylistItemUp, moveMovieNightPlaylistItemDown,
+  clearMovieNightPlaylist, setMovieNightPlaylistVisibility,
 } from './state';
 
 import {
   removeUserAndUpdateRoom, emitToSocket, logSocket, emitAdjustedUserDataToRoom, announceNewHost,
   emitPlayerStateUpdateToRoom, emitMediaUpdateToRoom, sendPing, emitToSocketRoom, logRoomStats,
-  emitToUserRoomExcept, logSocketStats, logRoomsStats, log,
+  emitToUserRoomExcept, logSocketStats, logRoomsStats, log, emitMovieNightStateToRoom,
 } from './actions';
 
 const join = ({
@@ -312,6 +315,86 @@ const syncFlexibilityUpdate = ({ server, socket, data: syncFlexibility }) => {
   });
 };
 
+const movieNightAddNomination = ({ server, socket, data: nomination }) => {
+  if (!isUserInARoom(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  addMovieNightNomination({ socketId: socket.id, nomination });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightRemoveNomination = ({ server, socket, data: id }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  removeMovieNightNomination({ socketId: socket.id, id });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightAddPlaylistItem = ({ server, socket, data: item }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  addMovieNightPlaylistItem({ socketId: socket.id, item });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightRemovePlaylistItem = ({ server, socket, data: id }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  removeMovieNightPlaylistItem({ socketId: socket.id, id });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightMovePlaylistItemUp = ({ server, socket, data: id }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  moveMovieNightPlaylistItemUp({ socketId: socket.id, id });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightMovePlaylistItemDown = ({ server, socket, data: id }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  moveMovieNightPlaylistItemDown({ socketId: socket.id, id });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightClearPlaylist = ({ server, socket }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  clearMovieNightPlaylist(socket.id);
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightSetPlaylistVisibility = ({ server, socket, data: visibility }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  setMovieNightPlaylistVisibility({ socketId: socket.id, visibility });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
 const kick = ({ server, socket, data: id }) => {
   if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
     socket.disconnect(true);
@@ -349,6 +432,14 @@ const eventHandlers = {
   setAutoHostEnabled,
   partyPause,
   disconnect,
+  movieNightAddNomination,
+  movieNightRemoveNomination,
+  movieNightAddPlaylistItem,
+  movieNightRemovePlaylistItem,
+  movieNightMovePlaylistItemUp,
+  movieNightMovePlaylistItemDown,
+  movieNightClearPlaylist,
+  movieNightSetPlaylistVisibility,
   kick,
 };
 
