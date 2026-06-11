@@ -50,6 +50,17 @@
             </div>
 
             <v-btn
+              v-if="showAddToPlaylistButton"
+              x-small
+              color="primary"
+              class="playlist-button"
+              :disabled="isInPlaylist"
+              @click.stop.prevent="addToPlaylist"
+            >
+              {{ isInPlaylist ? 'Queued' : 'Queue' }}
+            </v-btn>
+
+            <v-btn
               v-if="showNominateButton"
               x-small
               color="primary"
@@ -199,14 +210,22 @@ export default {
     ]),
 
     ...mapGetters('synclounge', [
+      'AM_I_HOST',
       'IS_IN_ROOM',
     ]),
 
     ...mapGetters('movienight', [
+      'IS_IN_PLAYLIST',
       'IS_NOMINATED',
     ]),
 
     nominationKey() {
+      return this.content.machineIdentifier && this.content.ratingKey
+        ? `plex:${this.content.machineIdentifier}:${this.content.ratingKey}`
+        : null;
+    },
+
+    playlistKey() {
       return this.content.machineIdentifier && this.content.ratingKey
         ? `plex:${this.content.machineIdentifier}:${this.content.ratingKey}`
         : null;
@@ -218,8 +237,27 @@ export default {
         : false;
     },
 
+    isInPlaylist() {
+      return this.playlistKey
+        ? this.IS_IN_PLAYLIST(this.playlistKey)
+        : false;
+    },
+
+    isPlayableMovieNightItem() {
+      return this.content.type === 'movie' || this.content.type === 'episode';
+    },
+
     showNominateButton() {
-      return this.IS_IN_ROOM && this.content.type === 'movie' && this.nominationKey;
+      return this.IS_IN_ROOM
+        && this.isPlayableMovieNightItem
+        && this.nominationKey;
+    },
+
+    showAddToPlaylistButton() {
+      return this.IS_IN_ROOM
+        && this.AM_I_HOST
+        && this.isPlayableMovieNightItem
+        && this.playlistKey;
     },
 
     mediaUrl() {
@@ -346,11 +384,18 @@ export default {
   methods: {
     ...mapActions('movienight', [
       'ADD_PLEX_NOMINATION',
+      'ADD_PLEX_PLAYLIST_ITEM',
     ]),
 
     nominateContent() {
       if (!this.isNominated) {
         this.ADD_PLEX_NOMINATION(this.content);
+      }
+    },
+
+    addToPlaylist() {
+      if (!this.isInPlaylist) {
+        this.ADD_PLEX_PLAYLIST_ITEM(this.content);
       }
     },
 
@@ -387,6 +432,13 @@ export default {
 .nominate-button {
   position: absolute;
   right: 4px;
+  bottom: 4px;
+  z-index: 2;
+}
+
+.playlist-button {
+  position: absolute;
+  left: 4px;
   bottom: 4px;
   z-index: 2;
 }
