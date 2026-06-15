@@ -228,6 +228,10 @@ export default {
       return this.$route.meta.showAppBarExtension;
     },
 
+    isControllerWindow() {
+      return this.$route.query.controller === '1';
+    },
+
     sheetColor() {
       return this.GET_BACKGROUND
         ? 'rgba(0,0,0,0.7)'
@@ -262,6 +266,10 @@ export default {
 
   watch: {
     GET_ACTIVE_MEDIA_METADATA(metadata) {
+      if (this.isControllerWindow) {
+        return;
+      }
+
       // This handles regular plex clients (nonslplayer) playback changes
       if (this.IS_IN_ROOM && this.GET_CHOSEN_CLIENT_ID !== slPlayerClientId) {
         if (metadata) {
@@ -274,7 +282,10 @@ export default {
 
     GET_NAVIGATE_TO_PLAYER(navigate) {
       if (navigate) {
-        this.$router.push(this.linkWithRoom({ name: 'WebPlayer' }));
+        if (!this.isControllerWindow) {
+          this.$router.push(this.linkWithRoom({ name: 'WebPlayer' }));
+        }
+
         this.SET_NAVIGATE_TO_PLAYER(false);
       }
     },

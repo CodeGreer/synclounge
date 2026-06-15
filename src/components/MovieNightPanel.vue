@@ -12,6 +12,23 @@
     </v-card-subtitle>
 
     <v-card-text>
+      <v-btn
+        v-if="AM_I_HOST && !isControllerWindow"
+        small
+        outlined
+        block
+        class="mb-3"
+        @click="openBrowserWindow"
+      >
+        <v-icon
+          small
+          left
+        >
+          open_in_new
+        </v-icon>
+        Open Browser Window
+      </v-btn>
+
       <v-alert
         v-if="!showManualEntry"
         dense
@@ -103,6 +120,8 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 
+import linkWithRoom from '@/mixins/linkwithroom';
+
 export default {
   name: 'MovieNightPanel',
 
@@ -110,6 +129,10 @@ export default {
     MovieNightNominationSearch: () => import('@/components/MovieNightNominationSearch.vue'),
     MovieNightPlaylist: () => import('@/components/MovieNightPlaylist.vue'),
   },
+
+  mixins: [
+    linkWithRoom,
+  ],
 
   props: {
     showManualEntry: {
@@ -130,6 +153,10 @@ export default {
 
     nominations() {
       return this.GET_NOMINATIONS;
+    },
+
+    isControllerWindow() {
+      return this.$route.query.controller === '1';
     },
   },
 
@@ -226,6 +253,17 @@ export default {
           ratingKey: nomination.ratingKey,
         },
       });
+    },
+
+    openBrowserWindow() {
+      const route = this.$router.resolve(this.linkWithRoom({
+        name: 'PlexHome',
+        query: {
+          controller: '1',
+        },
+      }));
+
+      window.open(route.href, 'movienight-browser', 'popup,width=1400,height=900');
     },
 
     removeNomination(id) {

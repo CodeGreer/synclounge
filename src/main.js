@@ -24,6 +24,8 @@ const isEqualIfExpectedTrue = (expected, got) => (expected
 const doesServerMatch = (expected, got) => expected.room === got.room
   && isEqualIfExpectedTrue(expected, got);
 
+const isControllerRoute = (route) => route.query.controller === '1';
+
 router.beforeEach(async (to, from, next) => {
   if (!store.getters.GET_CONFIG) {
     await store.dispatch('FETCH_CONFIG');
@@ -56,6 +58,7 @@ router.beforeEach(async (to, from, next) => {
     && store.getters['plex/GET_PLEX_AUTH_TOKEN'] && store.getters['plex/IS_USER_AUTHORIZED']) {
     next({ name: 'RoomCreation' });
   } else if (to.matched.some((record) => record.meta.protected)
+    && !isControllerRoute(to)
     && (!store.getters['synclounge/IS_IN_ROOM']
       || doesServerMatch({
         server: store.getters['synclounge/GET_SERVER'],

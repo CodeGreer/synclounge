@@ -1,12 +1,18 @@
-const linkWithRoom = (getters, { params, ...rest }) => ({
-  ...rest,
-  params: {
-    ...params,
-    room: getters['synclounge/GET_ROOM'],
-    ...(getters['synclounge/GET_SERVER'] && {
-      server: getters['synclounge/GET_SERVER'],
-    }),
-  },
-});
+const linkWithRoom = (getters, { params = {}, query, ...rest }) => {
+  const room = params.room || getters['synclounge/GET_ROOM'];
+  const server = params.server || getters['synclounge/GET_SERVER'];
+
+  return {
+    ...rest,
+    params: {
+      ...params,
+      room,
+      ...(server && {
+        server,
+      }),
+    },
+    ...(query && { query }),
+  };
+};
 
 export default linkWithRoom;
