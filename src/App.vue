@@ -1,7 +1,10 @@
 <template>
   <v-app>
-    <TheSidebarLeft />
-    <router-view name="rightSidebar" />
+    <TheSidebarLeft v-if="!isControllerWindow" />
+    <router-view
+      v-if="!isControllerWindow"
+      name="rightSidebar"
+    />
 
     <v-app-bar
       app
@@ -9,7 +12,10 @@
       :scroll-threshold="1"
       style="z-index: 5;"
     >
-      <v-app-bar-nav-icon @click="SET_LEFT_SIDEBAR_OPEN" />
+      <v-app-bar-nav-icon
+        v-if="!isControllerWindow"
+        @click="SET_LEFT_SIDEBAR_OPEN"
+      />
 
       <router-link
         :to="{ name: 'RoomCreation' }"
@@ -66,7 +72,10 @@
 
       </v-toolbar-items>
 
-      <router-view name="rightSidebarButton" />
+      <router-view
+        v-if="!isControllerWindow"
+        name="rightSidebarButton"
+      />
 
       <template
         v-if="showAppBarExtension"
@@ -223,7 +232,9 @@ export default {
     },
 
     showNowPlaying() {
-      return this.GET_ACTIVE_SERVER_ID && this.GET_CHOSEN_CLIENT_ID !== slPlayerClientId;
+      return !this.isControllerWindow
+        && this.GET_ACTIVE_SERVER_ID
+        && this.GET_CHOSEN_CLIENT_ID !== slPlayerClientId;
     },
 
     showAppBarExtension() {
