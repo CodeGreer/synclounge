@@ -153,6 +153,7 @@ import {
 import redirection from '@/mixins/redirection';
 import clipboard from '@/mixins/clipboard';
 import linkWithRoom from '@/mixins/linkwithroom';
+import movieNightControllerBridge from '@/mixins/movienightcontrollerbridge';
 import { slPlayerClientId } from '@/player/constants';
 
 export default {
@@ -167,6 +168,7 @@ export default {
     redirection,
     clipboard,
     linkWithRoom,
+    movieNightControllerBridge,
   ],
 
   data: () => ({

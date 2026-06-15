@@ -260,6 +260,7 @@
 import { mapActions, mapGetters } from 'vuex';
 import duration from '@/mixins/duration';
 import playMedia from '@/mixins/playmedia';
+import { postMovieNightControllerMessage } from '@/utils/movienightcontrollerchannel';
 
 export default {
   name: 'PlexItem',
@@ -311,6 +312,10 @@ export default {
       'IS_NOMINATED',
     ]),
 
+    isControllerWindow() {
+      return this.$route.query.controller === '1';
+    },
+
     nominationKey() {
       return this.metadata.machineIdentifier && this.metadata.ratingKey
         ? `plex:${this.metadata.machineIdentifier}:${this.metadata.ratingKey}`
@@ -340,14 +345,13 @@ export default {
     },
 
     showNominateButton() {
-      return this.IS_IN_ROOM
+      return (this.IS_IN_ROOM || this.isControllerWindow)
         && this.isPlayableMovieNightItem
         && this.nominationKey;
     },
 
     showAddToPlaylistButton() {
-      return this.IS_IN_ROOM
-        && this.AM_I_HOST
+      return ((this.IS_IN_ROOM && this.AM_I_HOST) || this.isControllerWindow)
         && this.isPlayableMovieNightItem
         && this.playlistKey;
     },
@@ -461,15 +465,39 @@ export default {
     ]),
 
     nominateContent() {
-      if (!this.isNominated) {
-        this.ADD_PLEX_NOMINATION(this.metadata);
+      if (this.isNominated) {
+        return;
       }
+
+      if (this.isControllerWindow) {
+        postMovieNightControllerMessage({
+          room: this.$route.params.room,
+          type: 'command',
+          command: 'addPlexNomination',
+          payload: this.metadata,
+        });
+        return;
+      }
+
+      this.ADD_PLEX_NOMINATION(this.metadata);
     },
 
     addToPlaylist() {
-      if (!this.isInPlaylist) {
-        this.ADD_PLEX_PLAYLIST_ITEM(this.metadata);
+      if (this.isInPlaylist) {
+        return;
       }
+
+      if (this.isControllerWindow) {
+        postMovieNightControllerMessage({
+          room: this.$route.params.room,
+          type: 'command',
+          command: 'addPlexPlaylistItem',
+          payload: this.metadata,
+        });
+        return;
+      }
+
+      this.ADD_PLEX_PLAYLIST_ITEM(this.metadata);
     },
 
     abortRequests() {

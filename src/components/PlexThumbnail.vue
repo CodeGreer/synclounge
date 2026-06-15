@@ -142,6 +142,7 @@ import VanillaTilt from 'vanilla-tilt';
 import contentTitle from '@/mixins/contentTitle';
 import { getAppWidth, getAppHeight } from '@/utils/sizing';
 import contentLink from '@/mixins/contentlink';
+import { postMovieNightControllerMessage } from '@/utils/movienightcontrollerchannel';
 
 const imageWidths = [
   100, 200, 300, 400, 600, 800, 1000, 2000, 4000, 8000,
@@ -219,6 +220,10 @@ export default {
       'IS_NOMINATED',
     ]),
 
+    isControllerWindow() {
+      return this.$route.query.controller === '1';
+    },
+
     nominationKey() {
       return this.content.machineIdentifier && this.content.ratingKey
         ? `plex:${this.content.machineIdentifier}:${this.content.ratingKey}`
@@ -248,14 +253,13 @@ export default {
     },
 
     showNominateButton() {
-      return this.IS_IN_ROOM
+      return (this.IS_IN_ROOM || this.isControllerWindow)
         && this.isPlayableMovieNightItem
         && this.nominationKey;
     },
 
     showAddToPlaylistButton() {
-      return this.IS_IN_ROOM
-        && this.AM_I_HOST
+      return ((this.IS_IN_ROOM && this.AM_I_HOST) || this.isControllerWindow)
         && this.isPlayableMovieNightItem
         && this.playlistKey;
     },
@@ -388,15 +392,39 @@ export default {
     ]),
 
     nominateContent() {
-      if (!this.isNominated) {
-        this.ADD_PLEX_NOMINATION(this.content);
+      if (this.isNominated) {
+        return;
       }
+
+      if (this.isControllerWindow) {
+        postMovieNightControllerMessage({
+          room: this.$route.params.room,
+          type: 'command',
+          command: 'addPlexNomination',
+          payload: this.content,
+        });
+        return;
+      }
+
+      this.ADD_PLEX_NOMINATION(this.content);
     },
 
     addToPlaylist() {
-      if (!this.isInPlaylist) {
-        this.ADD_PLEX_PLAYLIST_ITEM(this.content);
+      if (this.isInPlaylist) {
+        return;
       }
+
+      if (this.isControllerWindow) {
+        postMovieNightControllerMessage({
+          room: this.$route.params.room,
+          type: 'command',
+          command: 'addPlexPlaylistItem',
+          payload: this.content,
+        });
+        return;
+      }
+
+      this.ADD_PLEX_PLAYLIST_ITEM(this.content);
     },
 
     getImageUrl(width) {
