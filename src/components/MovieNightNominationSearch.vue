@@ -81,6 +81,7 @@
 import { CAF } from 'caf';
 import { mapActions, mapGetters } from 'vuex';
 import contentTitle from '@/mixins/contentTitle';
+import { postMovieNightControllerMessage } from '@/utils/movienightcontrollerchannel';
 
 const debounceTime = 250;
 const nominatableTypes = ['movie', 'show', 'series', 'episode'];
@@ -109,6 +110,10 @@ export default {
     ...mapGetters('movienight', [
       'IS_NOMINATED',
     ]),
+
+    isControllerWindow() {
+      return this.$route.query.controller === '1';
+    },
   },
 
   watch: {
@@ -152,7 +157,17 @@ export default {
         return;
       }
 
-      this.ADD_PLEX_NOMINATION(item);
+      if (this.isControllerWindow) {
+        postMovieNightControllerMessage({
+          room: this.$route.params.room,
+          type: 'command',
+          command: 'addPlexNomination',
+          payload: item,
+        });
+      } else {
+        this.ADD_PLEX_NOMINATION(item);
+      }
+
       this.clear();
     },
 

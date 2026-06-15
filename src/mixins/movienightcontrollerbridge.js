@@ -145,7 +145,7 @@ export default {
       this.$store.commit('movienight/SET_MOVIENIGHT_STATE', payload);
     },
 
-    handleMovieNightControllerHostMessage(message) {
+    async handleMovieNightControllerHostMessage(message) {
       if (!this.canReceiveMovieNightControllerCommands) {
         return;
       }
@@ -168,9 +168,57 @@ export default {
           this.$store.dispatch('movienight/ADD_PLEX_PLAYLIST_ITEM', message.payload);
           break;
 
+        case 'removeNomination':
+          this.$store.dispatch('movienight/REMOVE_NOMINATION', message.payload.id);
+          break;
+
+        case 'removePlaylistItem':
+          this.$store.dispatch('movienight/REMOVE_PLAYLIST_ITEM', message.payload.id);
+          break;
+
+        case 'movePlaylistItemUp':
+          this.$store.dispatch('movienight/MOVE_PLAYLIST_ITEM_UP', message.payload.id);
+          break;
+
+        case 'movePlaylistItemDown':
+          this.$store.dispatch('movienight/MOVE_PLAYLIST_ITEM_DOWN', message.payload.id);
+          break;
+
+        case 'clearPlaylist':
+          this.$store.dispatch('movienight/CLEAR_PLAYLIST');
+          break;
+
+        case 'setPlaylistVisibility':
+          this.$store.dispatch('movienight/SET_PLAYLIST_VISIBILITY', message.payload.visibility);
+          break;
+
+        case 'playPlaylistItem':
+          await this.playMovieNightControllerPlaylistItem(message.payload.item);
+          break;
+
+        case 'playAndRemovePlaylistItem':
+          await this.playMovieNightControllerPlaylistItem(message.payload.item);
+          this.$store.dispatch('movienight/REMOVE_PLAYLIST_ITEM', message.payload.item.id);
+          break;
+
         default:
           break;
       }
+    },
+
+    async playMovieNightControllerPlaylistItem(item) {
+      const metadata = await this.$store.dispatch('plexservers/FETCH_PLEX_METADATA', {
+        ratingKey: item.ratingKey,
+        machineIdentifier: item.machineIdentifier,
+      });
+
+      await this.$store.dispatch('plexclients/PLAY_MEDIA', {
+        metadata,
+        mediaIndex: 0,
+        machineIdentifier: metadata.machineIdentifier,
+        offset: 0,
+        userInitiated: true,
+      });
     },
 
     broadcastMovieNightControllerState() {

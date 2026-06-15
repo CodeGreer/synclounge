@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <MovieNightPanel v-if="IS_IN_ROOM" />
+    <MovieNightPanel v-if="IS_IN_ROOM || isControllerWindow" />
 
     <PlexOnDeck :machine-identifier="GET_LAST_SERVER_ID">
       <template #header>
@@ -124,6 +124,10 @@ export default {
     ...mapGetters('synclounge', [
       'IS_IN_ROOM',
     ]),
+
+    isControllerWindow() {
+      return this.$route.query.controller === '1';
+    },
   },
 
   async created() {

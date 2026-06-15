@@ -26,7 +26,7 @@
         >
           open_in_new
         </v-icon>
-        Open Browser Window
+        Open Host Controller
       </v-btn>
 
       <v-alert
@@ -121,6 +121,7 @@
 import { mapActions, mapGetters } from 'vuex';
 
 import linkWithRoom from '@/mixins/linkwithroom';
+import { postMovieNightControllerMessage } from '@/utils/movienightcontrollerchannel';
 
 export default {
   name: 'MovieNightPanel',
@@ -157,6 +158,10 @@ export default {
 
     isControllerWindow() {
       return this.$route.query.controller === '1';
+    },
+
+    canManageMovieNight() {
+      return this.AM_I_HOST || this.isControllerWindow;
     },
   },
 
@@ -223,13 +228,23 @@ export default {
     },
 
     canAddNominationToPlaylist(nomination) {
-      return this.AM_I_HOST
+      return this.canManageMovieNight
         && this.isPlayableNomination(nomination)
         && this.canOpenNomination(nomination);
     },
 
     addNominationToPlaylist(nomination) {
       if (!this.canAddNominationToPlaylist(nomination)) {
+        return;
+      }
+
+      if (this.isControllerWindow) {
+        postMovieNightControllerMessage({
+          room: this.$route.params.room,
+          type: 'command',
+          command: 'addPlexPlaylistItem',
+          payload: nomination,
+        });
         return;
       }
 
@@ -245,14 +260,13 @@ export default {
         return;
       }
 
-      this.$router.push({
+      this.$router.push(this.linkWithRoom({
         name: 'PlexMedia',
         params: {
-          room: this.$route.params.room,
           machineIdentifier: nomination.machineIdentifier,
           ratingKey: nomination.ratingKey,
         },
-      });
+      }));
     },
 
     openBrowserWindow() {
@@ -267,6 +281,16 @@ export default {
     },
 
     removeNomination(id) {
+      if (this.isControllerWindow) {
+        postMovieNightControllerMessage({
+          room: this.$route.params.room,
+          type: 'command',
+          command: 'removeNomination',
+          payload: { id },
+        });
+        return;
+      }
+
       this.REMOVE_NOMINATION(id);
     },
   },
