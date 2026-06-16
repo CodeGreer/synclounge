@@ -2,13 +2,25 @@
 
 This checklist defines what should be true before trying MovieNight with the regular group.
 
+## Current beta constraints
+
+MovieNight currently inherits SyncLounge's Plex authentication model.
+
+Every beta participant must sign in with Plex credentials and must have access
+to the relevant Plex server/library. MovieNight does not currently support
+anonymous guests, local-only guest accounts, or voting-only users.
+
+Because of this, real guest joining, guest voting clarity, host transfer between
+users, and multi-household sync require additional Plex-authenticated testers.
+
 ## Core room flow
 
 - [ ] Host can create/join a room.
-- [ ] Guests can join the same room.
+- [ ] Plex-authenticated guests can join the same room.
 - [ ] Host can start playback.
 - [ ] Guests sync playback to the host.
 - [ ] Host transfer still works for normal participants.
+- [ ] Previous host's controller becomes inactive after host transfer.
 - [ ] Controller windows do not become participants or hosts.
 
 ## Host Controller
@@ -20,6 +32,26 @@ This checklist defines what should be true before trying MovieNight with the reg
 - [ ] Controller can manage votes.
 - [ ] Controller can manage playlist items.
 - [ ] Controller shows guidance to keep the main host/player window open.
+- [ ] Controller shows an inactive warning if its paired player is no longer host.
+- [ ] Inactive controller controls are hidden or disabled.
+
+## Host transfer and old controller behavior
+
+These checks require at least two Plex-authenticated users.
+
+- [ ] User A is host.
+- [ ] User A opens the Host Controller.
+- [ ] User A confirms controller actions work while User A is host.
+- [ ] Host control transfers from User A to User B.
+- [ ] User A's Host Controller shows a clear inactive-controller message.
+- [ ] User A's Host Controller host controls are hidden or disabled.
+- [ ] User A's Host Controller cannot add nominations.
+- [ ] User A's Host Controller cannot start, close, clear, or run off votes.
+- [ ] User A's Host Controller cannot alter or play playlist items.
+- [ ] User B becomes the active host.
+- [ ] User B can control playback as host.
+- [ ] User B's Host Controller works only if paired with User B's main player window.
+- [ ] No stale controller command from User A changes room state after transfer.
 
 ## Nominations
 
@@ -87,3 +119,4 @@ Expected:
 - Timers and blind voting are deferred.
 - Games are deferred.
 - Dedicated user accounts are deferred.
+- Anonymous or Plex-free guest access is deferred.

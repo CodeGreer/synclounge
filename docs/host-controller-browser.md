@@ -48,6 +48,15 @@ The Host Controller can currently:
 
 The Host Controller communicates with the real host/player window over a room-scoped BroadcastChannel. The host/player window then executes the normal Vuex/socket actions, keeping the server-backed room state as the source of truth.
 
+If the paired host/player window loses host status, the Host Controller becomes
+inactive. It should show a clear warning that host control moved to another
+participant and that the old controller can be closed. Its host-only controls
+should be hidden or disabled.
+
+The server remains the authority for host-only actions. Client-side controller
+invalidation is a clarity and safety layer so stale controller windows do not
+look usable after host transfer.
+
 ## Playlist behavior
 
 The MovieNight playlist is room-backed state.
@@ -154,6 +163,11 @@ Controller window sends commands such as:
 
 The main player/host window receives those commands and executes the existing Vuex actions.
 
+The same channel also sends controller status back to the Host Controller. When
+the paired player is the active host, the controller is active. When the paired
+player is no longer host, the controller receives inactive status and stops
+presenting host controls.
+
 That keeps the existing socket/server model intact:
 
     controller window
@@ -169,6 +183,11 @@ That keeps the existing socket/server model intact:
 Existing host transfer should stay intact.
 
 The current user-list star control already lets the host transfer duties to another user. We should not rebuild this unless a specific limitation appears.
+
+When host control transfers away from a user, that user's paired Host Controller
+should become inactive. The old controller window cannot be closed remotely, so
+it should show a clear message that it can no longer control the room and can be
+closed.
 
 Auto-host should remain available for normal room participants.
 
