@@ -342,6 +342,9 @@ const removeMovieNightPlaylistItem = ({
 }) => {
   const movieNight = getSocketMovieNightState(socketId);
   movieNight.playlist = movieNight.playlist.filter(item => item.id !== id);
+  if (movieNight.activePlaylistItem && movieNight.activePlaylistItem.id === id) {
+    movieNight.activePlaylistItem = null;
+  }
 };
 exports.removeMovieNightPlaylistItem = removeMovieNightPlaylistItem;
 const moveMovieNightPlaylistItem = ({
@@ -383,7 +386,9 @@ const moveMovieNightPlaylistItemDown = ({
 };
 exports.moveMovieNightPlaylistItemDown = moveMovieNightPlaylistItemDown;
 const clearMovieNightPlaylist = socketId => {
-  getSocketMovieNightState(socketId).playlist = [];
+  const movieNight = getSocketMovieNightState(socketId);
+  movieNight.playlist = [];
+  movieNight.activePlaylistItem = null;
 };
 exports.clearMovieNightPlaylist = clearMovieNightPlaylist;
 const setMovieNightPlaylistVisibility = ({

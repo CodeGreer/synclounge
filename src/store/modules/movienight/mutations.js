@@ -50,6 +50,10 @@ export default {
 
   REMOVE_PLAYLIST_ITEM: (state, id) => {
     state.playlist = state.playlist.filter((item) => item.id !== id);
+
+    if (state.activePlaylistItem && state.activePlaylistItem.id === id) {
+      state.activePlaylistItem = null;
+    }
   },
 
   MOVE_PLAYLIST_ITEM_UP: (state, id) => {
@@ -80,6 +84,7 @@ export default {
 
   CLEAR_PLAYLIST: (state) => {
     state.playlist = [];
+    state.activePlaylistItem = null;
   },
 
   SET_PLAYLIST_VISIBILITY: (state, visibility) => {

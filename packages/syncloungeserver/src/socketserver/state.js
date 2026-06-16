@@ -299,7 +299,12 @@ export const addMovieNightPlaylistItem = ({ socketId, item }) => {
 
 export const removeMovieNightPlaylistItem = ({ socketId, id }) => {
   const movieNight = getSocketMovieNightState(socketId);
+
   movieNight.playlist = movieNight.playlist.filter((item) => item.id !== id);
+
+  if (movieNight.activePlaylistItem && movieNight.activePlaylistItem.id === id) {
+    movieNight.activePlaylistItem = null;
+  }
 };
 
 const moveMovieNightPlaylistItem = ({ socketId, id, offset }) => {
@@ -326,7 +331,10 @@ export const moveMovieNightPlaylistItemDown = ({ socketId, id }) => {
 };
 
 export const clearMovieNightPlaylist = (socketId) => {
-  getSocketMovieNightState(socketId).playlist = [];
+  const movieNight = getSocketMovieNightState(socketId);
+
+  movieNight.playlist = [];
+  movieNight.activePlaylistItem = null;
 };
 
 export const setMovieNightPlaylistVisibility = ({ socketId, visibility }) => {

@@ -149,16 +149,48 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
     state.playlistVisibility === "public"
   ));
 
+  host.emit("movieNightSetPlaylistAutoPlay", true);
+  await waitForState("playlist auto-play", (state) => (
+    state.playlistAutoPlay === true
+  ));
+
+  host.emit("movieNightSetActivePlaylistItem", latestState.playlist[0]);
+  await waitForState("active playlist item", (state) => (
+    state.activePlaylistItem
+    && state.activePlaylistItem.playlistKey === itemTwo.playlistKey
+  ));
+
+  host.emit("movieNightSetActivePlaylistItem", null);
+  await waitForState("active playlist item clear", (state) => (
+    state.activePlaylistItem === null
+  ));
+
+  host.emit("movieNightSetActivePlaylistItem", latestState.playlist[0]);
+  await waitForState("active playlist item reset", (state) => (
+    state.activePlaylistItem
+    && state.activePlaylistItem.playlistKey === itemTwo.playlistKey
+  ));
+
   host.emit("movieNightRemovePlaylistItem", latestState.playlist[0].id);
-  await waitForState("playlist remove", (state) => (
+  await waitForState("playlist remove clears active item", (state) => (
     state.playlist.length === 1
     && state.playlist[0].playlistKey === itemOne.playlistKey
+    && state.activePlaylistItem === null
+  ));
+
+  host.emit("movieNightSetActivePlaylistItem", latestState.playlist[0]);
+  await waitForState("active playlist item before clear", (state) => (
+    state.activePlaylistItem
+    && state.activePlaylistItem.playlistKey === itemOne.playlistKey
   ));
 
   host.emit("movieNightClearPlaylist");
-  await waitForState("playlist clear", (state) => state.playlist.length === 0);
+  await waitForState("playlist clear clears active item", (state) => (
+    state.playlist.length === 0
+    && state.activePlaylistItem === null
+  ));
 
-  pass("MovieNight playlist add/reorder/visibility/remove/clear synced to guest");
+  pass("MovieNight playlist state synced to guest");
 })().catch((error) => {
   fail(error.message);
 });
