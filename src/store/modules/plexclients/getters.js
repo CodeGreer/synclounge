@@ -1,14 +1,29 @@
 import { slPlayerClientId } from '@/player/constants';
 
+const normalizeMovieNightClient = (client) => {
+  if (!client || client.clientIdentifier !== slPlayerClientId) {
+    return client;
+  }
+
+  return {
+    ...client,
+    product: 'MovieNight',
+    name: 'MovieNight Player',
+  };
+};
+
 export default {
   GET_CHOSEN_CLIENT_ID: (state) => state.chosenClientId,
 
   GET_PLEX_CLIENT_IDS: (state) => Object.keys(state.clients),
 
-  GET_PLEX_CLIENT: (state) => (clientIdentifier) => state
-    .clients[clientIdentifier],
+  GET_PLEX_CLIENT: (state) => (clientIdentifier) => normalizeMovieNightClient(
+    state.clients[clientIdentifier],
+  ),
 
-  GET_CHOSEN_CLIENT: (state) => state.clients[state.chosenClientId],
+  GET_CHOSEN_CLIENT: (state) => normalizeMovieNightClient(
+    state.clients[state.chosenClientId],
+  ),
 
   GET_PLEX_CLIENT_IDS_SORTED_BY_LAST_SEEN: (state) => Object.values(state.clients)
     .sort((a, b) => -a.lastSeenAt.localeCompare(b.lastSeenAt))

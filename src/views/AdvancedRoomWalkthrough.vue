@@ -9,11 +9,18 @@
         <v-col
           md="8"
           lg="4"
+          class="text-center"
         >
-          <img
-            style="width: 100%;"
-            src="@/assets/images/logos/logo-long-light.png"
-          >
+          <div class="d-flex align-center justify-center">
+            <v-img
+              contain
+              max-width="56"
+              max-height="56"
+              src="@/assets/images/logos/logo-small-light.png"
+              class="mr-3"
+            />
+            <span class="display-1 font-weight-bold">MovieNight</span>
+          </div>
         </v-col>
       </v-row>
 
