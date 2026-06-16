@@ -58,7 +58,7 @@ const socketServer = ({
   }
 
   server.listen(port, () => {
-    console.log('SyncLounge Server successfully started on port', port);
+    console.log('MovieNight Server successfully started on port', port);
     console.log('Running with base URL:', baseUrl);
   });
 
