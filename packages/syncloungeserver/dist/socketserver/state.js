@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.updateUserSyncFlexibility = exports.updateUserPlayerState = exports.updateUserMedia = exports.updateSocketLatency = exports.setSocketLatencyIntervalId = exports.setMovieNightPlaylistVisibility = exports.setMovieNightPlaylistAutoPlay = exports.setMovieNightActivePlaylistItem = exports.setIsPartyPausingEnabledInSocketRoom = exports.setIsAutoHostEnabledInSocketRoom = exports.removeUser = exports.removeSocketLatencyData = exports.removeRoom = exports.removeMovieNightPlaylistItem = exports.removeMovieNightNomination = exports.moveMovieNightPlaylistItemUp = exports.moveMovieNightPlaylistItemDown = exports.makeUserHost = exports.isUserInRoom = exports.isUserInARoom = exports.isUserHost = exports.isRoomEmpty = exports.isPartyPausingEnabledInSocketRoom = exports.isAutoHostEnabledInSocketRoom = exports.initSocketLatencyData = exports.getUserRoomId = exports.getUserRoom = exports.getSocketPingSecret = exports.getSocketLatency = exports.getSocketCount = exports.getRoomUserData = exports.getRoomSocketIds = exports.getRoomSize = exports.getRoomHostId = exports.getRoomCount = exports.getMovieNightState = exports.getJoinedUserCount = exports.getJoinData = exports.getHealth = exports.getAnySocketIdInRoom = exports.generateAndSetSocketLatencySecret = exports.formatUserData = exports.doesSocketHaveRtt = exports.doesRoomExist = exports.createRoom = exports.clearSocketLatencyInterval = exports.clearMovieNightPlaylist = exports.addUserToRoom = exports.addMovieNightPlaylistItem = exports.addMovieNightNomination = void 0;
+exports.updateUserSyncFlexibility = exports.updateUserPlayerState = exports.updateUserMedia = exports.updateSocketLatency = exports.startMovieNightApprovalPollFromNominations = exports.setSocketLatencyIntervalId = exports.setMovieNightPollApproval = exports.setMovieNightPlaylistVisibility = exports.setMovieNightPlaylistAutoPlay = exports.setMovieNightActivePlaylistItem = exports.setIsPartyPausingEnabledInSocketRoom = exports.setIsAutoHostEnabledInSocketRoom = exports.removeUser = exports.removeSocketLatencyData = exports.removeRoom = exports.removeMovieNightPlaylistItem = exports.removeMovieNightNomination = exports.moveMovieNightPlaylistItemUp = exports.moveMovieNightPlaylistItemDown = exports.makeUserHost = exports.isUserInRoom = exports.isUserInARoom = exports.isUserHost = exports.isRoomEmpty = exports.isPartyPausingEnabledInSocketRoom = exports.isAutoHostEnabledInSocketRoom = exports.initSocketLatencyData = exports.getUserRoomId = exports.getUserRoom = exports.getSocketPingSecret = exports.getSocketLatency = exports.getSocketCount = exports.getRoomUserData = exports.getRoomSocketIds = exports.getRoomSize = exports.getRoomHostId = exports.getRoomCount = exports.getMovieNightState = exports.getJoinedUserCount = exports.getJoinData = exports.getHealth = exports.getAnySocketIdInRoom = exports.generateAndSetSocketLatencySecret = exports.formatUserData = exports.doesSocketHaveRtt = exports.doesRoomExist = exports.createRoom = exports.closeMovieNightPoll = exports.clearSocketLatencyInterval = exports.clearMovieNightPoll = exports.clearMovieNightPlaylist = exports.addUserToRoom = exports.addMovieNightPlaylistItem = exports.addMovieNightNomination = void 0;
 var _uuid = require("uuid");
 const _excluded = ["recipientId", "updatedAt", "playbackRate", "state", "time"];
 function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var n = Object.getOwnPropertySymbols(e); for (r = 0; r < n.length; r++) o = n[r], t.indexOf(o) >= 0 || {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
@@ -27,20 +27,30 @@ exports.getRoomUserData = getRoomUserData;
 const createMovieNightState = () => ({
   nextNominationId: 1,
   nextPlaylistItemId: 1,
+  nextPollId: 1,
   nominations: [],
   playlist: [],
   playlistVisibility: 'next',
   playlistAutoPlay: false,
-  activePlaylistItem: null
+  activePlaylistItem: null,
+  activePoll: null
 });
+const cloneMovieNightPoll = poll => poll ? _objectSpread(_objectSpread({}, poll), {}, {
+  candidates: poll.candidates.map(candidate => _objectSpread({}, candidate)),
+  votesBySocketId: Object.entries(poll.votesBySocketId || {}).reduce((votes, [socketId, candidateIds]) => _objectSpread(_objectSpread({}, votes), {}, {
+    [socketId]: candidateIds.slice()
+  }), {})
+}) : null;
 const cloneMovieNightState = movieNight => ({
   nextNominationId: movieNight.nextNominationId,
   nextPlaylistItemId: movieNight.nextPlaylistItemId,
+  nextPollId: movieNight.nextPollId,
   nominations: movieNight.nominations.map(nomination => _objectSpread({}, nomination)),
   playlist: movieNight.playlist.map(item => _objectSpread({}, item)),
   playlistVisibility: movieNight.playlistVisibility,
   playlistAutoPlay: Boolean(movieNight.playlistAutoPlay),
-  activePlaylistItem: movieNight.activePlaylistItem ? _objectSpread({}, movieNight.activePlaylistItem) : null
+  activePlaylistItem: movieNight.activePlaylistItem ? _objectSpread({}, movieNight.activePlaylistItem) : null,
+  activePoll: cloneMovieNightPoll(movieNight.activePoll)
 });
 const getSocketMovieNightState = socketId => getUserRoom(socketId).movieNight;
 const getUniqueUsername = ({
@@ -420,5 +430,72 @@ const setMovieNightActivePlaylistItem = ({
   } : null;
 };
 exports.setMovieNightActivePlaylistItem = setMovieNightActivePlaylistItem;
+const createApprovalPollFromNominations = movieNight => ({
+  id: movieNight.nextPollId,
+  source: 'nominations',
+  mode: 'approval',
+  status: 'open',
+  candidates: movieNight.nominations.map(nomination => _objectSpread({}, nomination)),
+  votesBySocketId: {},
+  createdAt: new Date().toISOString(),
+  closedAt: null
+});
+const startMovieNightApprovalPollFromNominations = ({
+  socketId
+}) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  if (movieNight.nominations.length === 0) {
+    return;
+  }
+  movieNight.activePoll = createApprovalPollFromNominations(movieNight);
+  movieNight.nextPollId += 1;
+};
+exports.startMovieNightApprovalPollFromNominations = startMovieNightApprovalPollFromNominations;
+const setMovieNightPollApproval = ({
+  socketId,
+  candidateId,
+  approved
+}) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  const {
+    activePoll
+  } = movieNight;
+  if (!activePoll || activePoll.status !== 'open') {
+    return;
+  }
+  const candidateExists = activePoll.candidates.some(candidate => String(candidate.id) === String(candidateId));
+  if (!candidateExists) {
+    return;
+  }
+  const approvals = new Set(activePoll.votesBySocketId[socketId] || []);
+  if (approved) {
+    approvals.add(candidateId);
+  } else {
+    approvals["delete"](candidateId);
+  }
+  if (approvals.size > 0) {
+    activePoll.votesBySocketId[socketId] = Array.from(approvals);
+  } else {
+    delete activePoll.votesBySocketId[socketId];
+  }
+};
+exports.setMovieNightPollApproval = setMovieNightPollApproval;
+const closeMovieNightPoll = ({
+  socketId
+}) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  if (!movieNight.activePoll || movieNight.activePoll.status !== 'open') {
+    return;
+  }
+  movieNight.activePoll.status = 'closed';
+  movieNight.activePoll.closedAt = new Date().toISOString();
+};
+exports.closeMovieNightPoll = closeMovieNightPoll;
+const clearMovieNightPoll = ({
+  socketId
+}) => {
+  getSocketMovieNightState(socketId).activePoll = null;
+};
+exports.clearMovieNightPoll = clearMovieNightPoll;
 const getRoomCount = () => rooms.size;
 exports.getRoomCount = getRoomCount;

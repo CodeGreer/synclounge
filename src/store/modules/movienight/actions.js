@@ -168,6 +168,49 @@ export default {
     });
   },
 
+  START_APPROVAL_POLL_FROM_NOMINATIONS: ({ commit, rootGetters }) => {
+    emitOrCommit({
+      commit,
+      rootGetters,
+      eventName: 'movieNightStartApprovalPollFromNominations',
+      mutation: 'START_APPROVAL_POLL_FROM_NOMINATIONS',
+      data: null,
+    });
+  },
+
+  SET_POLL_APPROVAL: ({ commit, rootGetters }, data) => {
+    emitOrCommit({
+      commit,
+      rootGetters,
+      eventName: 'movieNightSetPollApproval',
+      mutation: 'SET_POLL_APPROVAL',
+      data: {
+        voterId: 'local',
+        ...data,
+      },
+    });
+  },
+
+  CLOSE_POLL: ({ commit, rootGetters }) => {
+    emitOrCommit({
+      commit,
+      rootGetters,
+      eventName: 'movieNightClosePoll',
+      mutation: 'CLOSE_POLL',
+      data: null,
+    });
+  },
+
+  CLEAR_POLL: ({ commit, rootGetters }) => {
+    emitOrCommit({
+      commit,
+      rootGetters,
+      eventName: 'movieNightClearPoll',
+      mutation: 'CLEAR_POLL',
+      data: null,
+    });
+  },
+
   HANDLE_PLAYLIST_ITEM_ENDED: async ({
     state, getters, commit, dispatch,
   }, metadata) => {

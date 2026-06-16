@@ -17,16 +17,31 @@ export const getRoomUserData = (socketId) => getUserRoom(socketId)
 const createMovieNightState = () => ({
   nextNominationId: 1,
   nextPlaylistItemId: 1,
+  nextPollId: 1,
   nominations: [],
   playlist: [],
   playlistVisibility: 'next',
   playlistAutoPlay: false,
   activePlaylistItem: null,
+  activePoll: null,
 });
+
+const cloneMovieNightPoll = (poll) => (poll
+  ? {
+    ...poll,
+    candidates: poll.candidates.map((candidate) => ({ ...candidate })),
+    votesBySocketId: Object.entries(poll.votesBySocketId || {})
+      .reduce((votes, [socketId, candidateIds]) => ({
+        ...votes,
+        [socketId]: candidateIds.slice(),
+      }), {}),
+  }
+  : null);
 
 const cloneMovieNightState = (movieNight) => ({
   nextNominationId: movieNight.nextNominationId,
   nextPlaylistItemId: movieNight.nextPlaylistItemId,
+  nextPollId: movieNight.nextPollId,
   nominations: movieNight.nominations.map((nomination) => ({ ...nomination })),
   playlist: movieNight.playlist.map((item) => ({ ...item })),
   playlistVisibility: movieNight.playlistVisibility,
@@ -34,6 +49,7 @@ const cloneMovieNightState = (movieNight) => ({
   activePlaylistItem: movieNight.activePlaylistItem
     ? { ...movieNight.activePlaylistItem }
     : null,
+  activePoll: cloneMovieNightPoll(movieNight.activePoll),
 });
 
 const getSocketMovieNightState = (socketId) => getUserRoom(socketId).movieNight;
@@ -358,6 +374,75 @@ export const setMovieNightActivePlaylistItem = ({ socketId, item }) => {
       ratingKey: item.ratingKey,
     }
     : null;
+};
+
+const createApprovalPollFromNominations = (movieNight) => ({
+  id: movieNight.nextPollId,
+  source: 'nominations',
+  mode: 'approval',
+  status: 'open',
+  candidates: movieNight.nominations.map((nomination) => ({ ...nomination })),
+  votesBySocketId: {},
+  createdAt: new Date().toISOString(),
+  closedAt: null,
+});
+
+export const startMovieNightApprovalPollFromNominations = ({ socketId }) => {
+  const movieNight = getSocketMovieNightState(socketId);
+
+  if (movieNight.nominations.length === 0) {
+    return;
+  }
+
+  movieNight.activePoll = createApprovalPollFromNominations(movieNight);
+  movieNight.nextPollId += 1;
+};
+
+export const setMovieNightPollApproval = ({
+  socketId, candidateId, approved,
+}) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  const { activePoll } = movieNight;
+
+  if (!activePoll || activePoll.status !== 'open') {
+    return;
+  }
+
+  const candidateExists = activePoll.candidates
+    .some((candidate) => String(candidate.id) === String(candidateId));
+
+  if (!candidateExists) {
+    return;
+  }
+
+  const approvals = new Set(activePoll.votesBySocketId[socketId] || []);
+
+  if (approved) {
+    approvals.add(candidateId);
+  } else {
+    approvals.delete(candidateId);
+  }
+
+  if (approvals.size > 0) {
+    activePoll.votesBySocketId[socketId] = Array.from(approvals);
+  } else {
+    delete activePoll.votesBySocketId[socketId];
+  }
+};
+
+export const closeMovieNightPoll = ({ socketId }) => {
+  const movieNight = getSocketMovieNightState(socketId);
+
+  if (!movieNight.activePoll || movieNight.activePoll.status !== 'open') {
+    return;
+  }
+
+  movieNight.activePoll.status = 'closed';
+  movieNight.activePoll.closedAt = new Date().toISOString();
+};
+
+export const clearMovieNightPoll = ({ socketId }) => {
+  getSocketMovieNightState(socketId).activePoll = null;
 };
 
 export const getRoomCount = () => rooms.size;

@@ -8,7 +8,8 @@ import {
   addMovieNightNomination, removeMovieNightNomination, addMovieNightPlaylistItem,
   removeMovieNightPlaylistItem, moveMovieNightPlaylistItemUp, moveMovieNightPlaylistItemDown,
   clearMovieNightPlaylist, setMovieNightPlaylistVisibility, setMovieNightPlaylistAutoPlay,
-  setMovieNightActivePlaylistItem,
+  setMovieNightActivePlaylistItem, startMovieNightApprovalPollFromNominations,
+  setMovieNightPollApproval, closeMovieNightPoll, clearMovieNightPoll,
 } from './state';
 
 import {
@@ -416,6 +417,50 @@ const movieNightSetActivePlaylistItem = ({ server, socket, data: item }) => {
   emitMovieNightStateToRoom({ server, socketId: socket.id });
 };
 
+const movieNightStartApprovalPollFromNominations = ({ server, socket }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  startMovieNightApprovalPollFromNominations({ socketId: socket.id });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightSetPollApproval = ({ server, socket, data }) => {
+  if (!isUserInARoom(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  setMovieNightPollApproval({
+    socketId: socket.id,
+    candidateId: data && data.candidateId,
+    approved: Boolean(data && data.approved),
+  });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightClosePoll = ({ server, socket }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  closeMovieNightPoll({ socketId: socket.id });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
+const movieNightClearPoll = ({ server, socket }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  clearMovieNightPoll({ socketId: socket.id });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
 const kick = ({ server, socket, data: id }) => {
   if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
     socket.disconnect(true);
@@ -463,6 +508,10 @@ const eventHandlers = {
   movieNightSetPlaylistVisibility,
   movieNightSetPlaylistAutoPlay,
   movieNightSetActivePlaylistItem,
+  movieNightStartApprovalPollFromNominations,
+  movieNightSetPollApproval,
+  movieNightClosePoll,
+  movieNightClearPoll,
   kick,
 };
 

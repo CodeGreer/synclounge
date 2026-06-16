@@ -541,6 +541,73 @@ const movieNightSetActivePlaylistItem = ({
     socketId: socket.id
   });
 };
+const movieNightStartApprovalPollFromNominations = ({
+  server,
+  socket
+}) => {
+  if (!(0, _state.isUserInARoom)(socket.id) || !(0, _state.isUserHost)(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+  (0, _state.startMovieNightApprovalPollFromNominations)({
+    socketId: socket.id
+  });
+  (0, _actions.emitMovieNightStateToRoom)({
+    server,
+    socketId: socket.id
+  });
+};
+const movieNightSetPollApproval = ({
+  server,
+  socket,
+  data
+}) => {
+  if (!(0, _state.isUserInARoom)(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+  (0, _state.setMovieNightPollApproval)({
+    socketId: socket.id,
+    candidateId: data && data.candidateId,
+    approved: Boolean(data && data.approved)
+  });
+  (0, _actions.emitMovieNightStateToRoom)({
+    server,
+    socketId: socket.id
+  });
+};
+const movieNightClosePoll = ({
+  server,
+  socket
+}) => {
+  if (!(0, _state.isUserInARoom)(socket.id) || !(0, _state.isUserHost)(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+  (0, _state.closeMovieNightPoll)({
+    socketId: socket.id
+  });
+  (0, _actions.emitMovieNightStateToRoom)({
+    server,
+    socketId: socket.id
+  });
+};
+const movieNightClearPoll = ({
+  server,
+  socket
+}) => {
+  if (!(0, _state.isUserInARoom)(socket.id) || !(0, _state.isUserHost)(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+  (0, _state.clearMovieNightPoll)({
+    socketId: socket.id
+  });
+  (0, _actions.emitMovieNightStateToRoom)({
+    server,
+    socketId: socket.id
+  });
+};
 const kick = ({
   server,
   socket,
@@ -591,6 +658,10 @@ const eventHandlers = {
   movieNightSetPlaylistVisibility,
   movieNightSetPlaylistAutoPlay,
   movieNightSetActivePlaylistItem,
+  movieNightStartApprovalPollFromNominations,
+  movieNightSetPollApproval,
+  movieNightClosePoll,
+  movieNightClearPoll,
   kick
 };
 const attachEventHandlers = ({

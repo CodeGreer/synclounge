@@ -9,6 +9,25 @@ export default {
 
   GET_ACTIVE_PLAYLIST_ITEM: (state) => state.activePlaylistItem,
 
+  GET_ACTIVE_POLL: (state) => state.activePoll,
+
+  GET_ACTIVE_POLL_RESULTS: (state) => {
+    if (!state.activePoll) {
+      return [];
+    }
+
+    const votesBySocketId = state.activePoll.votesBySocketId || {};
+    const approvals = Object.values(votesBySocketId).flat();
+
+    return state.activePoll.candidates
+      .map((candidate) => ({
+        ...candidate,
+        approvalCount: approvals
+          .filter((candidateId) => String(candidateId) === String(candidate.id)).length,
+      }))
+      .sort((a, b) => b.approvalCount - a.approvalCount);
+  },
+
   IS_NOMINATED: (state) => (nominationKey) => state.nominations
     .some((nomination) => nomination.nominationKey === nominationKey),
 

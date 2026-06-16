@@ -1,7 +1,57 @@
+const createApprovalPollFromNominations = (state) => ({
+  id: state.nextPollId,
+  source: 'nominations',
+  mode: 'approval',
+  status: 'open',
+  candidates: state.nominations.map((nomination) => ({ ...nomination })),
+  votesBySocketId: {},
+  createdAt: new Date().toISOString(),
+  closedAt: null,
+});
+
+const setPollApproval = ({
+  poll, voterId, candidateId, approved,
+}) => {
+  if (!poll || poll.status !== 'open') {
+    return poll;
+  }
+
+  const candidateExists = poll.candidates
+    .some((candidate) => String(candidate.id) === String(candidateId));
+
+  if (!candidateExists) {
+    return poll;
+  }
+
+  const votesBySocketId = {
+    ...(poll.votesBySocketId || {}),
+  };
+
+  const currentApprovals = new Set(votesBySocketId[voterId] || []);
+
+  if (approved) {
+    currentApprovals.add(candidateId);
+  } else {
+    currentApprovals.delete(candidateId);
+  }
+
+  if (currentApprovals.size > 0) {
+    votesBySocketId[voterId] = Array.from(currentApprovals);
+  } else {
+    delete votesBySocketId[voterId];
+  }
+
+  return {
+    ...poll,
+    votesBySocketId,
+  };
+};
+
 export default {
   SET_MOVIENIGHT_STATE: (state, movieNight = {}) => {
     state.nextNominationId = movieNight.nextNominationId || 1;
     state.nextPlaylistItemId = movieNight.nextPlaylistItemId || 1;
+    state.nextPollId = movieNight.nextPollId || 1;
     state.nominations = movieNight.nominations || [];
     state.playlist = movieNight.playlist || [];
     state.playlistVisibility = movieNight.playlistVisibility || 'next';
@@ -9,6 +59,10 @@ export default {
 
     if (Object.prototype.hasOwnProperty.call(movieNight, 'activePlaylistItem')) {
       state.activePlaylistItem = movieNight.activePlaylistItem;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(movieNight, 'activePoll')) {
+      state.activePoll = movieNight.activePoll;
     }
   },
 
@@ -108,5 +162,41 @@ export default {
         ratingKey: item.ratingKey,
       }
       : null;
+  },
+
+  START_APPROVAL_POLL_FROM_NOMINATIONS: (state) => {
+    if (state.nominations.length === 0) {
+      return;
+    }
+
+    state.activePoll = createApprovalPollFromNominations(state);
+    state.nextPollId += 1;
+  },
+
+  SET_POLL_APPROVAL: (state, {
+    voterId = 'local', candidateId, approved,
+  }) => {
+    state.activePoll = setPollApproval({
+      poll: state.activePoll,
+      voterId,
+      candidateId,
+      approved,
+    });
+  },
+
+  CLOSE_POLL: (state) => {
+    if (!state.activePoll || state.activePoll.status !== 'open') {
+      return;
+    }
+
+    state.activePoll = {
+      ...state.activePoll,
+      status: 'closed',
+      closedAt: new Date().toISOString(),
+    };
+  },
+
+  CLEAR_POLL: (state) => {
+    state.activePoll = null;
   },
 };

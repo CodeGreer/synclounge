@@ -16,6 +16,7 @@ const roomId = process.env.ROOM_ID;
 const itemOne = {
   source: "plex",
   playlistKey: "plex:smoke-server:smoke-rating-key-1",
+  nominationKey: "plex:smoke-server:smoke-rating-key-1",
   title: "MovieNight Smoke Test One",
   year: 2026,
   type: "movie",
@@ -30,6 +31,7 @@ const itemOne = {
 const itemTwo = {
   source: "plex",
   playlistKey: "plex:smoke-server:smoke-rating-key-2",
+  nominationKey: "plex:smoke-server:smoke-rating-key-2",
   title: "MovieNight Smoke Test Two",
   year: 2026,
   type: "movie",
@@ -126,6 +128,81 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
     stateWaiters.slice().forEach((check) => check(state));
   });
 
+  host.emit("movieNightAddNomination", itemOne);
+  await waitForState("first nomination", (state) => (
+    state.nominations.length === 1
+    && state.nominations[0].nominationKey === itemOne.playlistKey
+  ));
+
+  host.emit("movieNightAddNomination", itemTwo);
+  const nominationState = await waitForState("second nomination", (state) => (
+    state.nominations.length === 2
+    && state.nominations[1].nominationKey === itemTwo.playlistKey
+  ));
+
+  host.emit("movieNightStartApprovalPollFromNominations");
+  const pollState = await waitForState("approval poll open", (state) => (
+    state.activePoll
+    && state.activePoll.status === "open"
+    && state.activePoll.mode === "approval"
+    && state.activePoll.candidates.length === 2
+  ));
+
+  const firstCandidateId = pollState.activePoll.candidates[0].id;
+
+  guest.emit("movieNightSetPollApproval", {
+    candidateId: firstCandidateId,
+    approved: true,
+  });
+
+  await waitForState("guest poll approval", (state) => (
+    state.activePoll
+    && state.activePoll.votesBySocketId
+    && state.activePoll.votesBySocketId[guest.id]
+    && state.activePoll.votesBySocketId[guest.id].some(
+      (candidateId) => String(candidateId) === String(firstCandidateId),
+    )
+  ));
+
+  guest.emit("movieNightSetPollApproval", {
+    candidateId: firstCandidateId,
+    approved: false,
+  });
+
+  await waitForState("guest poll approval removed", (state) => (
+    state.activePoll
+    && (
+      !state.activePoll.votesBySocketId[guest.id]
+      || state.activePoll.votesBySocketId[guest.id].length === 0
+    )
+  ));
+
+  guest.emit("movieNightSetPollApproval", {
+    candidateId: firstCandidateId,
+    approved: true,
+  });
+
+  await waitForState("guest poll approval restored", (state) => (
+    state.activePoll
+    && state.activePoll.votesBySocketId
+    && state.activePoll.votesBySocketId[guest.id]
+    && state.activePoll.votesBySocketId[guest.id].some(
+      (candidateId) => String(candidateId) === String(firstCandidateId),
+    )
+  ));
+
+  host.emit("movieNightClosePoll");
+  await waitForState("approval poll closed", (state) => (
+    state.activePoll
+    && state.activePoll.status === "closed"
+    && state.activePoll.closedAt
+  ));
+
+  host.emit("movieNightClearPoll");
+  await waitForState("approval poll cleared", (state) => (
+    state.activePoll === null
+  ));
+
   host.emit("movieNightAddPlaylistItem", itemOne);
   await waitForState("first playlist item", (state) => (
     state.playlist.length === 1
@@ -190,7 +267,7 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
     && state.activePlaylistItem === null
   ));
 
-  pass("MovieNight playlist state synced to guest");
+  pass("MovieNight playlist and poll state synced to guest");
 })().catch((error) => {
   fail(error.message);
 });
