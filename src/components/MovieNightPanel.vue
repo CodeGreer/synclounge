@@ -17,7 +17,7 @@
         small
         outlined
         block
-        class="mb-3"
+        class="mb-2"
         @click="openBrowserWindow"
       >
         <v-icon
@@ -28,6 +28,28 @@
         </v-icon>
         Open Host Controller
       </v-btn>
+
+      <v-alert
+        v-if="AM_I_HOST && !isControllerWindow"
+        dense
+        text
+        type="info"
+        class="mb-3"
+      >
+        Open the Host Controller to browse, nominate, manage voting, and build
+        the playlist without interrupting playback.
+      </v-alert>
+
+      <v-alert
+        v-if="isControllerWindow"
+        dense
+        text
+        type="warning"
+        class="mb-3"
+      >
+        This controller sends commands through your main host/player window.
+        Keep the host/player window open while using it.
+      </v-alert>
 
       <v-alert
         v-if="!showManualEntry"
