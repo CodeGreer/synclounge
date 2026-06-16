@@ -61,7 +61,7 @@
       text
       type="info"
     >
-      The host is managing the playlist.
+      The host is managing the playlist privately.
     </v-alert>
 
     <v-list
@@ -213,7 +213,7 @@
       v-else
       class="text--secondary"
     >
-      No playlist items yet.
+      {{ emptyPlaylistMessage }}
     </div>
   </div>
 </template>
@@ -282,6 +282,19 @@ export default {
       }
 
       return [];
+    },
+
+    emptyPlaylistMessage() {
+      if (this.canManagePlaylist) {
+        return 'No playlist items yet. Add movies or episodes from search, '
+          + 'library pages, or nominations.';
+      }
+
+      if (this.GET_PLAYLIST_VISIBILITY === 'next') {
+        return 'The host is building the playlist. You will see the next shared item here.';
+      }
+
+      return 'No playlist items are currently shared.';
     },
   },
 
