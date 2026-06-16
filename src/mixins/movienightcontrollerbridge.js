@@ -18,15 +18,39 @@ export default {
       return this.$route.params.room || this.$store.getters['synclounge/GET_ROOM'];
     },
 
-    canReceiveMovieNightControllerCommands() {
+    isMovieNightControllerParticipant() {
       return !this.isMovieNightControllerWindow
-        && this.$store.getters['synclounge/IS_IN_ROOM']
+        && this.$store.getters['synclounge/IS_IN_ROOM'];
+    },
+
+    canReceiveMovieNightControllerCommands() {
+      return this.isMovieNightControllerParticipant
         && this.$store.getters['synclounge/AM_I_HOST'];
+    },
+
+    movieNightControllerStatus() {
+      if (this.canReceiveMovieNightControllerCommands) {
+        return {
+          active: true,
+          reason: null,
+          message: null,
+        };
+      }
+
+      return {
+        active: false,
+        reason: 'not_host',
+        message: [
+          'Host control moved to another participant.',
+          'This Host Controller is no longer connected to the active host',
+          'and cannot control the room. You can close this window.',
+        ].join(' '),
+      };
     },
 
     shouldUseMovieNightControllerChannel() {
       return Boolean(this.movieNightControllerRoom)
-        && (this.isMovieNightControllerWindow || this.canReceiveMovieNightControllerCommands);
+        && (this.isMovieNightControllerWindow || this.isMovieNightControllerParticipant);
     },
 
     movieNightControllerNominations() {
@@ -61,6 +85,10 @@ export default {
 
     movieNightControllerRoom() {
       this.resetMovieNightControllerChannel();
+    },
+
+    canReceiveMovieNightControllerCommands() {
+      this.broadcastMovieNightControllerState();
     },
 
     movieNightControllerNominations: {
@@ -173,16 +201,16 @@ export default {
     },
 
     async handleMovieNightControllerHostMessage(message) {
-      if (!this.canReceiveMovieNightControllerCommands) {
-        return;
-      }
-
       if (message.type === 'stateRequest') {
         this.broadcastMovieNightControllerState();
         return;
       }
 
       if (message.type !== 'command') {
+        return;
+      }
+
+      if (!this.canReceiveMovieNightControllerCommands) {
         return;
       }
 
@@ -274,7 +302,7 @@ export default {
     },
 
     broadcastMovieNightControllerState() {
-      if (!this.movieNightControllerChannel || !this.canReceiveMovieNightControllerCommands) {
+      if (!this.movieNightControllerChannel || this.isMovieNightControllerWindow) {
         return;
       }
 
@@ -288,6 +316,7 @@ export default {
           playlistAutoPlay: this.movieNightControllerPlaylistAutoPlay,
           activePlaylistItem: this.movieNightControllerActivePlaylistItem,
           activePoll: this.movieNightControllerActivePoll,
+          controllerStatus: this.movieNightControllerStatus,
         },
       });
     },

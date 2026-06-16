@@ -1,6 +1,7 @@
 <template>
   <v-autocomplete
     dense
+    :disabled="isControllerWindow && !IS_CONTROLLER_ACTIVE"
     :items="items"
     :loading="loading"
     :search-input.sync="query"
@@ -108,11 +109,16 @@ export default {
     ]),
 
     ...mapGetters('movienight', [
+      'IS_CONTROLLER_ACTIVE',
       'IS_NOMINATED',
     ]),
 
     isControllerWindow() {
       return this.$route.query.controller === '1';
+    },
+
+    canSendNomination() {
+      return !this.isControllerWindow || this.IS_CONTROLLER_ACTIVE;
     },
   },
 
@@ -153,7 +159,7 @@ export default {
     },
 
     nominate(item) {
-      if (!this.isNominatable(item)) {
+      if (!this.isNominatable(item) || !this.canSendNomination) {
         return;
       }
 

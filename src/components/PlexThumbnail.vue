@@ -216,6 +216,7 @@ export default {
     ]),
 
     ...mapGetters('movienight', [
+      'IS_CONTROLLER_ACTIVE',
       'IS_IN_PLAYLIST',
       'IS_NOMINATED',
     ]),
@@ -253,13 +254,19 @@ export default {
     },
 
     showNominateButton() {
-      return (this.IS_IN_ROOM || this.isControllerWindow)
+      return (
+        (this.IS_IN_ROOM && !this.isControllerWindow)
+        || (this.isControllerWindow && this.IS_CONTROLLER_ACTIVE)
+      )
         && this.isPlayableMovieNightItem
         && this.nominationKey;
     },
 
     showAddToPlaylistButton() {
-      return ((this.IS_IN_ROOM && this.AM_I_HOST) || this.isControllerWindow)
+      return (
+        (this.IS_IN_ROOM && this.AM_I_HOST)
+        || (this.isControllerWindow && this.IS_CONTROLLER_ACTIVE)
+      )
         && this.isPlayableMovieNightItem
         && this.playlistKey;
     },
@@ -392,7 +399,7 @@ export default {
     ]),
 
     nominateContent() {
-      if (this.isNominated) {
+      if (this.isNominated || !this.showNominateButton) {
         return;
       }
 
@@ -410,7 +417,7 @@ export default {
     },
 
     addToPlaylist() {
-      if (this.isInPlaylist) {
+      if (this.isInPlaylist || !this.showAddToPlaylistButton) {
         return;
       }
 

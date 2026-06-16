@@ -224,6 +224,7 @@ export default {
       'GET_ACTIVE_POLL',
       'GET_ACTIVE_POLL_RESULTS',
       'GET_NOMINATIONS',
+      'IS_CONTROLLER_ACTIVE',
       'IS_IN_PLAYLIST',
     ]),
 
@@ -290,7 +291,7 @@ export default {
     },
 
     canManagePoll() {
-      return this.AM_I_HOST || this.isControllerWindow;
+      return this.AM_I_HOST || (this.isControllerWindow && this.IS_CONTROLLER_ACTIVE);
     },
 
     canVotePoll() {
@@ -367,6 +368,10 @@ export default {
     ]),
 
     startApprovalPoll() {
+      if (!this.canManagePoll) {
+        return;
+      }
+
       if (this.isControllerWindow) {
         postMovieNightControllerMessage({
           room: this.$route.params.room,
@@ -380,6 +385,10 @@ export default {
     },
 
     closePoll() {
+      if (!this.canManagePoll) {
+        return;
+      }
+
       if (this.isControllerWindow) {
         postMovieNightControllerMessage({
           room: this.$route.params.room,
@@ -393,6 +402,10 @@ export default {
     },
 
     clearPoll() {
+      if (!this.canManagePoll) {
+        return;
+      }
+
       if (this.isControllerWindow) {
         postMovieNightControllerMessage({
           room: this.$route.params.room,
@@ -406,6 +419,10 @@ export default {
     },
 
     startRunoff(limit) {
+      if (!this.canManagePoll) {
+        return;
+      }
+
       if (this.isControllerWindow) {
         postMovieNightControllerMessage({
           room: this.$route.params.room,

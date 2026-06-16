@@ -258,6 +258,7 @@ export default {
       'GET_PLAYLIST_VISIBILITY',
       'GET_PLAYLIST_AUTO_PLAY',
       'GET_ACTIVE_PLAYLIST_ITEM',
+      'IS_CONTROLLER_ACTIVE',
     ]),
 
     playlist() {
@@ -269,7 +270,7 @@ export default {
     },
 
     canManagePlaylist() {
-      return this.AM_I_HOST || this.isControllerWindow;
+      return this.AM_I_HOST || (this.isControllerWindow && this.IS_CONTROLLER_ACTIVE);
     },
 
     visiblePlaylist() {
@@ -353,6 +354,10 @@ export default {
     },
 
     sendControllerCommand(command, payload = {}) {
+      if (this.isControllerWindow && !this.IS_CONTROLLER_ACTIVE) {
+        return false;
+      }
+
       return postMovieNightControllerMessage({
         room: this.$route.params.room,
         type: 'command',

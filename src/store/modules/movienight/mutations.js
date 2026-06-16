@@ -119,6 +119,18 @@ export default {
     if (Object.prototype.hasOwnProperty.call(movieNight, 'activePoll')) {
       state.activePoll = movieNight.activePoll;
     }
+
+    if (Object.prototype.hasOwnProperty.call(movieNight, 'controllerStatus')) {
+      state.controllerStatus = {
+        active: Boolean(movieNight.controllerStatus && movieNight.controllerStatus.active),
+        reason: movieNight.controllerStatus && movieNight.controllerStatus.reason
+          ? movieNight.controllerStatus.reason
+          : null,
+        message: movieNight.controllerStatus && movieNight.controllerStatus.message
+          ? movieNight.controllerStatus.message
+          : null,
+      };
+    }
   },
 
   ADD_NOMINATION: (state, nomination) => {

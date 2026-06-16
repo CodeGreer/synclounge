@@ -41,7 +41,7 @@
       </v-alert>
 
       <v-alert
-        v-if="isControllerWindow"
+        v-if="isControllerWindow && isControllerActive"
         dense
         text
         type="warning"
@@ -49,6 +49,16 @@
       >
         This controller sends commands through your main host/player window.
         Keep the host/player window open while using it.
+      </v-alert>
+
+      <v-alert
+        v-if="isControllerWindow && !isControllerActive"
+        dense
+        text
+        type="error"
+        class="mb-3"
+      >
+        {{ controllerInactiveMessage }}
       </v-alert>
 
       <v-alert
@@ -114,6 +124,7 @@
             </v-btn>
 
             <v-btn
+              v-if="canManageMovieNight"
               icon
               small
               title="Remove"
@@ -174,6 +185,8 @@ export default {
 
     ...mapGetters('movienight', [
       'GET_NOMINATIONS',
+      'GET_CONTROLLER_STATUS',
+      'IS_CONTROLLER_ACTIVE',
       'IS_IN_PLAYLIST',
     ]),
 
@@ -185,8 +198,18 @@ export default {
       return this.$route.query.controller === '1';
     },
 
+    isControllerActive() {
+      return !this.isControllerWindow || this.IS_CONTROLLER_ACTIVE;
+    },
+
+    controllerInactiveMessage() {
+      return this.GET_CONTROLLER_STATUS && this.GET_CONTROLLER_STATUS.message
+        ? this.GET_CONTROLLER_STATUS.message
+        : 'This Host Controller is not connected to the active host and cannot control the room.';
+    },
+
     canManageMovieNight() {
-      return this.AM_I_HOST || this.isControllerWindow;
+      return this.AM_I_HOST || (this.isControllerWindow && this.IS_CONTROLLER_ACTIVE);
     },
   },
 

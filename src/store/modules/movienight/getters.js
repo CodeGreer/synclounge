@@ -11,6 +11,10 @@ export default {
 
   GET_ACTIVE_POLL: (state) => state.activePoll,
 
+  GET_CONTROLLER_STATUS: (state) => state.controllerStatus,
+
+  IS_CONTROLLER_ACTIVE: (state) => Boolean(state.controllerStatus && state.controllerStatus.active),
+
   GET_ACTIVE_POLL_RESULTS: (state) => {
     if (!state.activePoll) {
       return [];

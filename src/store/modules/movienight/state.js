@@ -8,6 +8,11 @@ const state = () => ({
   playlistAutoPlay: false,
   activePlaylistItem: null,
   activePoll: null,
+  controllerStatus: {
+    active: false,
+    reason: 'waiting_for_host',
+    message: 'Waiting for your main host/player window to connect.',
+  },
 });
 
 export default state;
