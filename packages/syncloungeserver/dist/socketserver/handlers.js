@@ -592,6 +592,24 @@ const movieNightClosePoll = ({
     socketId: socket.id
   });
 };
+const movieNightStartPollRunoff = ({
+  server,
+  socket,
+  data
+}) => {
+  if (!(0, _state.isUserInARoom)(socket.id) || !(0, _state.isUserHost)(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+  (0, _state.startMovieNightPollRunoff)({
+    socketId: socket.id,
+    limit: data && data.limit
+  });
+  (0, _actions.emitMovieNightStateToRoom)({
+    server,
+    socketId: socket.id
+  });
+};
 const movieNightClearPoll = ({
   server,
   socket
@@ -661,6 +679,7 @@ const eventHandlers = {
   movieNightStartApprovalPollFromNominations,
   movieNightSetPollApproval,
   movieNightClosePoll,
+  movieNightStartPollRunoff,
   movieNightClearPoll,
   kick
 };

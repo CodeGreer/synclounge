@@ -5,9 +5,64 @@ const createApprovalPollFromNominations = (state) => ({
   status: 'open',
   candidates: state.nominations.map((nomination) => ({ ...nomination })),
   votesBySocketId: {},
+  round: 1,
   createdAt: new Date().toISOString(),
   closedAt: null,
 });
+
+const getPollResults = (poll) => {
+  const votesBySocketId = poll.votesBySocketId || {};
+  const approvals = Object.values(votesBySocketId).flat();
+
+  return poll.candidates
+    .map((candidate) => ({
+      ...candidate,
+      approvalCount: approvals
+        .filter((candidateId) => String(candidateId) === String(candidate.id)).length,
+    }))
+    .sort((a, b) => b.approvalCount - a.approvalCount);
+};
+
+const normalizeRunoffLimit = (limit) => {
+  const parsedLimit = Number(limit);
+
+  if (!Number.isFinite(parsedLimit)) {
+    return 2;
+  }
+
+  return Math.max(2, Math.min(5, Math.floor(parsedLimit)));
+};
+
+const createApprovalPollRunoff = ({ state, limit }) => {
+  if (!state.activePoll || state.activePoll.status !== 'closed') {
+    return null;
+  }
+
+  const candidates = getPollResults(state.activePoll)
+    .slice(0, normalizeRunoffLimit(limit))
+    .map((candidate) => {
+      const clone = { ...candidate };
+      delete clone.approvalCount;
+      return clone;
+    });
+
+  if (candidates.length < 2) {
+    return null;
+  }
+
+  return {
+    id: state.nextPollId,
+    source: 'runoff',
+    sourcePollId: state.activePoll.id,
+    mode: 'approval',
+    status: 'open',
+    candidates,
+    votesBySocketId: {},
+    round: (state.activePoll.round || 1) + 1,
+    createdAt: new Date().toISOString(),
+    closedAt: null,
+  };
+};
 
 const setPollApproval = ({
   poll, voterId, candidateId, approved,
@@ -194,6 +249,17 @@ export default {
       status: 'closed',
       closedAt: new Date().toISOString(),
     };
+  },
+
+  START_POLL_RUNOFF: (state, limit) => {
+    const runoffPoll = createApprovalPollRunoff({ state, limit });
+
+    if (!runoffPoll) {
+      return;
+    }
+
+    state.activePoll = runoffPoll;
+    state.nextPollId += 1;
   },
 
   CLEAR_POLL: (state) => {

@@ -12,6 +12,9 @@
 
       <div class="text-subtitle-2">
         Approval Vote
+        <span v-if="activePoll && activePoll.round > 1">
+          Round {{ activePoll.round }}
+        </span>
       </div>
 
       <v-spacer />
@@ -113,6 +116,22 @@
         </v-icon>
         {{ addTopResultLabel }}
       </v-btn>
+
+      <div
+        v-if="canStartRunoff"
+        class="d-flex flex-wrap mb-2"
+      >
+        <v-btn
+          v-for="limit in runoffLimits"
+          :key="limit"
+          small
+          outlined
+          class="mr-2 mb-2"
+          @click="startRunoff(limit)"
+        >
+          Runoff Top {{ limit }}
+        </v-btn>
+      </div>
 
       <v-list
         dense
@@ -238,6 +257,17 @@ export default {
         && this.isPlayableCandidate(this.topResult);
     },
 
+    canStartRunoff() {
+      return this.canManagePoll
+        && this.activePoll
+        && this.activePoll.status === 'closed'
+        && this.pollResults.length >= 2;
+    },
+
+    runoffLimits() {
+      return [2, 3, 5].filter((limit) => this.pollResults.length >= limit);
+    },
+
     addTopResultLabel() {
       if (!this.topResult) {
         return 'Add winner to playlist';
@@ -254,6 +284,7 @@ export default {
       'START_APPROVAL_POLL_FROM_NOMINATIONS',
       'SET_POLL_APPROVAL',
       'CLOSE_POLL',
+      'START_POLL_RUNOFF',
       'CLEAR_POLL',
       'ADD_PLEX_PLAYLIST_ITEM',
     ]),
@@ -295,6 +326,20 @@ export default {
       }
 
       this.CLEAR_POLL();
+    },
+
+    startRunoff(limit) {
+      if (this.isControllerWindow) {
+        postMovieNightControllerMessage({
+          room: this.$route.params.room,
+          type: 'command',
+          command: 'startPollRunoff',
+          payload: { limit },
+        });
+        return;
+      }
+
+      this.START_POLL_RUNOFF(limit);
     },
 
     setCandidateApproval(candidate, approved) {

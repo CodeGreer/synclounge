@@ -198,6 +198,41 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
     && state.activePoll.closedAt
   ));
 
+  host.emit("movieNightStartPollRunoff", { limit: 2 });
+  const runoffState = await waitForState("approval poll runoff open", (state) => (
+    state.activePoll
+    && state.activePoll.status === "open"
+    && state.activePoll.source === "runoff"
+    && state.activePoll.sourcePollId
+    && state.activePoll.round === 2
+    && state.activePoll.candidates.length === 2
+    && Object.keys(state.activePoll.votesBySocketId || {}).length === 0
+  ));
+
+  const runoffCandidateId = runoffState.activePoll.candidates[0].id;
+
+  guest.emit("movieNightSetPollApproval", {
+    candidateId: runoffCandidateId,
+    approved: true,
+  });
+
+  await waitForState("guest runoff approval", (state) => (
+    state.activePoll
+    && state.activePoll.votesBySocketId
+    && state.activePoll.votesBySocketId[guest.id]
+    && state.activePoll.votesBySocketId[guest.id].some(
+      (candidateId) => String(candidateId) === String(runoffCandidateId),
+    )
+  ));
+
+  host.emit("movieNightClosePoll");
+  await waitForState("approval poll runoff closed", (state) => (
+    state.activePoll
+    && state.activePoll.status === "closed"
+    && state.activePoll.source === "runoff"
+    && state.activePoll.closedAt
+  ));
+
   host.emit("movieNightClearPoll");
   await waitForState("approval poll cleared", (state) => (
     state.activePoll === null

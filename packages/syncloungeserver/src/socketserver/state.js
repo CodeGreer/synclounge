@@ -383,9 +383,64 @@ const createApprovalPollFromNominations = (movieNight) => ({
   status: 'open',
   candidates: movieNight.nominations.map((nomination) => ({ ...nomination })),
   votesBySocketId: {},
+  round: 1,
   createdAt: new Date().toISOString(),
   closedAt: null,
 });
+
+const getMovieNightPollResults = (poll) => {
+  const votesBySocketId = poll.votesBySocketId || {};
+  const approvals = Object.values(votesBySocketId).flat();
+
+  return poll.candidates
+    .map((candidate) => ({
+      ...candidate,
+      approvalCount: approvals
+        .filter((candidateId) => String(candidateId) === String(candidate.id)).length,
+    }))
+    .sort((a, b) => b.approvalCount - a.approvalCount);
+};
+
+const normalizeRunoffLimit = (limit) => {
+  const parsedLimit = Number(limit);
+
+  if (!Number.isFinite(parsedLimit)) {
+    return 2;
+  }
+
+  return Math.max(2, Math.min(5, Math.floor(parsedLimit)));
+};
+
+const createApprovalPollRunoff = ({ movieNight, limit }) => {
+  if (!movieNight.activePoll || movieNight.activePoll.status !== 'closed') {
+    return null;
+  }
+
+  const candidates = getMovieNightPollResults(movieNight.activePoll)
+    .slice(0, normalizeRunoffLimit(limit))
+    .map((candidate) => {
+      const clone = { ...candidate };
+      delete clone.approvalCount;
+      return clone;
+    });
+
+  if (candidates.length < 2) {
+    return null;
+  }
+
+  return {
+    id: movieNight.nextPollId,
+    source: 'runoff',
+    sourcePollId: movieNight.activePoll.id,
+    mode: 'approval',
+    status: 'open',
+    candidates,
+    votesBySocketId: {},
+    round: (movieNight.activePoll.round || 1) + 1,
+    createdAt: new Date().toISOString(),
+    closedAt: null,
+  };
+};
 
 export const startMovieNightApprovalPollFromNominations = ({ socketId }) => {
   const movieNight = getSocketMovieNightState(socketId);
@@ -439,6 +494,18 @@ export const closeMovieNightPoll = ({ socketId }) => {
 
   movieNight.activePoll.status = 'closed';
   movieNight.activePoll.closedAt = new Date().toISOString();
+};
+
+export const startMovieNightPollRunoff = ({ socketId, limit }) => {
+  const movieNight = getSocketMovieNightState(socketId);
+  const runoffPoll = createApprovalPollRunoff({ movieNight, limit });
+
+  if (!runoffPoll) {
+    return;
+  }
+
+  movieNight.activePoll = runoffPoll;
+  movieNight.nextPollId += 1;
 };
 
 export const clearMovieNightPoll = ({ socketId }) => {

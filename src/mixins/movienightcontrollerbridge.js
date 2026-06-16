@@ -234,6 +234,10 @@ export default {
           this.$store.dispatch('movienight/CLOSE_POLL');
           break;
 
+        case 'startPollRunoff':
+          this.$store.dispatch('movienight/START_POLL_RUNOFF', message.payload.limit);
+          break;
+
         case 'clearPoll':
           this.$store.dispatch('movienight/CLEAR_POLL');
           break;

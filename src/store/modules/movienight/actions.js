@@ -201,6 +201,16 @@ export default {
     });
   },
 
+  START_POLL_RUNOFF: ({ commit, rootGetters }, limit) => {
+    emitOrCommit({
+      commit,
+      rootGetters,
+      eventName: 'movieNightStartPollRunoff',
+      mutation: 'START_POLL_RUNOFF',
+      data: limit,
+    });
+  },
+
   CLEAR_POLL: ({ commit, rootGetters }) => {
     emitOrCommit({
       commit,

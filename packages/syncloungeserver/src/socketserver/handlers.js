@@ -9,7 +9,8 @@ import {
   removeMovieNightPlaylistItem, moveMovieNightPlaylistItemUp, moveMovieNightPlaylistItemDown,
   clearMovieNightPlaylist, setMovieNightPlaylistVisibility, setMovieNightPlaylistAutoPlay,
   setMovieNightActivePlaylistItem, startMovieNightApprovalPollFromNominations,
-  setMovieNightPollApproval, closeMovieNightPoll, clearMovieNightPoll,
+  setMovieNightPollApproval, closeMovieNightPoll, startMovieNightPollRunoff,
+  clearMovieNightPoll,
 } from './state';
 
 import {
@@ -451,6 +452,19 @@ const movieNightClosePoll = ({ server, socket }) => {
   emitMovieNightStateToRoom({ server, socketId: socket.id });
 };
 
+const movieNightStartPollRunoff = ({ server, socket, data }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  startMovieNightPollRunoff({
+    socketId: socket.id,
+    limit: data && data.limit,
+  });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
 const movieNightClearPoll = ({ server, socket }) => {
   if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
     socket.disconnect(true);
@@ -511,6 +525,7 @@ const eventHandlers = {
   movieNightStartApprovalPollFromNominations,
   movieNightSetPollApproval,
   movieNightClosePoll,
+  movieNightStartPollRunoff,
   movieNightClearPoll,
   kick,
 };
