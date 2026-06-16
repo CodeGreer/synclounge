@@ -99,6 +99,16 @@
         </v-btn>
       </div>
 
+      <v-alert
+        v-if="closedResultsMessage"
+        dense
+        text
+        :type="hasAnyApproval ? 'success' : 'warning'"
+        class="mb-2"
+      >
+        {{ closedResultsMessage }}
+      </v-alert>
+
       <v-btn
         v-if="canAddTopResultToPlaylist"
         small
@@ -119,18 +129,24 @@
 
       <div
         v-if="canStartRunoff"
-        class="d-flex flex-wrap mb-2"
+        class="mb-2"
       >
-        <v-btn
-          v-for="limit in runoffLimits"
-          :key="limit"
-          small
-          outlined
-          class="mr-2 mb-2"
-          @click="startRunoff(limit)"
-        >
-          Runoff Top {{ limit }}
-        </v-btn>
+        <div class="text-caption text--secondary mb-1">
+          Runoff starts a new round using the top results and clears previous votes.
+        </div>
+
+        <div class="d-flex flex-wrap">
+          <v-btn
+            v-for="limit in runoffLimits"
+            :key="limit"
+            small
+            outlined
+            class="mr-2 mb-2"
+            @click="startRunoff(limit)"
+          >
+            Runoff Top {{ limit }}
+          </v-btn>
+        </div>
       </div>
 
       <v-list
@@ -158,8 +174,19 @@
           </v-list-item-icon>
 
           <v-list-item-content>
-            <v-list-item-title>
-              {{ candidate.title }}
+            <v-list-item-title class="d-flex align-center">
+              <span class="text-truncate">
+                {{ candidate.title }}
+              </span>
+
+              <v-chip
+                v-if="getResultChipLabel(candidate)"
+                x-small
+                class="ml-2 flex-shrink-0"
+                :color="getResultChipColor(candidate)"
+              >
+                {{ getResultChipLabel(candidate) }}
+              </v-chip>
             </v-list-item-title>
 
             <v-list-item-subtitle>
@@ -216,6 +243,48 @@ export default {
       return this.pollResults[0] || null;
     },
 
+    maxApprovalCount() {
+      return this.topResult
+        ? this.topResult.approvalCount
+        : 0;
+    },
+
+    hasAnyApproval() {
+      return this.maxApprovalCount > 0;
+    },
+
+    leadingResults() {
+      if (!this.hasAnyApproval) {
+        return [];
+      }
+
+      return this.pollResults
+        .filter((candidate) => candidate.approvalCount === this.maxApprovalCount);
+    },
+
+    isTieForLead() {
+      return this.leadingResults.length > 1;
+    },
+
+    closedResultsMessage() {
+      if (!this.activePoll || this.activePoll.status !== 'closed') {
+        return '';
+      }
+
+      if (!this.hasAnyApproval) {
+        return 'No approvals were cast. Clear the vote or start again.';
+      }
+
+      if (this.isTieForLead) {
+        return [
+          `${this.leadingResults.length} titles are tied`,
+          `with ${this.maxApprovalCount} approvals.`,
+        ].join(' ');
+      }
+
+      return `${this.topResult.title} wins with ${this.maxApprovalCount} approvals.`;
+    },
+
     isControllerWindow() {
       return this.$route.query.controller === '1';
     },
@@ -253,6 +322,7 @@ export default {
       return this.canManagePoll
         && this.activePoll
         && this.activePoll.status === 'closed'
+        && this.hasAnyApproval
         && this.topResult
         && this.isPlayableCandidate(this.topResult);
     },
@@ -261,6 +331,7 @@ export default {
       return this.canManagePoll
         && this.activePoll
         && this.activePoll.status === 'closed'
+        && this.hasAnyApproval
         && this.pollResults.length >= 2;
     },
 
@@ -273,8 +344,14 @@ export default {
         return 'Add winner to playlist';
       }
 
-      return this.isCandidateInPlaylist(this.topResult)
-        ? 'Winner already in playlist'
+      if (this.isCandidateInPlaylist(this.topResult)) {
+        return this.isTieForLead
+          ? 'Top tied result already in playlist'
+          : 'Winner already in playlist';
+      }
+
+      return this.isTieForLead
+        ? 'Add top tied result to playlist'
         : 'Add winner to playlist';
     },
   },
@@ -352,6 +429,33 @@ export default {
     isCandidateApproved(candidate) {
       return this.currentApprovals
         .some((candidateId) => String(candidateId) === String(candidate.id));
+    },
+
+    isClosedLeadingCandidate(candidate) {
+      return this.activePoll
+        && this.activePoll.status === 'closed'
+        && this.hasAnyApproval
+        && candidate.approvalCount === this.maxApprovalCount;
+    },
+
+    getResultChipLabel(candidate) {
+      if (!this.isClosedLeadingCandidate(candidate)) {
+        return '';
+      }
+
+      return this.isTieForLead
+        ? 'Tied'
+        : 'Winner';
+    },
+
+    getResultChipColor(candidate) {
+      if (!this.isClosedLeadingCandidate(candidate)) {
+        return undefined;
+      }
+
+      return this.isTieForLead
+        ? 'warning'
+        : 'success';
     },
 
     getCandidateTypeLabel(candidate) {
