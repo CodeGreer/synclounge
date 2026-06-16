@@ -89,4 +89,15 @@ export default {
   SET_PLAYLIST_AUTO_PLAY: (state, playlistAutoPlay) => {
     state.playlistAutoPlay = Boolean(playlistAutoPlay);
   },
+
+  SET_ACTIVE_PLAYLIST_ITEM: (state, item) => {
+    state.activePlaylistItem = item
+      ? {
+        id: item.id,
+        playlistKey: item.playlistKey,
+        machineIdentifier: item.machineIdentifier,
+        ratingKey: item.ratingKey,
+      }
+      : null;
+  },
 };

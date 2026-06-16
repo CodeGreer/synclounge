@@ -5,6 +5,7 @@ const state = () => ({
   playlist: [],
   playlistVisibility: 'next',
   playlistAutoPlay: false,
+  activePlaylistItem: null,
 });
 
 export default state;

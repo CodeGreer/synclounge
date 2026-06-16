@@ -17,7 +17,7 @@
           class="black"
 
           @pause="HANDLE_PLAYER_PAUSE"
-          @ended="PRESS_STOP"
+          @ended="handlePlayerEnded"
           @playing="HANDLE_PLAYER_PLAYING"
           @seeking="HANDLE_SEEKING"
           @seeked="HANDLE_SEEKED"
@@ -354,6 +354,17 @@ export default {
     ...mapActions('synclounge', [
       'MANUAL_SYNC',
     ]),
+
+    ...mapActions('movienight', [
+      'HANDLE_PLAYLIST_ITEM_ENDED',
+    ]),
+
+    async handlePlayerEnded() {
+      const metadata = this.GET_ACTIVE_MEDIA_METADATA;
+
+      await this.PRESS_STOP();
+      await this.HANDLE_PLAYLIST_ITEM_ENDED(metadata);
+    },
 
     getCastReceiverId() {
       return window.chrome && window.chrome.cast && window.chrome.cast.media

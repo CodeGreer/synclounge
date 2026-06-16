@@ -222,6 +222,8 @@ export default {
     },
 
     async playMovieNightControllerPlaylistItem(item) {
+      await this.$store.dispatch('movienight/SET_ACTIVE_PLAYLIST_ITEM', item);
+
       const metadata = await this.$store.dispatch('plexservers/FETCH_PLEX_METADATA', {
         ratingKey: item.ratingKey,
         machineIdentifier: item.machineIdentifier,

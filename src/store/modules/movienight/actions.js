@@ -157,4 +157,50 @@ export default {
       data: playlistAutoPlay,
     });
   },
+
+  SET_ACTIVE_PLAYLIST_ITEM: ({ commit }, item) => {
+    commit('SET_ACTIVE_PLAYLIST_ITEM', item);
+  },
+
+  HANDLE_PLAYLIST_ITEM_ENDED: async ({
+    state, getters, commit, dispatch,
+  }, metadata) => {
+    const activeItem = getters.GET_ACTIVE_PLAYLIST_ITEM;
+
+    if (!getters.GET_PLAYLIST_AUTO_PLAY || !metadata || !activeItem) {
+      return;
+    }
+
+    const endedActiveItem = activeItem.machineIdentifier === metadata.machineIdentifier
+      && String(activeItem.ratingKey) === String(metadata.ratingKey);
+
+    if (!endedActiveItem) {
+      return;
+    }
+
+    const activeIndex = state.playlist.findIndex((item) => item.id === activeItem.id);
+    const nextItem = activeIndex >= 0
+      ? state.playlist[activeIndex + 1]
+      : state.playlist[0];
+
+    if (!nextItem) {
+      commit('SET_ACTIVE_PLAYLIST_ITEM', null);
+      return;
+    }
+
+    commit('SET_ACTIVE_PLAYLIST_ITEM', nextItem);
+
+    const nextMetadata = await dispatch('plexservers/FETCH_PLEX_METADATA', {
+      ratingKey: nextItem.ratingKey,
+      machineIdentifier: nextItem.machineIdentifier,
+    }, { root: true });
+
+    await dispatch('plexclients/PLAY_MEDIA', {
+      metadata: nextMetadata,
+      mediaIndex: 0,
+      machineIdentifier: nextMetadata.machineIdentifier,
+      offset: 0,
+      userInitiated: true,
+    }, { root: true });
+  },
 };

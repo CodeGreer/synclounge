@@ -286,6 +286,7 @@ export default {
       'REMOVE_PLAYLIST_ITEM',
       'SET_PLAYLIST_VISIBILITY',
       'SET_PLAYLIST_AUTO_PLAY',
+      'SET_ACTIVE_PLAYLIST_ITEM',
     ]),
 
     getItemTypeLabel(item) {
@@ -389,6 +390,8 @@ export default {
         this.sendControllerCommand('playPlaylistItem', { item });
         return;
       }
+
+      await this.SET_ACTIVE_PLAYLIST_ITEM(item);
 
       const metadata = await this.getPlaylistItemMetadata(item);
 
