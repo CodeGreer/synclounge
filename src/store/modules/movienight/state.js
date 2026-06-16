@@ -4,6 +4,7 @@ const state = () => ({
   nominations: [],
   playlist: [],
   playlistVisibility: 'next',
+  playlistAutoPlay: false,
 });
 
 export default state;

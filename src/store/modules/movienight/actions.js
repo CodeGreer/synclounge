@@ -147,4 +147,14 @@ export default {
       data: visibility,
     });
   },
+
+  SET_PLAYLIST_AUTO_PLAY: ({ commit, rootGetters }, playlistAutoPlay) => {
+    emitOrCommit({
+      commit,
+      rootGetters,
+      eventName: 'movieNightSetPlaylistAutoPlay',
+      mutation: 'SET_PLAYLIST_AUTO_PLAY',
+      data: playlistAutoPlay,
+    });
+  },
 };

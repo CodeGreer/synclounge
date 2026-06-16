@@ -5,6 +5,7 @@ export default {
     state.nominations = movieNight.nominations || [];
     state.playlist = movieNight.playlist || [];
     state.playlistVisibility = movieNight.playlistVisibility || 'next';
+    state.playlistAutoPlay = Boolean(movieNight.playlistAutoPlay);
   },
 
   ADD_NOMINATION: (state, nomination) => {
@@ -83,5 +84,9 @@ export default {
     }
 
     state.playlistVisibility = visibility;
+  },
+
+  SET_PLAYLIST_AUTO_PLAY: (state, playlistAutoPlay) => {
+    state.playlistAutoPlay = Boolean(playlistAutoPlay);
   },
 };

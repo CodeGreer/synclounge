@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.updateUserSyncFlexibility = exports.updateUserPlayerState = exports.updateUserMedia = exports.updateSocketLatency = exports.setSocketLatencyIntervalId = exports.setMovieNightPlaylistVisibility = exports.setIsPartyPausingEnabledInSocketRoom = exports.setIsAutoHostEnabledInSocketRoom = exports.removeUser = exports.removeSocketLatencyData = exports.removeRoom = exports.removeMovieNightPlaylistItem = exports.removeMovieNightNomination = exports.moveMovieNightPlaylistItemUp = exports.moveMovieNightPlaylistItemDown = exports.makeUserHost = exports.isUserInRoom = exports.isUserInARoom = exports.isUserHost = exports.isRoomEmpty = exports.isPartyPausingEnabledInSocketRoom = exports.isAutoHostEnabledInSocketRoom = exports.initSocketLatencyData = exports.getUserRoomId = exports.getUserRoom = exports.getSocketPingSecret = exports.getSocketLatency = exports.getSocketCount = exports.getRoomUserData = exports.getRoomSocketIds = exports.getRoomSize = exports.getRoomHostId = exports.getRoomCount = exports.getMovieNightState = exports.getJoinedUserCount = exports.getJoinData = exports.getHealth = exports.getAnySocketIdInRoom = exports.generateAndSetSocketLatencySecret = exports.formatUserData = exports.doesSocketHaveRtt = exports.doesRoomExist = exports.createRoom = exports.clearSocketLatencyInterval = exports.clearMovieNightPlaylist = exports.addUserToRoom = exports.addMovieNightPlaylistItem = exports.addMovieNightNomination = void 0;
+exports.updateUserSyncFlexibility = exports.updateUserPlayerState = exports.updateUserMedia = exports.updateSocketLatency = exports.setSocketLatencyIntervalId = exports.setMovieNightPlaylistVisibility = exports.setMovieNightPlaylistAutoPlay = exports.setIsPartyPausingEnabledInSocketRoom = exports.setIsAutoHostEnabledInSocketRoom = exports.removeUser = exports.removeSocketLatencyData = exports.removeRoom = exports.removeMovieNightPlaylistItem = exports.removeMovieNightNomination = exports.moveMovieNightPlaylistItemUp = exports.moveMovieNightPlaylistItemDown = exports.makeUserHost = exports.isUserInRoom = exports.isUserInARoom = exports.isUserHost = exports.isRoomEmpty = exports.isPartyPausingEnabledInSocketRoom = exports.isAutoHostEnabledInSocketRoom = exports.initSocketLatencyData = exports.getUserRoomId = exports.getUserRoom = exports.getSocketPingSecret = exports.getSocketLatency = exports.getSocketCount = exports.getRoomUserData = exports.getRoomSocketIds = exports.getRoomSize = exports.getRoomHostId = exports.getRoomCount = exports.getMovieNightState = exports.getJoinedUserCount = exports.getJoinData = exports.getHealth = exports.getAnySocketIdInRoom = exports.generateAndSetSocketLatencySecret = exports.formatUserData = exports.doesSocketHaveRtt = exports.doesRoomExist = exports.createRoom = exports.clearSocketLatencyInterval = exports.clearMovieNightPlaylist = exports.addUserToRoom = exports.addMovieNightPlaylistItem = exports.addMovieNightNomination = void 0;
 var _uuid = require("uuid");
 const _excluded = ["recipientId", "updatedAt", "playbackRate", "state", "time"];
 function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var n = Object.getOwnPropertySymbols(e); for (r = 0; r < n.length; r++) o = n[r], t.indexOf(o) >= 0 || {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
@@ -29,14 +29,16 @@ const createMovieNightState = () => ({
   nextPlaylistItemId: 1,
   nominations: [],
   playlist: [],
-  playlistVisibility: 'next'
+  playlistVisibility: 'next',
+  playlistAutoPlay: false
 });
 const cloneMovieNightState = movieNight => ({
   nextNominationId: movieNight.nextNominationId,
   nextPlaylistItemId: movieNight.nextPlaylistItemId,
   nominations: movieNight.nominations.map(nomination => _objectSpread({}, nomination)),
   playlist: movieNight.playlist.map(item => _objectSpread({}, item)),
-  playlistVisibility: movieNight.playlistVisibility
+  playlistVisibility: movieNight.playlistVisibility,
+  playlistAutoPlay: Boolean(movieNight.playlistAutoPlay)
 });
 const getSocketMovieNightState = socketId => getUserRoom(socketId).movieNight;
 const getUniqueUsername = ({
@@ -392,5 +394,12 @@ const setMovieNightPlaylistVisibility = ({
   getSocketMovieNightState(socketId).playlistVisibility = visibility;
 };
 exports.setMovieNightPlaylistVisibility = setMovieNightPlaylistVisibility;
+const setMovieNightPlaylistAutoPlay = ({
+  socketId,
+  playlistAutoPlay
+}) => {
+  getSocketMovieNightState(socketId).playlistAutoPlay = Boolean(playlistAutoPlay);
+};
+exports.setMovieNightPlaylistAutoPlay = setMovieNightPlaylistAutoPlay;
 const getRoomCount = () => rooms.size;
 exports.getRoomCount = getRoomCount;

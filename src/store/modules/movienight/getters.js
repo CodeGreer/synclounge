@@ -5,6 +5,8 @@ export default {
 
   GET_PLAYLIST_VISIBILITY: (state) => state.playlistVisibility,
 
+  GET_PLAYLIST_AUTO_PLAY: (state) => state.playlistAutoPlay,
+
   IS_NOMINATED: (state) => (nominationKey) => state.nominations
     .some((nomination) => nomination.nominationKey === nominationKey),
 

@@ -27,6 +27,17 @@
       @change="setPlaylistVisibility"
     />
 
+    <v-switch
+      v-if="canManagePlaylist"
+      dense
+      hide-details
+      inset
+      class="mb-2"
+      label="Auto-play playlist"
+      :input-value="GET_PLAYLIST_AUTO_PLAY"
+      @change="setPlaylistAutoPlay"
+    />
+
     <v-btn
       v-if="canManagePlaylist && playlist.length"
       small
@@ -235,6 +246,7 @@ export default {
     ...mapGetters('movienight', [
       'GET_PLAYLIST',
       'GET_PLAYLIST_VISIBILITY',
+      'GET_PLAYLIST_AUTO_PLAY',
     ]),
 
     playlist() {
@@ -273,6 +285,7 @@ export default {
       'MOVE_PLAYLIST_ITEM_UP',
       'REMOVE_PLAYLIST_ITEM',
       'SET_PLAYLIST_VISIBILITY',
+      'SET_PLAYLIST_AUTO_PLAY',
     ]),
 
     getItemTypeLabel(item) {
@@ -324,6 +337,15 @@ export default {
       }
 
       this.SET_PLAYLIST_VISIBILITY(visibility);
+    },
+
+    setPlaylistAutoPlay(playlistAutoPlay) {
+      if (this.isControllerWindow) {
+        this.sendControllerCommand('setPlaylistAutoPlay', { playlistAutoPlay });
+        return;
+      }
+
+      this.SET_PLAYLIST_AUTO_PLAY(playlistAutoPlay);
     },
 
     clearPlaylist() {

@@ -505,6 +505,24 @@ const movieNightSetPlaylistVisibility = ({
     socketId: socket.id
   });
 };
+const movieNightSetPlaylistAutoPlay = ({
+  server,
+  socket,
+  data: playlistAutoPlay
+}) => {
+  if (!(0, _state.isUserInARoom)(socket.id) || !(0, _state.isUserHost)(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+  (0, _state.setMovieNightPlaylistAutoPlay)({
+    socketId: socket.id,
+    playlistAutoPlay
+  });
+  (0, _actions.emitMovieNightStateToRoom)({
+    server,
+    socketId: socket.id
+  });
+};
 const kick = ({
   server,
   socket,
@@ -553,6 +571,7 @@ const eventHandlers = {
   movieNightMovePlaylistItemDown,
   movieNightClearPlaylist,
   movieNightSetPlaylistVisibility,
+  movieNightSetPlaylistAutoPlay,
   kick
 };
 const attachEventHandlers = ({

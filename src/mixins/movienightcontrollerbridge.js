@@ -40,6 +40,10 @@ export default {
     movieNightControllerPlaylistVisibility() {
       return this.$store.getters['movienight/GET_PLAYLIST_VISIBILITY'];
     },
+
+    movieNightControllerPlaylistAutoPlay() {
+      return this.$store.getters['movienight/GET_PLAYLIST_AUTO_PLAY'];
+    },
   },
 
   watch: {
@@ -66,6 +70,10 @@ export default {
     },
 
     movieNightControllerPlaylistVisibility() {
+      this.broadcastMovieNightControllerState();
+    },
+
+    movieNightControllerPlaylistAutoPlay() {
       this.broadcastMovieNightControllerState();
     },
   },
@@ -192,6 +200,13 @@ export default {
           this.$store.dispatch('movienight/SET_PLAYLIST_VISIBILITY', message.payload.visibility);
           break;
 
+        case 'setPlaylistAutoPlay':
+          this.$store.dispatch(
+            'movienight/SET_PLAYLIST_AUTO_PLAY',
+            message.payload.playlistAutoPlay,
+          );
+          break;
+
         case 'playPlaylistItem':
           await this.playMovieNightControllerPlaylistItem(message.payload.item);
           break;
@@ -233,6 +248,7 @@ export default {
           nominations: this.movieNightControllerNominations,
           playlist: this.movieNightControllerPlaylist,
           playlistVisibility: this.movieNightControllerPlaylistVisibility,
+          playlistAutoPlay: this.movieNightControllerPlaylistAutoPlay,
         },
       });
     },
