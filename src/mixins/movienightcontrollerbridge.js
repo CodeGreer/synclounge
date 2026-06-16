@@ -48,6 +48,10 @@ export default {
     movieNightControllerActivePlaylistItem() {
       return this.$store.getters['movienight/GET_ACTIVE_PLAYLIST_ITEM'];
     },
+
+    movieNightControllerActivePoll() {
+      return this.$store.getters['movienight/GET_ACTIVE_POLL'];
+    },
   },
 
   watch: {
@@ -83,6 +87,13 @@ export default {
 
     movieNightControllerActivePlaylistItem() {
       this.broadcastMovieNightControllerState();
+    },
+
+    movieNightControllerActivePoll: {
+      deep: true,
+      handler() {
+        this.broadcastMovieNightControllerState();
+      },
     },
   },
 
@@ -215,6 +226,18 @@ export default {
           );
           break;
 
+        case 'startApprovalPollFromNominations':
+          this.$store.dispatch('movienight/START_APPROVAL_POLL_FROM_NOMINATIONS');
+          break;
+
+        case 'closePoll':
+          this.$store.dispatch('movienight/CLOSE_POLL');
+          break;
+
+        case 'clearPoll':
+          this.$store.dispatch('movienight/CLEAR_POLL');
+          break;
+
         case 'playPlaylistItem':
           await this.playMovieNightControllerPlaylistItem(message.payload.item);
           break;
@@ -260,6 +283,7 @@ export default {
           playlistVisibility: this.movieNightControllerPlaylistVisibility,
           playlistAutoPlay: this.movieNightControllerPlaylistAutoPlay,
           activePlaylistItem: this.movieNightControllerActivePlaylistItem,
+          activePoll: this.movieNightControllerActivePoll,
         },
       });
     },
