@@ -158,8 +158,14 @@ export default {
     });
   },
 
-  SET_ACTIVE_PLAYLIST_ITEM: ({ commit }, item) => {
-    commit('SET_ACTIVE_PLAYLIST_ITEM', item);
+  SET_ACTIVE_PLAYLIST_ITEM: ({ commit, rootGetters }, item) => {
+    emitOrCommit({
+      commit,
+      rootGetters,
+      eventName: 'movieNightSetActivePlaylistItem',
+      mutation: 'SET_ACTIVE_PLAYLIST_ITEM',
+      data: item,
+    });
   },
 
   HANDLE_PLAYLIST_ITEM_ENDED: async ({
@@ -167,7 +173,7 @@ export default {
   }, metadata) => {
     const activeItem = getters.GET_ACTIVE_PLAYLIST_ITEM;
 
-    if (!getters.GET_PLAYLIST_AUTO_PLAY || !metadata || !activeItem) {
+    if (!metadata || !activeItem) {
       return;
     }
 
@@ -175,6 +181,11 @@ export default {
       && String(activeItem.ratingKey) === String(metadata.ratingKey);
 
     if (!endedActiveItem) {
+      return;
+    }
+
+    if (!getters.GET_PLAYLIST_AUTO_PLAY) {
+      commit('SET_ACTIVE_PLAYLIST_ITEM', null);
       return;
     }
 

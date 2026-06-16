@@ -156,7 +156,7 @@
             <v-btn
               block
               color="error"
-              @click="PRESS_STOP"
+              @click="handleManualStop"
             >
               Stop playback
             </v-btn>
@@ -357,7 +357,13 @@ export default {
 
     ...mapActions('movienight', [
       'HANDLE_PLAYLIST_ITEM_ENDED',
+      'SET_ACTIVE_PLAYLIST_ITEM',
     ]),
+
+    async handleManualStop() {
+      await this.SET_ACTIVE_PLAYLIST_ITEM(null);
+      await this.PRESS_STOP();
+    },
 
     async handlePlayerEnded() {
       const metadata = this.GET_ACTIVE_MEDIA_METADATA;

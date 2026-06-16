@@ -21,6 +21,7 @@ const createMovieNightState = () => ({
   playlist: [],
   playlistVisibility: 'next',
   playlistAutoPlay: false,
+  activePlaylistItem: null,
 });
 
 const cloneMovieNightState = (movieNight) => ({
@@ -30,6 +31,9 @@ const cloneMovieNightState = (movieNight) => ({
   playlist: movieNight.playlist.map((item) => ({ ...item })),
   playlistVisibility: movieNight.playlistVisibility,
   playlistAutoPlay: Boolean(movieNight.playlistAutoPlay),
+  activePlaylistItem: movieNight.activePlaylistItem
+    ? { ...movieNight.activePlaylistItem }
+    : null,
 });
 
 const getSocketMovieNightState = (socketId) => getUserRoom(socketId).movieNight;
@@ -335,6 +339,17 @@ export const setMovieNightPlaylistVisibility = ({ socketId, visibility }) => {
 
 export const setMovieNightPlaylistAutoPlay = ({ socketId, playlistAutoPlay }) => {
   getSocketMovieNightState(socketId).playlistAutoPlay = Boolean(playlistAutoPlay);
+};
+
+export const setMovieNightActivePlaylistItem = ({ socketId, item }) => {
+  getSocketMovieNightState(socketId).activePlaylistItem = item
+    ? {
+      id: item.id,
+      playlistKey: item.playlistKey,
+      machineIdentifier: item.machineIdentifier,
+      ratingKey: item.ratingKey,
+    }
+    : null;
 };
 
 export const getRoomCount = () => rooms.size;

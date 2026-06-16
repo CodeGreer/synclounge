@@ -8,6 +8,7 @@ import {
   addMovieNightNomination, removeMovieNightNomination, addMovieNightPlaylistItem,
   removeMovieNightPlaylistItem, moveMovieNightPlaylistItemUp, moveMovieNightPlaylistItemDown,
   clearMovieNightPlaylist, setMovieNightPlaylistVisibility, setMovieNightPlaylistAutoPlay,
+  setMovieNightActivePlaylistItem,
 } from './state';
 
 import {
@@ -405,6 +406,16 @@ const movieNightSetPlaylistAutoPlay = ({ server, socket, data: playlistAutoPlay 
   emitMovieNightStateToRoom({ server, socketId: socket.id });
 };
 
+const movieNightSetActivePlaylistItem = ({ server, socket, data: item }) => {
+  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  setMovieNightActivePlaylistItem({ socketId: socket.id, item });
+  emitMovieNightStateToRoom({ server, socketId: socket.id });
+};
+
 const kick = ({ server, socket, data: id }) => {
   if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
     socket.disconnect(true);
@@ -451,6 +462,7 @@ const eventHandlers = {
   movieNightClearPlaylist,
   movieNightSetPlaylistVisibility,
   movieNightSetPlaylistAutoPlay,
+  movieNightSetActivePlaylistItem,
   kick,
 };
 

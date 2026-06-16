@@ -78,8 +78,18 @@
         </v-list-item-icon>
 
         <v-list-item-content>
-          <v-list-item-title>
-            {{ item.title }}
+          <v-list-item-title class="d-flex align-center">
+            <v-chip
+              v-if="isActivePlaylistItem(item)"
+              x-small
+              color="primary"
+              class="mr-2 flex-shrink-0"
+            >
+              Now
+            </v-chip>
+            <span class="text-truncate">
+              {{ item.title }}
+            </span>
           </v-list-item-title>
 
           <v-list-item-subtitle>
@@ -247,6 +257,7 @@ export default {
       'GET_PLAYLIST',
       'GET_PLAYLIST_VISIBILITY',
       'GET_PLAYLIST_AUTO_PLAY',
+      'GET_ACTIVE_PLAYLIST_ITEM',
     ]),
 
     playlist() {
@@ -288,6 +299,12 @@ export default {
       'SET_PLAYLIST_AUTO_PLAY',
       'SET_ACTIVE_PLAYLIST_ITEM',
     ]),
+
+    isActivePlaylistItem(item) {
+      const activeItem = this.GET_ACTIVE_PLAYLIST_ITEM;
+
+      return activeItem && activeItem.id === item.id;
+    },
 
     getItemTypeLabel(item) {
       switch (item.type) {

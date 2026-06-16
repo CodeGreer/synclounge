@@ -6,6 +6,10 @@ export default {
     state.playlist = movieNight.playlist || [];
     state.playlistVisibility = movieNight.playlistVisibility || 'next';
     state.playlistAutoPlay = Boolean(movieNight.playlistAutoPlay);
+
+    if (Object.prototype.hasOwnProperty.call(movieNight, 'activePlaylistItem')) {
+      state.activePlaylistItem = movieNight.activePlaylistItem;
+    }
   },
 
   ADD_NOMINATION: (state, nomination) => {
