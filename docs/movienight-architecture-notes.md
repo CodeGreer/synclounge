@@ -174,3 +174,36 @@ Possible strategies:
 3. Replace the package with project-owned socket server code.
 
 Do not choose this yet. First, continue mapping the current app and identify the least invasive path.
+
+## Current implementation checkpoint
+
+As of the current MovieNight fork, the app has moved beyond basic SyncLounge rebranding and now includes a working MovieNight host workflow.
+
+Implemented pieces:
+
+- MovieNight branding in the app header, browser title, visible room copy, local server label, Plex product header, and built-in web player label.
+- A MovieNight panel with nominations, playlist management, and host/controller controls.
+- Plex search-based nominations for movies, shows, and episodes.
+- Playlist support for movies and episodes, including add, remove, reorder, clear, visibility, and active item state.
+- Playlist visibility modes:
+  - private
+  - next item only
+  - public
+- Host-only playlist control over the socket room state.
+- Server-backed MovieNight room state in the vendored syncloungeserver package.
+- Broadcast of MovieNight state to room participants through `movieNightState`.
+- Active playlist item tracking, including cleanup when the active item is removed or the playlist is cleared.
+- Optional playlist auto-play when a media item naturally ends.
+- Manual stop remains separate from natural media end, so pressing Stop does not auto-advance the playlist.
+- A host controller browser mode opened with `controller=1`.
+- Controller windows do not join as additional room participants.
+- Controller actions are routed through the real host/player window using BroadcastChannel.
+- The controller can manage nominations, manage the playlist, change playlist settings, and trigger playback through the host window.
+- Room state smoke coverage exists in `scripts/check-movienight-socket-state.sh`.
+
+Important compatibility notes:
+
+- The Vuex module namespace `synclounge` remains unchanged for now.
+- Config keys such as `synclounge_upnext_trigger_time_from_end` remain unchanged for compatibility.
+- Package names such as `syncloungeserver` and `synclounge-libjass` remain unchanged.
+- Some documentation still references SyncLounge when describing upstream architecture or the fork relationship.
