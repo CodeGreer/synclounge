@@ -61,7 +61,7 @@ export default {
   HANDLE_DISCONNECT: async ({ dispatch }) => {
     console.log('disconnect');
     await dispatch('DISPLAY_NOTIFICATION', {
-      text: 'Disconnected from the SyncLounge server',
+      text: 'Disconnected from the MovieNight server',
       color: 'info',
     }, { root: true });
   },

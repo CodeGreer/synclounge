@@ -31,7 +31,7 @@
           >
             <v-row align="center">
               <v-col class="grow">
-                No connectable SyncLounge servers
+                No connectable MovieNight servers
               </v-col>
               <v-col class="shrink">
                 <v-btn
