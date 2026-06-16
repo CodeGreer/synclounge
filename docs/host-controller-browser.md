@@ -27,6 +27,69 @@ MovieNight already has:
 
 These should be preserved unless they directly conflict with the controller/browser goal.
 
+## Implemented behavior
+
+The controller/browser model is now implemented.
+
+The main host/player window remains the real room participant. The host can open a separate Host Controller window that browses Plex without joining the room as another attendee.
+
+The Host Controller can currently:
+
+- browse Plex libraries and search results
+- nominate playable media
+- add playable media to the MovieNight playlist
+- reorder playlist items
+- remove playlist items
+- clear the playlist
+- change playlist visibility
+- toggle playlist auto-play
+- start a playlist item through the real host/player window
+- use Play & Remove through the real host/player window
+
+The Host Controller communicates with the real host/player window over a room-scoped BroadcastChannel. The host/player window then executes the normal Vuex/socket actions, keeping the server-backed room state as the source of truth.
+
+## Playlist behavior
+
+The MovieNight playlist is room-backed state.
+
+The playlist supports:
+
+- private, next-only, and public visibility
+- host/controller management controls
+- read-only guest views based on visibility
+- a server-backed active playlist item
+- a visible “Now” chip for the currently active playlist item
+- stale active-item cleanup when an active item is removed or the playlist is cleared
+
+Playlist auto-play is off by default.
+
+When playlist auto-play is on:
+
+- the host/player window advances to the next playlist item after a natural media end
+- the active item moves to the next playlist item
+- manual Stop does not advance the playlist
+- controller windows do not execute playback directly
+
+When playlist auto-play is off:
+
+- natural media end clears the active playlist item
+- manual Stop clears the active playlist item
+- playback does not advance
+
+## Regression coverage
+
+The MovieNight socket smoke test covers:
+
+- playlist item add
+- playlist reorder
+- playlist visibility sync
+- playlist auto-play state sync
+- active playlist item state sync
+- active playlist item clear
+- remove active playlist item clears active state
+- clear playlist clears active state
+
+
 ## Non-goals
 
 The host controller/browser should not:
