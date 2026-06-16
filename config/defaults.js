@@ -4,7 +4,7 @@ const defaults = {
       name: 'MovieNight Local',
       location: 'Local',
       url: '',
-      image: 'synclounge-white.png',
+      image: 'movienight-small-light.png',
     },
   ],
 
