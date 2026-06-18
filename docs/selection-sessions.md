@@ -45,8 +45,11 @@ Supported controller actions:
 - Closed votes are read-only.
 - Runoffs are generated from the previous closed vote's top results.
 
-## Current limitations
+## Current beta constraints and limitations
 
+- Plex authentication is required for all participants.
+- Participants need Plex credentials and access to the relevant Plex server/library.
+- Anonymous guests, local-only guest accounts, and voting-only users are not implemented.
 - Votes are not persisted after a room/server restart.
 - Votes are tied to the current socket connection, not a permanent user identity.
 - Library-based polls are deferred.

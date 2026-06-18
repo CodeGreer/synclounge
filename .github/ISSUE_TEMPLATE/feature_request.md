@@ -1,18 +1,32 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
-labels: feature-request
-
+about: Suggest a MovieNight improvement
+labels: enhancement
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## MovieNight feature request
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+MovieNight is currently a SyncLounge fork focused on Plex-authenticated group movie nights. Anonymous/local-only/voting-only users are not implemented yet.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+## Problem or use case
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+What problem would this solve for a movie-night group?
+
+## Proposed behavior
+
+Describe the behavior you would like.
+
+## Current workaround
+
+Is there a workaround today?
+
+## Scope notes
+
+Does this affect any of the following?
+
+- Plex authentication
+- Host Controller behavior
+- host transfer behavior
+- nominations/voting/runoff
+- host playlist/visibility/auto-play
+- Docker/deployment packaging

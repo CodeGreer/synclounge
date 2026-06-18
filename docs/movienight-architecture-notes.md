@@ -94,15 +94,15 @@ FETCH_PLEX_SERVER gets the selected Plex server connection URI from Vuex state a
 
 ## Server-side socket implementation
 
-The current socket server comes from the installed syncloungeserver package.
+The current socket server is maintained in the vendored `packages/syncloungeserver` package.
 
-Important files:
-- node_modules/syncloungeserver/dist/socketserver/index.js
-- node_modules/syncloungeserver/dist/socketserver/actions.js
-- node_modules/syncloungeserver/dist/socketserver/handlers.js
-- node_modules/syncloungeserver/dist/socketserver/state.js
+Important source files:
+- packages/syncloungeserver/src/socketserver/index.js
+- packages/syncloungeserver/src/socketserver/actions.js
+- packages/syncloungeserver/src/socketserver/handlers.js
+- packages/syncloungeserver/src/socketserver/state.js
 
-Do not edit node_modules directly for real project changes.
+Generated server build output is committed under `packages/syncloungeserver/dist`. When server source changes, update and commit the matching generated files. Do not edit `node_modules` directly for project changes.
 
 Current server-side socket events include:
 - join
@@ -147,33 +147,14 @@ The health response is based on joined user count:
 Expected local health response:
 - {"load":"low"}
 
-## MovieNight feature implications
+## MovieNight feature pattern
 
-Future MovieNight features should probably follow the existing socket pattern:
+MovieNight features follow the existing socket pattern:
 1. Client emits a room event.
 2. Server validates room/user/host permissions.
 3. Server updates in-memory room state.
 4. Server broadcasts updated state to the room.
 5. Clients render the updated state.
-
-Good future event candidates:
-- addCandidate
-- removeCandidate
-- startVote
-- castVote
-- endVote
-- clearVote
-- startGameRound
-- submitGameAnswer
-
-Because the current server-side code lives inside node_modules/syncloungeserver, we need to choose a clean extension strategy before adding server-side MovieNight state.
-
-Possible strategies:
-1. Fork or vendor syncloungeserver into this repo.
-2. Add a local wrapper or extension server layer.
-3. Replace the package with project-owned socket server code.
-
-Do not choose this yet. First, continue mapping the current app and identify the least invasive path.
 
 ## Current implementation checkpoint
 
@@ -206,4 +187,4 @@ Important compatibility notes:
 - The Vuex module namespace `synclounge` remains unchanged for now.
 - Config keys such as `synclounge_upnext_trigger_time_from_end` remain unchanged for compatibility.
 - Package names such as `syncloungeserver` and `synclounge-libjass` remain unchanged.
-- Some documentation still references SyncLounge when describing upstream architecture or the fork relationship.
+- Documentation should reference SyncLounge when describing upstream architecture, compatibility names, package names, or the fork relationship; normal user-facing product docs should present the app as MovieNight.
