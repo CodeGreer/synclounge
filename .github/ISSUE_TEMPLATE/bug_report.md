@@ -1,59 +1,47 @@
 ---
-name: Bug/Issue report
-about: Create a report to help us improve
-labels: bug-report,needs-triage
-
+name: Bug report
+about: Report a MovieNight problem
+labels: bug
 ---
 
-If you haven't already, be sure to check the **How-to Report an Issue page** before reporting an issue: https://docs.synclounge.tv/how-tos/report-an-issue/
+## MovieNight bug report
 
-Please complete the following when reporting a bug/an issue.
+Before reporting, please check the repository docs, especially `README.md`, `README-MOVIENIGHT.md`, and `docs/beta-readiness.md`.
 
-### Web App
-You can remove this section if your issue isn't related to the Web App
+## Describe the bug
 
-**System Details**
+A clear description of what went wrong.
 
-- Operating System:
-- Web Browser name and version:
+## Steps to reproduce
 
-**Plex Media Server details**
+1.
+2.
+3.
 
-- Version:
-- Operating System (Windows/Linux/Mac):
-- Running in Docker? (Yes/No):
-- Location (Local/Remote):
-- Remote Access Enabled (Yes/No)?:
+## Expected behavior
 
-**Plex Client details**
+What did you expect to happen?
 
-- Name:
-- Version:
-- Network connection (Wired/Wifi):
-- Platform:
+## Plex Media Server details
 
-### Self-Hosting
-You can remove this section if your issue isn't related to Self-Hosting
+- Server version:
+- Shared library involved:
+- Does the affected participant have Plex access to this server/library? (Yes/No):
 
-**System Details**
+## Plex Client details
 
-- Operating System:
+- Client type:
+- Client version:
+- Browser/OS if using the built-in player:
 
-**SyncLounge Details**
+## MovieNight details
 
-- Running in Docker? (Yes/No):
-- Using a Reverse Proxy (Yes/No):
-    If Yes, which Reverse Proxy (Nginx, Apache, Caddy, etc.):
+- MovieNight URL or deployment:
+- Running in Docker/container? (Yes/No):
+- Room host or guest?
+- Using Host Controller? (Yes/No):
+- Did host transfer happen before the issue? (Yes/No):
 
-### Issue information
+## Logs/screenshots
 
-**To Reproduce**
-Steps to reproduce the behavior:
-
-- Go to '...'
-- Click on '....'
-- Scroll down to '....'
-- See error
-
-**Describe your bug/issue**
-Please describe the bug/your issue below. If applicable, add screenshots to help explain your problem.
+Paste relevant logs or screenshots if available. Do not include Plex tokens or credentials.

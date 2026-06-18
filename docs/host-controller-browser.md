@@ -99,6 +99,13 @@ The MovieNight socket smoke test covers:
 - clear playlist clears active state
 
 
+## Current beta constraints
+
+- Plex authentication is required.
+- The host and every participant need Plex credentials.
+- Participants need access to the relevant Plex server/library.
+- Anonymous guests, local-only guest accounts, and voting-only users are not implemented.
+
 ## Non-goals
 
 The host controller/browser should not:
@@ -205,13 +212,3 @@ Do not conflate:
 - auto-host
 - controller browser
 - host takeover
-
-## First implementation direction
-
-The first implementation should focus on proving the controller/browser model without changing host identity:
-
-1. Add a controller/browser route or mode that can browse Plex without becoming a room participant.
-2. Add a host-only button to open the controller/browser window.
-3. Add a BroadcastChannel bridge between controller window and main host window.
-4. Route a small command first, likely add playlist item.
-5. Expand to playlist management and play controls after the bridge is proven.

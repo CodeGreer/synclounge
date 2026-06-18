@@ -1,151 +1,104 @@
-[github-release-badge]: https://img.shields.io/github/workflow/status/synclounge/synclounge/release?label=release&style=for-the-badge
-[docker-version-badge]: https://img.shields.io/docker/v/synclounge/synclounge?label=Docker&sort=semver&style=for-the-badge
-[docker-latest-size-badge]: https://img.shields.io/docker/image-size/synclounge/synclounge?sort=semver&style=for-the-badge
-[docker-pulls-badge]: https://img.shields.io/docker/pulls/synclounge/synclounge?style=for-the-badge
-[npm-badge]: https://img.shields.io/npm/v/synclounge?style=for-the-badge
-[dependencies-badge]: https://img.shields.io/david/synclounge/synclounge?style=for-the-badge
-[devdependencies-badge]: https://img.shields.io/david/dev/synclounge/synclounge?style=for-the-badge
-[license-badge]: https://img.shields.io/github/license/synclounge/synclounge?style=for-the-badge
-[app-badge]: https://img.shields.io/website?label=App&style=for-the-badge&up_message=online&url=https%3A%2F%2Fapp.synclounge.tv
-[release-action-link]: https://github.com/synclounge/synclounge/actions?query=workflow%3Arelease+branch%3Amaster "Release action"
-[dockerhub-link]: https://hub.docker.com/r/synclounge/synclounge "Docker images of SyncLounge"
-[dockerhub-tags-link]: https://hub.docker.com/r/synclounge/synclounge/tags "Docker tags of Synclounge"
-[docker-microbadger-link]: https://microbadger.com/images/synclounge/synclounge "Docker size"
-[npm-link]: https://www.npmjs.com/package/synclounge "NPM package"
-[dependencies-link]: https://david-dm.org/synclounge/synclounge
-[devdependencies-link]: https://david-dm.org/synclounge/synclounge?type=dev
-[app-link]: https://app.synclounge.tv
-[license-link]: https://opensource.org/licenses/MIT "MIT License"
+# MovieNight
 
-![SyncLounge](https://github.com/synclounge/synclounge/raw/master/src/assets/images/logos/logo-long-dark.png)
+MovieNight is a Plex-backed group movie-night app built as a fork, rebrand, and extension of [SyncLounge](https://github.com/synclounge/synclounge). It keeps the core SyncLounge idea of syncing Plex playback across multiple participants, while adding room workflows for choosing and managing what the group watches.
 
-[![App][app-badge]][app-link]
-[![npm][npm-badge]][npm-link]
-[![Docker Version][docker-version-badge]][dockerhub-link]
-[![Docker Size][docker-latest-size-badge]][dockerhub-link]
-[![Docker Pulls][docker-pulls-badge]][dockerhub-link]
-[![Release][github-release-badge]][release-action-link]
-[![Dependencies][dependencies-badge]][dependencies-link]
-[![Dev Dependencies][devdependencies-badge]][devdependencies-link]
-[![License][license-badge]][license-link]
+MovieNight still intentionally uses several SyncLounge internals, package names, and configuration keys. Those names are compatibility details and are not by themselves stale branding.
 
-SyncLounge (Previously PlexTogether) is a tool to sync [Plex](https://plex.tv) content across multiple players in multiple locations.
+## Current status
+
+MovieNight is in beta-oriented development. It is usable for Plex-authenticated group testing, but it is not a replacement for every upstream SyncLounge deployment pattern yet.
+
+### Implemented MovieNight features
+
+- **Host Controller**: the host can open a separate controller/browser window while the main player window keeps playback and room identity.
+- **Nominations**: participants can nominate Plex movies, shows, or episodes.
+- **Approval voting**: the host can start a vote from nominations; participants can approve any candidates they would watch.
+- **Runoff voting**: after a closed vote, the host can start a runoff from the top 2, 3, or 5 results.
+- **Host playlist**: hosts can build and manage a room-backed playlist.
+- **Playlist visibility**: playlist visibility supports private, next item only, and public modes.
+- **Playlist auto-play**: optional auto-play advances to the next playlist item after natural media end.
+- **Active playlist item tracking**: the room tracks the active playlist item and clears stale active state when items are removed or the playlist is cleared.
+- **Stale Host Controller invalidation**: when host control transfers away, the previous host's controller becomes inactive and stale controller commands must not change room state.
+
+Movies and episodes are playable playlist items. Shows/series can be nominated but are not directly playable playlist items.
+
+### Beta constraints
+
+- Plex authentication is still required.
+- Every participant needs Plex credentials.
+- Every participant needs access to the relevant Plex server/library.
+- Anonymous guests are not implemented.
+- Local-only guest accounts are not implemented.
+- Voting-only users are not implemented.
+- Room state and votes are not persisted after a server restart.
 
 ## How it works
 
-SyncLounge aims to keep multiple viewing sessions in sync regardless of whether the clients are in the same room or across the globe. To do this SyncLounge utilizes a middle-man server to communicate between each of the SyncLounge clients. Users choose their Plex client, decide on a SyncLounge Server and Room name and join up. Your friends/family can do the same. Whoever joins the room first will become the host.
+MovieNight uses the SyncLounge room/socket model for synchronized Plex playback:
 
-The host has complete control over a room. Commands they send to their client will be sent through to other people in the room (Play, Pause, Seek etc). If the host starts playing something different, SyncLounge will search all of your available Plex Media Servers for an equivalent copy, even if it is not from the same Plex Media Server as the Host.
+1. Participants sign in with Plex.
+2. Participants choose a Plex player, a MovieNight server, and a room.
+3. The first participant to join normally becomes host.
+4. Host playback commands are synced to the rest of the room.
+5. MovieNight room state layers nominations, voting, playlist state, playlist visibility, and Host Controller commands on top of the existing room flow.
 
-## Features
-
-- Syncing between Plex Clients over the Internet
-- SyncLounge Player
-  - Plays content directly within SyncLounge.
-  - Built specifically for syncing.
-- Settings to tune SyncLounge to your environment
-  - Client Polling Interval - Sets how frequently SyncLounge will poll the client for new information.
-  - Sync Flexibility - Sets the acceptable distance away from the host in milliseconds.
-  - Sync method:
-  - Clean seek - Seeks straight to where the host is.
-  - Skip ahead - Seeks 10 seconds ahead, pauses and then resumes 10 seconds later.
-  - Plex Media Server blocking - allows you to restrict the servers SyncLounge searches for content.
-- Autoplay content
-  - SyncLounge will automatically search all of your available Plex Media Servers for content that is similar to the Host.
-- Plex Media Server Browsing - find, search and fling content to Plex Clients from within SyncLounge.
-- Metadata fetching from Plex Media Server
-- Chat to others in your room
-- Password locked rooms
-- Invite others via generated short link
-- Movies and TV Shows (Music not supported)
-
-## Screenshots
-
-Head to the [website](https://synclounge.tv)
-
-## Supported Plex Clients
-
-Theoretically, all Plex Clients that implement the Plex Client Protocol will work. As some clients have this implemented slightly differently, compatibility with SyncLounge may vary. If you have access to one of the untested clients please let us know so we can update our list below.
-
-Some low powered clients may be hard to achieve a perfect sync with (for example: Raspberry Pi clients).
-
-### Unsupported
-
-- Plex Web Player (Chrome/Safari/Firefox)
-
-### Supported
-
-- Plex Media Player
-- Plex Home Theater
-- OpenPHT
-- Rasplex
-- Roku
-- Android
-- Nvidia Shield
-- iOS (iPhone & iPad)
-- AppleTV
-
-### Broken
-
-- Xbox One
-- Xbox 360
-- PS3
-- PS4
+The main host/player window remains the real room participant and playback identity. The Host Controller window is a control surface only; it does not join as another room participant, does not appear in the attendee list, and is not eligible to become host.
 
 ## Documentation
 
-### Installation
+- [MovieNight fork notes](README-MOVIENIGHT.md)
+- [Current implementation](docs/current-implementation.md)
+- [Beta readiness checklist](docs/beta-readiness.md)
+- [Selection sessions and voting](docs/selection-sessions.md)
+- [Host Controller browser](docs/host-controller-browser.md)
+- [Architecture notes](docs/movienight-architecture-notes.md)
 
-By default, it listens on port 8088. All the paths are relative, so you can use a reverse proxy at any subdirectory or subdomain without any additional configuration to SyncLounge. In this version, the webapp and socket server are combined so you only need to proxy that one port if you are using a reverse proxy.
+## Local development and beta smoke checks
 
-#### Docker
+The current dev environment commonly serves MovieNight on port `8092` while the underlying server package default remains `8088`.
 
-Using the Docker image is the easiest path because it works out of the box.
-You can get it running immediately by
+Run the preferred beta checks from the repository root:
 
 ```sh
-docker pull synclounge/synclounge
-docker run -p 8088:8088 synclounge/synclounge:latest
+git status --short
+git log --oneline -8
+docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
+./scripts/check-movienight-socket-state.sh
+curl -s http://127.0.0.1:8092/health; echo
 ```
 
-You can use environment variables to change any of the [default configuration](https://github.com/synclounge/synclounge/blob/master/config/defaults.js).  
-Note that nested objects and arrays can be passed as environment variables in the following way:
+Expected successful output includes:
 
+```text
+DONE  Build complete. The dist directory is ready to be deployed.
+PASS: MovieNight playlist and poll state synced to guest
+{"load":"low"}
 ```
+
+## Self-hosting notes
+
+The root Dockerfile and package layout predate the MovieNight fork. They may still be useful for building the current checkout, but Docker packaging should not be assumed production-ready without testing image build, container startup, `/health`, browser loading, and socket smoke behavior.
+
+Do not rename package names such as `synclounge` or `syncloungeserver` just for branding. They remain part of the current technical architecture.
+
+By default, the server package listens on port `8088`. The beta dev environment commonly runs `node server.js --port 8092`, and deployments may map an external port to the container's internal port.
+
+Environment variables can override defaults from `config/defaults.js`. Nested objects and arrays can be passed as JSON strings, for example:
+
+```sh
 AUTHENTICATION='{"mechanism":"plex","type":["server"],"authorized":["MACHINE_ID"]}'
-
 SERVERS='[{"name":"My Server","location":"Mothership","url":"https://myserver.com","image":"https://myserver.com/myimage.jpg"}]'
 ```
 
+### Reverse proxy example
 
-#### Linux (Without Docker)
+MovieNight can be proxied to the running Node process. Keep WebSocket upgrade headers intact.
 
-Make sure you have nodejs installed.
-
-```sh
-sudo npm install -g synclounge
-```
-
-Then you can run it:
-
-```
-synclounge
-```
-
-If you want to change any of the [default configuration](https://github.com/synclounge/synclounge/blob/master/config/defaults.js), you can either use environment variables with the same name, use command line arguments, or use a config file and run synclounge like `synclounge --config_file /path/to/config.json`
-
-### Sample Nginx config
-
-If you want to run SyncLounge behind Nginx, here is an example configuration
-
-#### Subdomain sub.domain.com
-
-```
+```nginx
 map $http_upgrade $connection_upgrade {
         default upgrade;
         ''      '';
 }
-
 
 server {
     listen 80;
@@ -153,13 +106,9 @@ server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
 
-    # TODO: Replace this with your domain
-    server_name somesubdomain.yourserver.com;
-
-    # TODO: include your ssl certs and parms, etc
+    server_name movienight.example.com;
 
     location / {
-        # TODO: Replace this with your container address or localhost
         proxy_pass http://containeraddress:8088;
         proxy_http_version 1.1;
         proxy_socket_keepalive on;
@@ -180,82 +129,25 @@ server {
 }
 ```
 
-#### Subfolder domain.com/somefolder/
+## Upstream attribution
 
-To make synclounge run at a subfolder, all you need to do is change your reverse proxy configuration.
+MovieNight is based on SyncLounge, previously PlexTogether. SyncLounge's original purpose was syncing Plex content across multiple players in multiple locations. MovieNight preserves that foundation while adding group selection and host-control workflows.
 
-```
-map $http_upgrade $connection_upgrade {
-        default upgrade;
-        ''      '';
-}
+Original SyncLounge contributors listed in the inherited README included:
 
-
-server {
-    listen 80;
-    listen [::]:80;
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-
-    # TODO: Replace this with your domain
-    server_name somesubdomain.yourserver.com;
-
-    # TODO: include your ssl certs and parms, etc
-
-    # TODO: replace "somefolder" with your desired subfolder
-    location /somefolder/ {
-        # TODO: Replace this with your container address or localhost.
-        # Important: keep the trailing slash
-        proxy_pass http://containeraddress:8088/;
-        proxy_http_version 1.1;
-        proxy_socket_keepalive on;
-        proxy_redirect off;
-
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Host $server_name;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Port $server_port;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Sec-WebSocket-Extensions $http_sec_websocket_extensions;
-        proxy_set_header Sec-WebSocket-Key $http_sec_websocket_key;
-        proxy_set_header Sec-WebSocket-Version $http_sec_websocket_version;
-    }
-}
-``` 
-
-The FAQ, Self-Hosting, Development, Contributing, and other documentation has been move to [docs.synclounge.tv](https://docs.synclounge.tv)! Head there for more information!
-
-## Contributors
-
-[samcm](https://twitter.com/durksau) - Developer
-
-[gcordalis](https://twitter.com/gcordalis) - User Interface
-
-[ttshivers](https://github.com/ttshivers) - Developer
-
-[Brandz](https://twitter.com/homebrandz) - Design
-
-[TheGrimmChester](https://github.com/TheGrimmChester) - Developer/Tester
-
-[MagicalCodeMonkey](https://github.com/MagicalCodeMonkey) - Developer/Tester
-
-[Starbix](https://github.com/Starbix) - Docker Support
-
-kg6jay - Tester
-
-## Contact
-
-[Discord Server](https://discord.gg/Cp9RPSJ)
-
-Twitter:
-[SyncLounge](https://twitter.com/syncloungetv)
+- [samcm](https://twitter.com/durksau) - Developer
+- [gcordalis](https://twitter.com/gcordalis) - User Interface
+- [ttshivers](https://github.com/ttshivers) - Developer
+- [Brandz](https://twitter.com/homebrandz) - Design
+- [TheGrimmChester](https://github.com/TheGrimmChester) - Developer/Tester
+- [MagicalCodeMonkey](https://github.com/MagicalCodeMonkey) - Developer/Tester
+- [Starbix](https://github.com/Starbix) - Docker Support
+- kg6jay - Tester
 
 ## License
 
-SyncLounge is licensed under MIT License. See the `LICENSE.txt` file.
-SyncLounge is in no way affiliated with Plex Inc.
+MovieNight retains the inherited MIT license. See `LICENSE.txt`.
 
-Using [Material Design libraries](https://material.io/) provided under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode)
+MovieNight and SyncLounge are in no way affiliated with Plex Inc.
+
+This project uses [Material Design libraries](https://material.io/) provided under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode).
