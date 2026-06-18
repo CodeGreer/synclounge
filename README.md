@@ -146,7 +146,7 @@ Original SyncLounge contributors listed in the inherited README included:
 
 ## License
 
-MovieNight retains the inherited MIT license. See `LICENSE.txt`.
+MovieNight retains the inherited MIT license. See `LICENSE`.
 
 MovieNight and SyncLounge are in no way affiliated with Plex Inc.
 

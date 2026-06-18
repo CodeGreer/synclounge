@@ -72,10 +72,8 @@ SKIP_BUILD=true
 The app is confirmed working when this appears in container logs:
 
 ```text
-SyncLounge Server successfully started on port 8092
+MovieNight Server successfully started on port 8092
 ```
-
-That startup string is an inherited internal server label, not intended as end-user MovieNight branding.
 
 ## Beta smoke checks
 

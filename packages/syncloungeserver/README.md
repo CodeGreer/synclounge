@@ -60,6 +60,6 @@ The current MovieNight beta still requires Plex authentication. Participants nee
 
 ## Upstream attribution and license
 
-This package descends from the SyncLounge socket server and retains the inherited MIT license. See the repository `LICENSE.txt` file.
+This package descends from the SyncLounge socket server and retains the inherited MIT license. See the repository `LICENSE` file.
 
 MovieNight and SyncLounge are in no way affiliated with Plex Inc.
