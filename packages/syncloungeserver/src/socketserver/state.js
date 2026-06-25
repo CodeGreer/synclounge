@@ -126,7 +126,10 @@ const rooms = new Map();
 const socketRoomId = new Map();
 const socketLatencyData = new Map();
 
-const getNumberFromUsername = (username) => parseInt(username.match(/\((\d+)\)$/)[1], 10);
+const getNumberFromUsername = (username) => {
+  const match = username.match(/\((\d+)\)$/);
+  return match ? parseInt(match[1], 10) : null;
+};
 
 const sanitizeUsername = (username) => (
   truncateString(username, MAX_MOVIENIGHT_USERNAME_LENGTH) || 'Guest'
@@ -187,10 +190,11 @@ const getUniqueUsername = ({ usernames, desiredUsername }) => {
   }
 
   // Get users with same username that are numbered like:  username(1)
-  const sameUsersNum = usernames
-    .filter((username) => username.startsWith(`${safeDesiredUsername}(`));
-  if (sameUsersNum.length > 0) {
-    const userNumbers = sameUsersNum.map(getNumberFromUsername);
+  const userNumbers = usernames
+    .filter((username) => username.startsWith(`${safeDesiredUsername}(`))
+    .map(getNumberFromUsername)
+    .filter((number) => number != null);
+  if (userNumbers.length > 0) {
     const nextNumber = Math.max(...userNumbers) + 1;
 
     return `${safeDesiredUsername}(${nextNumber})`;
