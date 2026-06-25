@@ -19,6 +19,48 @@ import {
   emitToUserRoomExcept, logSocketStats, logRoomsStats, log, emitMovieNightStateToRoom,
 } from './actions';
 
+const MOVIENIGHT_RATE_LIMIT_WINDOW_MS = 10000;
+const MOVIENIGHT_RATE_LIMIT_MAX_ACTIONS = 60;
+const movieNightActionBuckets = new Map();
+
+const allowMovieNightAction = (socket, actionName) => {
+  const now = Date.now();
+  const key = `${socket.id}:${actionName}`;
+  const bucket = movieNightActionBuckets.get(key);
+
+  if (!bucket || now - bucket.startedAt >= MOVIENIGHT_RATE_LIMIT_WINDOW_MS) {
+    movieNightActionBuckets.set(key, { startedAt: now, count: 1 });
+    return true;
+  }
+
+  if (bucket.count >= MOVIENIGHT_RATE_LIMIT_MAX_ACTIONS) {
+    logSocket({
+      socketId: socket.id,
+      message: `MovieNight action rate limited: ${actionName}`,
+    });
+    return false;
+  }
+
+  bucket.count += 1;
+  return true;
+};
+
+const clearMovieNightRateLimit = (socketId) => {
+  [...movieNightActionBuckets.keys()]
+    .filter((key) => key.startsWith(`${socketId}:`))
+    .forEach((key) => movieNightActionBuckets.delete(key));
+};
+
+const emitMovieNightStateIfChanged = ({ server, socket, actionName, change }) => {
+  if (!allowMovieNightAction(socket, actionName)) {
+    return;
+  }
+
+  if (change()) {
+    emitMovieNightStateToRoom({ server, socketId: socket.id });
+  }
+};
+
 const join = ({
   server, socket, data: {
     roomId, desiredUsername, desiredPartyPausingEnabled, desiredAutoHostEnabled, thumb,
@@ -108,6 +150,7 @@ const disconnect = ({ server, socket }) => {
 
   clearSocketLatencyInterval(socket.id);
   removeSocketLatencyData(socket.id);
+  clearMovieNightRateLimit(socket.id);
 
   logSocketStats();
 };
@@ -324,8 +367,12 @@ const movieNightAddNomination = ({ server, socket, data: nomination }) => {
     return;
   }
 
-  addMovieNightNomination({ socketId: socket.id, nomination });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightAddNomination',
+    change: () => addMovieNightNomination({ socketId: socket.id, nomination }),
+  });
 };
 
 const movieNightRemoveNomination = ({ server, socket, data: id }) => {
@@ -334,8 +381,12 @@ const movieNightRemoveNomination = ({ server, socket, data: id }) => {
     return;
   }
 
-  removeMovieNightNomination({ socketId: socket.id, id });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightRemoveNomination',
+    change: () => removeMovieNightNomination({ socketId: socket.id, id }),
+  });
 };
 
 const movieNightAddPlaylistItem = ({ server, socket, data: item }) => {
@@ -344,8 +395,12 @@ const movieNightAddPlaylistItem = ({ server, socket, data: item }) => {
     return;
   }
 
-  addMovieNightPlaylistItem({ socketId: socket.id, item });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightAddPlaylistItem',
+    change: () => addMovieNightPlaylistItem({ socketId: socket.id, item }),
+  });
 };
 
 const movieNightRemovePlaylistItem = ({ server, socket, data: id }) => {
@@ -354,8 +409,12 @@ const movieNightRemovePlaylistItem = ({ server, socket, data: id }) => {
     return;
   }
 
-  removeMovieNightPlaylistItem({ socketId: socket.id, id });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightRemovePlaylistItem',
+    change: () => removeMovieNightPlaylistItem({ socketId: socket.id, id }),
+  });
 };
 
 const movieNightMovePlaylistItemUp = ({ server, socket, data: id }) => {
@@ -364,8 +423,12 @@ const movieNightMovePlaylistItemUp = ({ server, socket, data: id }) => {
     return;
   }
 
-  moveMovieNightPlaylistItemUp({ socketId: socket.id, id });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightMovePlaylistItemUp',
+    change: () => moveMovieNightPlaylistItemUp({ socketId: socket.id, id }),
+  });
 };
 
 const movieNightMovePlaylistItemDown = ({ server, socket, data: id }) => {
@@ -374,8 +437,12 @@ const movieNightMovePlaylistItemDown = ({ server, socket, data: id }) => {
     return;
   }
 
-  moveMovieNightPlaylistItemDown({ socketId: socket.id, id });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightMovePlaylistItemDown',
+    change: () => moveMovieNightPlaylistItemDown({ socketId: socket.id, id }),
+  });
 };
 
 const movieNightClearPlaylist = ({ server, socket }) => {
@@ -384,8 +451,12 @@ const movieNightClearPlaylist = ({ server, socket }) => {
     return;
   }
 
-  clearMovieNightPlaylist(socket.id);
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightClearPlaylist',
+    change: () => clearMovieNightPlaylist(socket.id),
+  });
 };
 
 const movieNightSetPlaylistVisibility = ({ server, socket, data: visibility }) => {
@@ -394,8 +465,12 @@ const movieNightSetPlaylistVisibility = ({ server, socket, data: visibility }) =
     return;
   }
 
-  setMovieNightPlaylistVisibility({ socketId: socket.id, visibility });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightSetPlaylistVisibility',
+    change: () => setMovieNightPlaylistVisibility({ socketId: socket.id, visibility }),
+  });
 };
 
 const movieNightSetPlaylistAutoPlay = ({ server, socket, data: playlistAutoPlay }) => {
@@ -404,8 +479,12 @@ const movieNightSetPlaylistAutoPlay = ({ server, socket, data: playlistAutoPlay 
     return;
   }
 
-  setMovieNightPlaylistAutoPlay({ socketId: socket.id, playlistAutoPlay });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightSetPlaylistAutoPlay',
+    change: () => setMovieNightPlaylistAutoPlay({ socketId: socket.id, playlistAutoPlay }),
+  });
 };
 
 const movieNightSetActivePlaylistItem = ({ server, socket, data: item }) => {
@@ -414,8 +493,12 @@ const movieNightSetActivePlaylistItem = ({ server, socket, data: item }) => {
     return;
   }
 
-  setMovieNightActivePlaylistItem({ socketId: socket.id, item });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightSetActivePlaylistItem',
+    change: () => setMovieNightActivePlaylistItem({ socketId: socket.id, item }),
+  });
 };
 
 const movieNightStartApprovalPollFromNominations = ({ server, socket }) => {
@@ -424,8 +507,12 @@ const movieNightStartApprovalPollFromNominations = ({ server, socket }) => {
     return;
   }
 
-  startMovieNightApprovalPollFromNominations({ socketId: socket.id });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightStartApprovalPollFromNominations',
+    change: () => startMovieNightApprovalPollFromNominations({ socketId: socket.id }),
+  });
 };
 
 const movieNightSetPollApproval = ({ server, socket, data }) => {
@@ -434,12 +521,16 @@ const movieNightSetPollApproval = ({ server, socket, data }) => {
     return;
   }
 
-  setMovieNightPollApproval({
-    socketId: socket.id,
-    candidateId: data && data.candidateId,
-    approved: Boolean(data && data.approved),
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightSetPollApproval',
+    change: () => setMovieNightPollApproval({
+      socketId: socket.id,
+      candidateId: data && data.candidateId,
+      approved: Boolean(data && data.approved),
+    }),
   });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
 };
 
 const movieNightClosePoll = ({ server, socket }) => {
@@ -448,8 +539,12 @@ const movieNightClosePoll = ({ server, socket }) => {
     return;
   }
 
-  closeMovieNightPoll({ socketId: socket.id });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightClosePoll',
+    change: () => closeMovieNightPoll({ socketId: socket.id }),
+  });
 };
 
 const movieNightStartPollRunoff = ({ server, socket, data }) => {
@@ -458,11 +553,15 @@ const movieNightStartPollRunoff = ({ server, socket, data }) => {
     return;
   }
 
-  startMovieNightPollRunoff({
-    socketId: socket.id,
-    limit: data && data.limit,
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightStartPollRunoff',
+    change: () => startMovieNightPollRunoff({
+      socketId: socket.id,
+      limit: data && data.limit,
+    }),
   });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
 };
 
 const movieNightClearPoll = ({ server, socket }) => {
@@ -471,8 +570,12 @@ const movieNightClearPoll = ({ server, socket }) => {
     return;
   }
 
-  clearMovieNightPoll({ socketId: socket.id });
-  emitMovieNightStateToRoom({ server, socketId: socket.id });
+  emitMovieNightStateIfChanged({
+    server,
+    socket,
+    actionName: 'movieNightClearPoll',
+    change: () => clearMovieNightPoll({ socketId: socket.id }),
+  });
 };
 
 const kick = ({ server, socket, data: id }) => {
@@ -498,6 +601,13 @@ const kick = ({ server, socket, data: id }) => {
     eventName: 'kicked',
     data: null,
   });
+
+  removeUserAndUpdateRoom({ server, socketId: id });
+
+  const targetSocket = server.sockets.sockets.get(id);
+  if (targetSocket) {
+    targetSocket.disconnect(true);
+  }
 };
 
 const eventHandlers = {

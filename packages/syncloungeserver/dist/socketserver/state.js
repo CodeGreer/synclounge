@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.updateUserSyncFlexibility = exports.updateUserPlayerState = exports.updateUserMedia = exports.updateSocketLatency = exports.startMovieNightPollRunoff = exports.startMovieNightApprovalPollFromNominations = exports.setSocketLatencyIntervalId = exports.setMovieNightPollApproval = exports.setMovieNightPlaylistVisibility = exports.setMovieNightPlaylistAutoPlay = exports.setMovieNightActivePlaylistItem = exports.setIsPartyPausingEnabledInSocketRoom = exports.setIsAutoHostEnabledInSocketRoom = exports.removeUser = exports.removeSocketLatencyData = exports.removeRoom = exports.removeMovieNightPlaylistItem = exports.removeMovieNightNomination = exports.moveMovieNightPlaylistItemUp = exports.moveMovieNightPlaylistItemDown = exports.makeUserHost = exports.isUserInRoom = exports.isUserInARoom = exports.isUserHost = exports.isRoomEmpty = exports.isPartyPausingEnabledInSocketRoom = exports.isAutoHostEnabledInSocketRoom = exports.initSocketLatencyData = exports.getUserRoomId = exports.getUserRoom = exports.getSocketPingSecret = exports.getSocketLatency = exports.getSocketCount = exports.getRoomUserData = exports.getRoomSocketIds = exports.getRoomSize = exports.getRoomHostId = exports.getRoomCount = exports.getMovieNightState = exports.getJoinedUserCount = exports.getJoinData = exports.getHealth = exports.getAnySocketIdInRoom = exports.generateAndSetSocketLatencySecret = exports.formatUserData = exports.doesSocketHaveRtt = exports.doesRoomExist = exports.createRoom = exports.closeMovieNightPoll = exports.clearSocketLatencyInterval = exports.clearMovieNightPoll = exports.clearMovieNightPlaylist = exports.addUserToRoom = exports.addMovieNightPlaylistItem = exports.addMovieNightNomination = void 0;
+exports.updateUserSyncFlexibility = exports.updateUserPlayerState = exports.updateUserMedia = exports.updateSocketLatency = exports.startMovieNightPollRunoff = exports.startMovieNightApprovalPollFromNominations = exports.setSocketLatencyIntervalId = exports.setMovieNightPollApproval = exports.setMovieNightPlaylistVisibility = exports.setMovieNightPlaylistAutoPlay = exports.setMovieNightActivePlaylistItem = exports.setIsPartyPausingEnabledInSocketRoom = exports.setIsAutoHostEnabledInSocketRoom = exports.removeUser = exports.removeSocketLatencyData = exports.removeRoom = exports.removeMovieNightPlaylistItem = exports.removeMovieNightNomination = exports.moveMovieNightPlaylistItemUp = exports.moveMovieNightPlaylistItemDown = exports.makeUserHost = exports.isUserInRoom = exports.isUserInARoom = exports.isUserHost = exports.isRoomEmpty = exports.isPartyPausingEnabledInSocketRoom = exports.isAutoHostEnabledInSocketRoom = exports.initSocketLatencyData = exports.getUserRoomId = exports.getUserRoom = exports.getSocketPingSecret = exports.getSocketLatency = exports.getSocketCount = exports.getRoomUserData = exports.getRoomSocketIds = exports.getRoomSize = exports.getRoomHostId = exports.getRoomCount = exports.getMovieNightState = exports.getJoinedUserCount = exports.getJoinData = exports.getHealth = exports.getAnySocketIdInRoom = exports.generateAndSetSocketLatencySecret = exports.formatUserData = exports.doesSocketHaveRtt = exports.doesRoomExist = exports.createRoom = exports.closeMovieNightPoll = exports.clearSocketLatencyInterval = exports.clearMovieNightPoll = exports.clearMovieNightPlaylist = exports.addUserToRoom = exports.addMovieNightPlaylistItem = exports.addMovieNightNomination = exports.MAX_MOVIENIGHT_USERNAME_LENGTH = exports.MAX_MOVIENIGHT_TYPE_LENGTH = exports.MAX_MOVIENIGHT_TITLE_LENGTH = exports.MAX_MOVIENIGHT_SUMMARY_LENGTH = exports.MAX_MOVIENIGHT_RATING_KEY_LENGTH = exports.MAX_MOVIENIGHT_POLL_OPTIONS = exports.MAX_MOVIENIGHT_PLAYLIST_ITEMS_PER_ROOM = exports.MAX_MOVIENIGHT_NOMINATIONS_PER_ROOM = exports.MAX_MOVIENIGHT_MACHINE_IDENTIFIER_LENGTH = exports.MAX_MOVIENIGHT_IMAGE_URL_LENGTH = exports.MAX_MOVIENIGHT_ID_LENGTH = void 0;
 var _uuid = require("uuid");
 const _excluded = ["recipientId", "updatedAt", "playbackRate", "state", "time"];
 function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var n = Object.getOwnPropertySymbols(e); for (r = 0; r < n.length; r++) o = n[r], t.indexOf(o) >= 0 || {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
@@ -13,11 +13,110 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+const MAX_MOVIENIGHT_NOMINATIONS_PER_ROOM = exports.MAX_MOVIENIGHT_NOMINATIONS_PER_ROOM = 100;
+const MAX_MOVIENIGHT_PLAYLIST_ITEMS_PER_ROOM = exports.MAX_MOVIENIGHT_PLAYLIST_ITEMS_PER_ROOM = 100;
+const MAX_MOVIENIGHT_POLL_OPTIONS = exports.MAX_MOVIENIGHT_POLL_OPTIONS = 50;
+const MAX_MOVIENIGHT_TITLE_LENGTH = exports.MAX_MOVIENIGHT_TITLE_LENGTH = 300;
+const MAX_MOVIENIGHT_USERNAME_LENGTH = exports.MAX_MOVIENIGHT_USERNAME_LENGTH = 80;
+const MAX_MOVIENIGHT_ID_LENGTH = exports.MAX_MOVIENIGHT_ID_LENGTH = 120;
+const MAX_MOVIENIGHT_IMAGE_URL_LENGTH = exports.MAX_MOVIENIGHT_IMAGE_URL_LENGTH = 1000;
+const MAX_MOVIENIGHT_SUMMARY_LENGTH = exports.MAX_MOVIENIGHT_SUMMARY_LENGTH = 2000;
+const MAX_MOVIENIGHT_RATING_KEY_LENGTH = exports.MAX_MOVIENIGHT_RATING_KEY_LENGTH = 120;
+const MAX_MOVIENIGHT_MACHINE_IDENTIFIER_LENGTH = exports.MAX_MOVIENIGHT_MACHINE_IDENTIFIER_LENGTH = 120;
+const MAX_MOVIENIGHT_TYPE_LENGTH = exports.MAX_MOVIENIGHT_TYPE_LENGTH = 80;
+const MOVIENIGHT_PLAYABLE_TYPES = ['movie', 'episode'];
+const truncateString = (value, maxLength) => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  return trimmed.slice(0, maxLength);
+};
+const normalizeNumber = value => {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+};
+const normalizeMovieNightId = value => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  const normalized = truncateString(String(value || ''), MAX_MOVIENIGHT_ID_LENGTH);
+  return normalized || null;
+};
+const sanitizeMovieNightMediaItem = ({
+  item,
+  id,
+  requirePlayable = false
+}) => {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) {
+    return null;
+  }
+  const source = truncateString(item.source, MAX_MOVIENIGHT_TYPE_LENGTH) || 'manual';
+  const title = truncateString(item.title, MAX_MOVIENIGHT_TITLE_LENGTH);
+  const type = truncateString(item.type, MAX_MOVIENIGHT_TYPE_LENGTH);
+  const ratingKey = truncateString(item.ratingKey, MAX_MOVIENIGHT_RATING_KEY_LENGTH);
+  const machineIdentifier = truncateString(item.machineIdentifier, MAX_MOVIENIGHT_MACHINE_IDENTIFIER_LENGTH);
+  const key = truncateString(item.key, MAX_MOVIENIGHT_ID_LENGTH);
+  const nominationKey = truncateString(item.nominationKey, MAX_MOVIENIGHT_ID_LENGTH);
+  const playlistKey = truncateString(item.playlistKey, MAX_MOVIENIGHT_ID_LENGTH);
+  if (!title && !ratingKey && !nominationKey && !playlistKey) {
+    return null;
+  }
+  if (requirePlayable && !MOVIENIGHT_PLAYABLE_TYPES.includes(type)) {
+    return null;
+  }
+  const sanitized = {
+    id,
+    source,
+    title,
+    year: normalizeNumber(item.year),
+    type,
+    ratingKey,
+    key,
+    machineIdentifier,
+    thumb: truncateString(item.thumb, MAX_MOVIENIGHT_IMAGE_URL_LENGTH),
+    art: truncateString(item.art, MAX_MOVIENIGHT_IMAGE_URL_LENGTH),
+    summary: truncateString(item.summary, MAX_MOVIENIGHT_SUMMARY_LENGTH),
+    duration: normalizeNumber(item.duration)
+  };
+  if (nominationKey) {
+    sanitized.nominationKey = nominationKey;
+  }
+  if (playlistKey) {
+    sanitized.playlistKey = playlistKey;
+  }
+  return Object.fromEntries(Object.entries(sanitized).filter(([, value]) => value != null));
+};
+const sanitizeMovieNightActivePlaylistItem = item => {
+  if (!item) {
+    return null;
+  }
+  if (!item || typeof item !== 'object' || Array.isArray(item)) {
+    return undefined;
+  }
+  const id = normalizeMovieNightId(item.id);
+  const playlistKey = truncateString(item.playlistKey, MAX_MOVIENIGHT_ID_LENGTH);
+  const machineIdentifier = truncateString(item.machineIdentifier, MAX_MOVIENIGHT_MACHINE_IDENTIFIER_LENGTH);
+  const ratingKey = truncateString(item.ratingKey, MAX_MOVIENIGHT_RATING_KEY_LENGTH);
+  if (!id && !playlistKey && (!machineIdentifier || !ratingKey)) {
+    return undefined;
+  }
+  return Object.fromEntries(Object.entries({
+    id,
+    playlistKey,
+    machineIdentifier,
+    ratingKey
+  }).filter(([, value]) => value != null));
+};
 const rooms = new Map();
 // Map from socket id to room name
 const socketRoomId = new Map();
 const socketLatencyData = new Map();
 const getNumberFromUsername = username => parseInt(username.match(/\((\d+)\)$/)[1], 10);
+const sanitizeUsername = username => truncateString(username, MAX_MOVIENIGHT_USERNAME_LENGTH) || 'Guest';
 const getUserRoomId = socketId => socketRoomId.get(socketId);
 exports.getUserRoomId = getUserRoomId;
 const getUserRoom = socketId => rooms.get(getUserRoomId(socketId));
@@ -57,18 +156,19 @@ const getUniqueUsername = ({
   usernames,
   desiredUsername
 }) => {
-  if (!usernames.includes(desiredUsername)) {
-    return desiredUsername;
+  const safeDesiredUsername = sanitizeUsername(desiredUsername);
+  if (!usernames.includes(safeDesiredUsername)) {
+    return safeDesiredUsername;
   }
 
   // Get users with same username that are numbered like:  username(1)
-  const sameUsersNum = usernames.filter(username => username.startsWith("".concat(desiredUsername, "(")));
+  const sameUsersNum = usernames.filter(username => username.startsWith("".concat(safeDesiredUsername, "(")));
   if (sameUsersNum.length > 0) {
     const userNumbers = sameUsersNum.map(getNumberFromUsername);
     const nextNumber = Math.max(...userNumbers) + 1;
-    return "".concat(desiredUsername, "(").concat(nextNumber, ")");
+    return "".concat(safeDesiredUsername, "(").concat(nextNumber, ")");
   }
-  return "".concat(desiredUsername, "(1)");
+  return "".concat(safeDesiredUsername, "(1)");
 };
 const getSocketLatency = socketId => socketLatencyData.get(socketId).rtt / 2;
 exports.getSocketLatency = getSocketLatency;
@@ -315,13 +415,22 @@ const addMovieNightNomination = ({
   nomination
 }) => {
   const movieNight = getSocketMovieNightState(socketId);
-  if (nomination.nominationKey && movieNight.nominations.some(existing => existing.nominationKey === nomination.nominationKey)) {
-    return;
+  if (movieNight.nominations.length >= MAX_MOVIENIGHT_NOMINATIONS_PER_ROOM) {
+    return false;
   }
-  movieNight.nominations.push(_objectSpread(_objectSpread({}, nomination), {}, {
+  const sanitized = sanitizeMovieNightMediaItem({
+    item: nomination,
     id: movieNight.nextNominationId
-  }));
+  });
+  if (!sanitized) {
+    return false;
+  }
+  if (sanitized.nominationKey && movieNight.nominations.some(existing => existing.nominationKey === sanitized.nominationKey)) {
+    return false;
+  }
+  movieNight.nominations.push(sanitized);
   movieNight.nextNominationId += 1;
+  return true;
 };
 exports.addMovieNightNomination = addMovieNightNomination;
 const removeMovieNightNomination = ({
@@ -329,7 +438,12 @@ const removeMovieNightNomination = ({
   id
 }) => {
   const movieNight = getSocketMovieNightState(socketId);
-  movieNight.nominations = movieNight.nominations.filter(nomination => nomination.id !== id);
+  const nextNominations = movieNight.nominations.filter(nomination => String(nomination.id) !== String(id));
+  if (nextNominations.length === movieNight.nominations.length) {
+    return false;
+  }
+  movieNight.nominations = nextNominations;
+  return true;
 };
 exports.removeMovieNightNomination = removeMovieNightNomination;
 const addMovieNightPlaylistItem = ({
@@ -337,13 +451,23 @@ const addMovieNightPlaylistItem = ({
   item
 }) => {
   const movieNight = getSocketMovieNightState(socketId);
-  if (item.playlistKey && movieNight.playlist.some(existing => existing.playlistKey === item.playlistKey)) {
-    return;
+  if (movieNight.playlist.length >= MAX_MOVIENIGHT_PLAYLIST_ITEMS_PER_ROOM) {
+    return false;
   }
-  movieNight.playlist.push(_objectSpread(_objectSpread({}, item), {}, {
-    id: movieNight.nextPlaylistItemId
-  }));
+  const sanitized = sanitizeMovieNightMediaItem({
+    item,
+    id: movieNight.nextPlaylistItemId,
+    requirePlayable: true
+  });
+  if (!sanitized || !sanitized.playlistKey) {
+    return false;
+  }
+  if (movieNight.playlist.some(existing => existing.playlistKey === sanitized.playlistKey)) {
+    return false;
+  }
+  movieNight.playlist.push(sanitized);
   movieNight.nextPlaylistItemId += 1;
+  return true;
 };
 exports.addMovieNightPlaylistItem = addMovieNightPlaylistItem;
 const removeMovieNightPlaylistItem = ({
@@ -351,10 +475,15 @@ const removeMovieNightPlaylistItem = ({
   id
 }) => {
   const movieNight = getSocketMovieNightState(socketId);
-  movieNight.playlist = movieNight.playlist.filter(item => item.id !== id);
-  if (movieNight.activePlaylistItem && movieNight.activePlaylistItem.id === id) {
+  const nextPlaylist = movieNight.playlist.filter(item => String(item.id) !== String(id));
+  if (nextPlaylist.length === movieNight.playlist.length) {
+    return false;
+  }
+  movieNight.playlist = nextPlaylist;
+  if (movieNight.activePlaylistItem && String(movieNight.activePlaylistItem.id) === String(id)) {
     movieNight.activePlaylistItem = null;
   }
+  return true;
 };
 exports.removeMovieNightPlaylistItem = removeMovieNightPlaylistItem;
 const moveMovieNightPlaylistItem = ({
@@ -363,42 +492,43 @@ const moveMovieNightPlaylistItem = ({
   offset
 }) => {
   const movieNight = getSocketMovieNightState(socketId);
-  const index = movieNight.playlist.findIndex(item => item.id === id);
+  const index = movieNight.playlist.findIndex(item => String(item.id) === String(id));
   const newIndex = index + offset;
   if (index < 0 || newIndex < 0 || newIndex >= movieNight.playlist.length) {
-    return;
+    return false;
   }
   const playlist = movieNight.playlist.slice();
   const [item] = playlist.splice(index, 1);
   playlist.splice(newIndex, 0, item);
   movieNight.playlist = playlist;
+  return true;
 };
 const moveMovieNightPlaylistItemUp = ({
   socketId,
   id
-}) => {
-  moveMovieNightPlaylistItem({
-    socketId,
-    id,
-    offset: -1
-  });
-};
+}) => moveMovieNightPlaylistItem({
+  socketId,
+  id,
+  offset: -1
+});
 exports.moveMovieNightPlaylistItemUp = moveMovieNightPlaylistItemUp;
 const moveMovieNightPlaylistItemDown = ({
   socketId,
   id
-}) => {
-  moveMovieNightPlaylistItem({
-    socketId,
-    id,
-    offset: 1
-  });
-};
+}) => moveMovieNightPlaylistItem({
+  socketId,
+  id,
+  offset: 1
+});
 exports.moveMovieNightPlaylistItemDown = moveMovieNightPlaylistItemDown;
 const clearMovieNightPlaylist = socketId => {
   const movieNight = getSocketMovieNightState(socketId);
+  if (movieNight.playlist.length === 0 && !movieNight.activePlaylistItem) {
+    return false;
+  }
   movieNight.playlist = [];
   movieNight.activePlaylistItem = null;
+  return true;
 };
 exports.clearMovieNightPlaylist = clearMovieNightPlaylist;
 const setMovieNightPlaylistVisibility = ({
@@ -406,28 +536,40 @@ const setMovieNightPlaylistVisibility = ({
   visibility
 }) => {
   if (!['private', 'next', 'public'].includes(visibility)) {
-    return;
+    return false;
   }
-  getSocketMovieNightState(socketId).playlistVisibility = visibility;
+  const movieNight = getSocketMovieNightState(socketId);
+  if (movieNight.playlistVisibility === visibility) {
+    return false;
+  }
+  movieNight.playlistVisibility = visibility;
+  return true;
 };
 exports.setMovieNightPlaylistVisibility = setMovieNightPlaylistVisibility;
 const setMovieNightPlaylistAutoPlay = ({
   socketId,
   playlistAutoPlay
 }) => {
-  getSocketMovieNightState(socketId).playlistAutoPlay = Boolean(playlistAutoPlay);
+  const movieNight = getSocketMovieNightState(socketId);
+  const nextPlaylistAutoPlay = Boolean(playlistAutoPlay);
+  if (movieNight.playlistAutoPlay === nextPlaylistAutoPlay) {
+    return false;
+  }
+  movieNight.playlistAutoPlay = nextPlaylistAutoPlay;
+  return true;
 };
 exports.setMovieNightPlaylistAutoPlay = setMovieNightPlaylistAutoPlay;
 const setMovieNightActivePlaylistItem = ({
   socketId,
   item
 }) => {
-  getSocketMovieNightState(socketId).activePlaylistItem = item ? {
-    id: item.id,
-    playlistKey: item.playlistKey,
-    machineIdentifier: item.machineIdentifier,
-    ratingKey: item.ratingKey
-  } : null;
+  const movieNight = getSocketMovieNightState(socketId);
+  const activePlaylistItem = sanitizeMovieNightActivePlaylistItem(item);
+  if (activePlaylistItem === undefined) {
+    return false;
+  }
+  movieNight.activePlaylistItem = activePlaylistItem;
+  return true;
 };
 exports.setMovieNightActivePlaylistItem = setMovieNightActivePlaylistItem;
 const createApprovalPollFromNominations = movieNight => ({
@@ -435,7 +577,7 @@ const createApprovalPollFromNominations = movieNight => ({
   source: 'nominations',
   mode: 'approval',
   status: 'open',
-  candidates: movieNight.nominations.map(nomination => _objectSpread({}, nomination)),
+  candidates: movieNight.nominations.slice(0, MAX_MOVIENIGHT_POLL_OPTIONS).map(nomination => _objectSpread({}, nomination)),
   votesBySocketId: {},
   round: 1,
   createdAt: new Date().toISOString(),
@@ -443,7 +585,8 @@ const createApprovalPollFromNominations = movieNight => ({
 });
 const getMovieNightPollResults = poll => {
   const votesBySocketId = poll.votesBySocketId || {};
-  const approvals = Object.values(votesBySocketId).flat();
+  const validCandidateIds = new Set(poll.candidates.map(candidate => String(candidate.id)));
+  const approvals = Object.values(votesBySocketId).flat().filter(candidateId => validCandidateIds.has(String(candidateId)));
   return poll.candidates.map(candidate => _objectSpread(_objectSpread({}, candidate), {}, {
     approvalCount: approvals.filter(candidateId => String(candidateId) === String(candidate.id)).length
   })).sort((a, b) => b.approvalCount - a.approvalCount);
@@ -462,7 +605,7 @@ const createApprovalPollRunoff = ({
   if (!movieNight.activePoll || movieNight.activePoll.status !== 'closed') {
     return null;
   }
-  const candidates = getMovieNightPollResults(movieNight.activePoll).slice(0, normalizeRunoffLimit(limit)).map(candidate => {
+  const candidates = getMovieNightPollResults(movieNight.activePoll).slice(0, Math.min(normalizeRunoffLimit(limit), MAX_MOVIENIGHT_POLL_OPTIONS)).map(candidate => {
     const clone = _objectSpread({}, candidate);
     delete clone.approvalCount;
     return clone;
@@ -488,10 +631,11 @@ const startMovieNightApprovalPollFromNominations = ({
 }) => {
   const movieNight = getSocketMovieNightState(socketId);
   if (movieNight.nominations.length === 0) {
-    return;
+    return false;
   }
   movieNight.activePoll = createApprovalPollFromNominations(movieNight);
   movieNight.nextPollId += 1;
+  return true;
 };
 exports.startMovieNightApprovalPollFromNominations = startMovieNightApprovalPollFromNominations;
 const setMovieNightPollApproval = ({
@@ -504,23 +648,29 @@ const setMovieNightPollApproval = ({
     activePoll
   } = movieNight;
   if (!activePoll || activePoll.status !== 'open') {
-    return;
+    return false;
   }
-  const candidateExists = activePoll.candidates.some(candidate => String(candidate.id) === String(candidateId));
-  if (!candidateExists) {
-    return;
+  const candidate = activePoll.candidates.find(pollCandidate => String(pollCandidate.id) === String(candidateId));
+  if (!candidate) {
+    return false;
   }
-  const approvals = new Set(activePoll.votesBySocketId[socketId] || []);
+  const approvals = (activePoll.votesBySocketId[socketId] || []).filter(approvedCandidateId => activePoll.candidates.some(pollCandidate => String(pollCandidate.id) === String(approvedCandidateId)));
+  const normalizedCandidateId = candidate.id;
+  const hadApproval = approvals.some(approvedCandidateId => String(approvedCandidateId) === String(normalizedCandidateId));
+  const nextApprovals = approvals.filter(approvedCandidateId => String(approvedCandidateId) !== String(normalizedCandidateId));
   if (approved) {
-    approvals.add(candidateId);
-  } else {
-    approvals["delete"](candidateId);
+    nextApprovals.push(normalizedCandidateId);
   }
-  if (approvals.size > 0) {
-    activePoll.votesBySocketId[socketId] = Array.from(approvals);
+  const hasApproval = nextApprovals.some(approvedCandidateId => String(approvedCandidateId) === String(normalizedCandidateId));
+  if (hadApproval === hasApproval) {
+    return false;
+  }
+  if (nextApprovals.length > 0) {
+    activePoll.votesBySocketId[socketId] = nextApprovals;
   } else {
     delete activePoll.votesBySocketId[socketId];
   }
+  return true;
 };
 exports.setMovieNightPollApproval = setMovieNightPollApproval;
 const closeMovieNightPoll = ({
@@ -528,10 +678,11 @@ const closeMovieNightPoll = ({
 }) => {
   const movieNight = getSocketMovieNightState(socketId);
   if (!movieNight.activePoll || movieNight.activePoll.status !== 'open') {
-    return;
+    return false;
   }
   movieNight.activePoll.status = 'closed';
   movieNight.activePoll.closedAt = new Date().toISOString();
+  return true;
 };
 exports.closeMovieNightPoll = closeMovieNightPoll;
 const startMovieNightPollRunoff = ({
@@ -544,16 +695,22 @@ const startMovieNightPollRunoff = ({
     limit
   });
   if (!runoffPoll) {
-    return;
+    return false;
   }
   movieNight.activePoll = runoffPoll;
   movieNight.nextPollId += 1;
+  return true;
 };
 exports.startMovieNightPollRunoff = startMovieNightPollRunoff;
 const clearMovieNightPoll = ({
   socketId
 }) => {
-  getSocketMovieNightState(socketId).activePoll = null;
+  const movieNight = getSocketMovieNightState(socketId);
+  if (!movieNight.activePoll) {
+    return false;
+  }
+  movieNight.activePoll = null;
+  return true;
 };
 exports.clearMovieNightPoll = clearMovieNightPoll;
 const getRoomCount = () => rooms.size;
