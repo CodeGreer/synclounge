@@ -30,12 +30,20 @@ Movies and episodes are playable playlist items. Shows/series can be nominated b
 - Voting-only users are not implemented.
 - Room state is in memory and is not persisted after server restart.
 
-## Current local dev/runtime URL
+## Local dev/runtime URL
 
-MovieNight dev URL:
+When running locally or in Docker, use the host and port configured by your environment.
+
+Example local URL:
 
 ```text
-http://192.168.0.59:8092
+http://localhost:8092
+```
+
+Example LAN URL:
+
+```text
+http://SERVER-IP:8092
 ```
 
 Health check:
@@ -50,29 +58,29 @@ Expected health response:
 {"load":"low"}
 ```
 
-## OMV Compose service
+## Docker/Compose notes
 
-This project is managed through the OMV Compose web interface in the current dev environment.
+MovieNight can be run with Docker or Docker Compose.
 
-Current service command:
+Example source-development command:
 
 ```sh
 command: sh -c "npm ci && npm run build && node server.js --port 8092"
 ```
 
-Current environment values:
+Example environment values:
 
 ```text
-TZ=America/New_York
+TZ=Etc/UTC
 SKIP_BUILD=true
 ```
 
 `SKIP_BUILD=true` prevents the package prepare script from running an extra build during install. The explicit `npm run build` in the service command still performs the production build before starting the server.
 
-The app is confirmed working when this appears in container logs:
+The app is confirmed working when this appears in logs:
 
 ```text
-MovieNight Server successfully started on port 8092
+MovieNight Server successfully started on port <port>
 ```
 
 ## Beta smoke checks
@@ -82,7 +90,7 @@ Run before a beta session or documentation release when the dev container is ava
 ```sh
 git status --short
 git log --oneline -8
-docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
+docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
 ./scripts/check-movienight-socket-state.sh
 curl -s http://127.0.0.1:8092/health; echo
 ```

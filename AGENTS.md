@@ -10,17 +10,17 @@ MovieNight still uses much of the SyncLounge architecture, package naming, and P
 
 - Repository: git@github.com:CodeGreer/synclounge.git
 - Main branch: master
-- Local path: /srv/dev-disk-by-label/Config/DevStack/workspace/movienight
-- App URL in current dev environment: http://192.168.0.59:8092
-- Dev container/service: movienight-dev
+- Local checkout path: use the path where this repository is cloned.
+- App URL: use the host/port configured for the local or containerized dev environment.
+- Dev container/service: use the name configured by the local Docker/Compose setup.
 
-Run npm/node commands inside the movienight-dev container unless explicitly instructed otherwise.
+Run npm/node commands inside the project dev container when one is being used, unless explicitly instructed otherwise.
 
 Example build command:
 
-    docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build'
+    docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build'
 
-The dev container startup command runs npm ci, then npm run build, then node server.js --port 8092. After a container restart, the app may be unavailable until install/build/startup completes.
+A typical dev container startup command runs npm ci, then npm run build, then node server.js with the configured port. After a container restart, the app may be unavailable until install/build/startup completes.
 
 ## Safety rules
 
@@ -42,7 +42,7 @@ Before and after meaningful changes, prefer these checks:
     git status --short
     git log --oneline -8
 
-    docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
+    docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
 
     ./scripts/check-movienight-socket-state.sh
 
@@ -56,7 +56,7 @@ Expected results:
 
 If server source changes under packages/syncloungeserver/src, also run:
 
-    docker exec -it movienight-dev sh -lc 'cd /workspace/movienight/packages/syncloungeserver && npm run build'
+    docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight/packages/syncloungeserver && npm run build'
 
 When server source changes are made, commit both the source files and generated packages/syncloungeserver/dist files.
 
