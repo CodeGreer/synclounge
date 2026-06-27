@@ -31,7 +31,7 @@ router.beforeEach(async (to, from, next) => {
     await store.dispatch('FETCH_CONFIG');
 
     // This will only happen once per refresh of the page
-    if (store.getters.GET_CONFIG.autojoin) {
+    if (store.getters.GET_CONFIG.autojoin && !isControllerRoute(to)) {
       next({
         name: 'RoomJoin',
         params: store.getters.GET_CONFIG.autojoin,
