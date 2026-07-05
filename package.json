@@ -17,6 +17,7 @@
     "prepare": "if-env SKIP_BUILD=true && echo 'Skipping build' || npm run build"
   },
   "dependencies": {
+    "material-design-icons-iconfont": "^6.7.0",
     "nconf": "^0.13.0",
     "syncloungeserver": "file:packages/syncloungeserver"
   },
