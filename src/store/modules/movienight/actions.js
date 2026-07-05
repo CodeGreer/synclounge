@@ -264,7 +264,7 @@ export default {
       mediaIndex: 0,
       machineIdentifier: nextMetadata.machineIdentifier,
       offset: 0,
-      userInitiated: true,
+      userInitiated: false,
     }, { root: true });
   },
 };
