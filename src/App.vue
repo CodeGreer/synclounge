@@ -21,15 +21,12 @@
         :to="{ name: 'RoomCreation' }"
         class="d-flex align-center text-decoration-none"
       >
-        <img
-          height="42"
-          src="@/assets/images/logos/logo-small-light.png"
-          style="vertical-align: middle;"
-        >
-
-        <span class="ml-2 text-h5 font-weight-medium white--text hidden-xs-only">
-          MovieNight
-        </span>
+        <AppBranding
+          :center="false"
+          image-size="42"
+          image-class=""
+          text-class="ml-2 text-h5 font-weight-medium white--text hidden-xs-only"
+        />
       </router-link>
 
       <TheNowPlayingChip
@@ -171,6 +168,7 @@ export default {
     TheUpnextDialog: () => import('@/components/TheUpnextDialog.vue'),
     TheNowPlayingChip: () => import('@/components/TheNowPlayingChip.vue'),
     TheAppBarCrumbs: () => import('@/components/TheAppBarCrumbs.vue'),
+    AppBranding: () => import('@/components/AppBranding.vue'),
   },
 
   mixins: [

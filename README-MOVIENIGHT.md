@@ -73,9 +73,13 @@ Example environment values:
 ```text
 TZ=Etc/UTC
 SKIP_BUILD=true
+BRANDING_NAME=MovieNight
+BRANDING_IMAGE_URL=
 ```
 
 `SKIP_BUILD=true` prevents the package prepare script from running an extra build during install. The explicit `npm run build` in the service command still performs the production build before starting the server.
+
+Optional branding can be customized with `branding_name` and `branding_image_url` in runtime config, or with matching environment variables such as `BRANDING_NAME` and `BRANDING_IMAGE_URL`. Leave `branding_image_url` empty to use the bundled MovieNight logo. Use an HTTPS image URL when MovieNight is served over HTTPS, or use a same-origin/reverse-proxied relative path such as `/custom/branding.png`; browsers may block plain HTTP images on HTTPS pages.
 
 The app is confirmed working when this appears in logs:
 

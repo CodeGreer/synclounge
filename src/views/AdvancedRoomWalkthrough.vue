@@ -11,16 +11,7 @@
           lg="4"
           class="text-center"
         >
-          <div class="d-flex align-center justify-center">
-            <v-img
-              contain
-              max-width="56"
-              max-height="56"
-              src="@/assets/images/logos/logo-small-light.png"
-              class="mr-3"
-            />
-            <span class="display-1 font-weight-bold">MovieNight</span>
-          </div>
+          <AppBranding />
         </v-col>
       </v-row>
 
@@ -292,6 +283,7 @@ export default {
   name: 'AdvancedRoomWalkthrough',
 
   components: {
+    AppBranding: () => import('@/components/AppBranding.vue'),
     PlexClient: () => import('@/components/PlexClient.vue'),
   },
 

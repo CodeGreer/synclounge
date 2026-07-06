@@ -18,16 +18,7 @@
           xl="6"
           class="text-center"
         >
-          <div class="d-flex align-center justify-center">
-            <v-img
-              contain
-              max-width="56"
-              max-height="56"
-              src="@/assets/images/logos/logo-small-light.png"
-              class="mr-3"
-            />
-            <span class="display-1 font-weight-bold">MovieNight</span>
-          </div>
+          <AppBranding />
         </v-col>
       </v-row>
 
@@ -145,7 +136,7 @@
               <v-card>
                 <v-img
                   height="125"
-                  src="@/assets/images/logos/logo-small-light.png"
+                  :src="brandingImageUrl"
                   class="white--text align-end"
                   gradient="to bottom, rgba(0,0,0,.6), rgba(0,0,0,.9)"
                 >
@@ -221,7 +212,13 @@ import redirection from '@/mixins/redirection';
 import linkWithRoom from '@/mixins/linkwithroom';
 import { slPlayerClientId } from '@/player/constants';
 
+import defaultBrandingImage from '@/assets/images/logos/logo-small-light.png';
+
 export default {
+  components: {
+    AppBranding: () => import('@/components/AppBranding.vue'),
+  },
+
   name: 'AdvancedRoomJoin',
 
   mixins: [
@@ -240,6 +237,13 @@ export default {
     ...mapGetters([
       'GET_CONFIG',
     ]),
+
+    brandingImageUrl() {
+      const configuredImage = this.GET_CONFIG?.branding_image_url;
+      return typeof configuredImage === 'string' && configuredImage.trim()
+        ? configuredImage.trim()
+        : defaultBrandingImage;
+    },
 
     ...mapGetters('plexclients', [
       'GET_CHOSEN_CLIENT_ID',

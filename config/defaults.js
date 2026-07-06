@@ -49,6 +49,8 @@ const defaults = {
   default_party_pause_enabled: true,
   default_auto_host_enabled: false,
   trusted_mode: false,
+  branding_name: 'MovieNight',
+  branding_image_url: null,
   default_are_notification_enabled: false,
   default_are_sound_notification_enabled: false,
 

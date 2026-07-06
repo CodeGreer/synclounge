@@ -24,6 +24,8 @@ Plex requests are made directly from the browser to the chosen Plex server conne
 
 Runtime config comes from config/defaults.js and is served at /config.json.
 
+Operator-facing branding can be customized through runtime config with `branding_name` and `branding_image_url`. The app falls back to the bundled MovieNight logo and name when those values are unset.
+
 Current local SyncLounge server label:
 - MovieNight Local
 
