@@ -21,6 +21,7 @@ import {
 
 const MOVIENIGHT_RATE_LIMIT_WINDOW_MS = 10000;
 const MOVIENIGHT_RATE_LIMIT_MAX_ACTIONS = 60;
+const MAX_CHAT_MESSAGE_LENGTH = 1000;
 const movieNightActionBuckets = new Map();
 
 const canManageRoomSetting = ({ socket, trustedMode }) => (
@@ -271,11 +272,28 @@ const sendMessage = ({ server, socket, data: text }) => {
     return;
   }
 
+  if (!allowMovieNightAction(socket, 'sendMessage')) {
+    return;
+  }
+
+  if (typeof text !== 'string') {
+    socket.disconnect(true);
+    return;
+  }
+
+  const trimmedText = text.trim();
+
+  if (!trimmedText) {
+    return;
+  }
+
+  const sanitizedText = trimmedText.slice(0, MAX_CHAT_MESSAGE_LENGTH);
+
   emitToUserRoomExcept({
     server,
     eventName: 'newMessage',
     data: {
-      text,
+      text: sanitizedText,
       senderId: socket.id,
     },
     exceptSocketId: socket.id,

@@ -13,6 +13,7 @@ function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" 
 function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 const MOVIENIGHT_RATE_LIMIT_WINDOW_MS = 10000;
 const MOVIENIGHT_RATE_LIMIT_MAX_ACTIONS = 60;
+const MAX_CHAT_MESSAGE_LENGTH = 1000;
 const movieNightActionBuckets = new Map();
 const canManageRoomSetting = ({
   socket,
@@ -309,11 +310,23 @@ const sendMessage = ({
     socket.disconnect(true);
     return;
   }
+  if (!allowMovieNightAction(socket, 'sendMessage')) {
+    return;
+  }
+  if (typeof text !== 'string') {
+    socket.disconnect(true);
+    return;
+  }
+  const trimmedText = text.trim();
+  if (!trimmedText) {
+    return;
+  }
+  const sanitizedText = trimmedText.slice(0, MAX_CHAT_MESSAGE_LENGTH);
   (0, _actions.emitToUserRoomExcept)({
     server,
     eventName: 'newMessage',
     data: {
-      text,
+      text: sanitizedText,
       senderId: socket.id
     },
     exceptSocketId: socket.id

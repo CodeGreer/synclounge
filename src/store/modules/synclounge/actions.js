@@ -10,6 +10,8 @@ import notificationSound from '@/assets/sounds/notification_simple-01.wav';
 
 const notificationAudio = new Audio(notificationSound);
 
+const MAX_CHAT_MESSAGE_LENGTH = 1000;
+
 export default {
   CONNECT_AND_JOIN_ROOM: async ({ dispatch }) => {
     await dispatch('ESTABLISH_SOCKET_CONNECTION');
@@ -149,14 +151,24 @@ export default {
   },
 
   SEND_MESSAGE: async ({ dispatch, getters }, msg) => {
+    if (typeof msg !== 'string') {
+      return;
+    }
+
+    const text = msg.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH);
+
+    if (!text) {
+      return;
+    }
+
     await dispatch('ADD_MESSAGE_AND_CACHE', {
       senderId: getters.GET_SOCKET_ID,
-      text: msg,
+      text,
     });
 
     emit({
       eventName: 'sendMessage',
-      data: msg,
+      data: text,
     });
   },
 
