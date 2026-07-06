@@ -23,6 +23,10 @@ const MOVIENIGHT_RATE_LIMIT_WINDOW_MS = 10000;
 const MOVIENIGHT_RATE_LIMIT_MAX_ACTIONS = 60;
 const movieNightActionBuckets = new Map();
 
+const canManageRoomSetting = ({ socket, trustedMode }) => (
+  isUserInARoom(socket.id) && (isUserHost(socket.id) || trustedMode)
+);
+
 const allowMovieNightAction = (socket, actionName) => {
   const now = Date.now();
   const key = `${socket.id}:${actionName}`;
@@ -278,8 +282,8 @@ const sendMessage = ({ server, socket, data: text }) => {
   });
 };
 
-const setPartyPausingEnabled = ({ server, socket, data: isPartyPausingEnabled }) => {
-  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+const setPartyPausingEnabled = ({ server, socket, data: isPartyPausingEnabled, trustedMode }) => {
+  if (!canManageRoomSetting({ socket, trustedMode })) {
     socket.disconnect(true);
     return;
   }
@@ -300,8 +304,8 @@ const setPartyPausingEnabled = ({ server, socket, data: isPartyPausingEnabled })
   });
 };
 
-const setAutoHostEnabled = ({ server, socket, data: isAutoHostEnabled }) => {
-  if (!isUserInARoom(socket.id) || !isUserHost(socket.id)) {
+const setAutoHostEnabled = ({ server, socket, data: isAutoHostEnabled, trustedMode }) => {
+  if (!canManageRoomSetting({ socket, trustedMode })) {
     socket.disconnect(true);
     return;
   }
@@ -640,7 +644,7 @@ const eventHandlers = {
   kick,
 };
 
-const attachEventHandlers = ({ server, pingInterval }) => {
+const attachEventHandlers = ({ server, pingInterval, trustedMode }) => {
   server.on('connection', (socket) => {
     const forwardedHeader = socket.handshake.headers['x-forwarded-for'];
     const addressInfo = forwardedHeader
@@ -657,7 +661,7 @@ const attachEventHandlers = ({ server, pingInterval }) => {
         // TODO: eventually pass in state to everything rather than having it all global
         // TODO: move ping interval into state too
         handler({
-          server, pingInterval, socket, data,
+          server, pingInterval, socket, data, trustedMode,
         });
       });
     });

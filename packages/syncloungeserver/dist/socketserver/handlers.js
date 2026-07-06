@@ -14,6 +14,10 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
 const MOVIENIGHT_RATE_LIMIT_WINDOW_MS = 10000;
 const MOVIENIGHT_RATE_LIMIT_MAX_ACTIONS = 60;
 const movieNightActionBuckets = new Map();
+const canManageRoomSetting = ({
+  socket,
+  trustedMode
+}) => (0, _state.isUserInARoom)(socket.id) && ((0, _state.isUserHost)(socket.id) || trustedMode);
 const allowMovieNightAction = (socket, actionName) => {
   const now = Date.now();
   const key = "".concat(socket.id, ":").concat(actionName);
@@ -318,9 +322,13 @@ const sendMessage = ({
 const setPartyPausingEnabled = ({
   server,
   socket,
-  data: isPartyPausingEnabled
+  data: isPartyPausingEnabled,
+  trustedMode
 }) => {
-  if (!(0, _state.isUserInARoom)(socket.id) || !(0, _state.isUserHost)(socket.id)) {
+  if (!canManageRoomSetting({
+    socket,
+    trustedMode
+  })) {
     socket.disconnect(true);
     return;
   }
@@ -344,9 +352,13 @@ const setPartyPausingEnabled = ({
 const setAutoHostEnabled = ({
   server,
   socket,
-  data: isAutoHostEnabled
+  data: isAutoHostEnabled,
+  trustedMode
 }) => {
-  if (!(0, _state.isUserInARoom)(socket.id) || !(0, _state.isUserHost)(socket.id)) {
+  if (!canManageRoomSetting({
+    socket,
+    trustedMode
+  })) {
     socket.disconnect(true);
     return;
   }
@@ -752,7 +764,8 @@ const eventHandlers = {
 };
 const attachEventHandlers = ({
   server,
-  pingInterval
+  pingInterval,
+  trustedMode
 }) => {
   server.on('connection', socket => {
     const forwardedHeader = socket.handshake.headers['x-forwarded-for'];
@@ -775,7 +788,8 @@ const attachEventHandlers = ({
           server,
           pingInterval,
           socket,
-          data
+          data,
+          trustedMode
         });
       });
     });

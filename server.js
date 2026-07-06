@@ -20,4 +20,5 @@ syncloungeServer.socketServer({
   ...socketConfig,
   static_path: path.join(__dirname, 'dist'),
   preStaticInjection,
+  trusted_mode: appConfig.trusted_mode === true,
 });

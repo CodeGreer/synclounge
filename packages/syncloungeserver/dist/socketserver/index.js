@@ -18,7 +18,8 @@ const socketServer = ({
   static_path: staticPath,
   port,
   ping_interval: pingInterval,
-  preStaticInjection
+  preStaticInjection,
+  trusted_mode: trustedMode = false
 }) => {
   _http["default"].globalAgent.keepAlive = true;
   const app = (0, _express["default"])();
@@ -37,7 +38,8 @@ const socketServer = ({
   });
   (0, _handlers["default"])({
     server: socketio,
-    pingInterval
+    pingInterval,
+    trustedMode
   });
   router.get('/health', (req, res) => {
     res.json((0, _state.getHealth)());

@@ -38,7 +38,7 @@
 
       <v-list-item dense>
         <v-switch
-          v-if="AM_I_HOST"
+          v-if="canManageRoomSettings"
           hide-details
           class="pa-0 ma-0"
           label="Party Pausing"
@@ -47,7 +47,7 @@
         />
 
         <v-list-item-content
-          v-if="!AM_I_HOST && GET_HOST_USER.state === 'stopped'"
+          v-if="!canManageRoomSettings && GET_HOST_USER && GET_HOST_USER.state === 'stopped'"
         >
           <v-list-item-subtitle>
             Waiting for {{ GET_HOST_USER ? GET_HOST_USER.username : 'host' }} to start
@@ -56,7 +56,7 @@
       </v-list-item>
 
       <v-tooltip
-        v-if="AM_I_HOST"
+        v-if="canManageRoomSettings"
         bottom
       >
         <template #activator="{ on, attrs }">
@@ -106,7 +106,7 @@
           </template>
 
           <span>Party Pausing is currently {{
-            IS_PARTY_PAUSING_ENABLED ? 'enabled' : 'disabled' }} by the host</span>
+            IS_PARTY_PAUSING_ENABLED ? 'enabled' : 'disabled' }} for this room</span>
         </v-tooltip>
       </v-list-item>
 
@@ -155,6 +155,10 @@ export default {
   computed: {
     ...mapState(['isRightSidebarOpen']),
 
+    ...mapGetters([
+      'GET_CONFIG',
+    ]),
+
     ...mapGetters('plexclients', [
       'GET_CHOSEN_CLIENT_ID',
     ]),
@@ -169,6 +173,10 @@ export default {
 
     usingPlexClient() {
       return this.GET_CHOSEN_CLIENT_ID !== slPlayerClientId;
+    },
+
+    canManageRoomSettings() {
+      return this.AM_I_HOST || Boolean(this.GET_CONFIG?.trusted_mode);
     },
   },
 

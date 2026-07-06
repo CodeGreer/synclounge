@@ -12,7 +12,7 @@ import { getHealth } from './state';
 
 const socketServer = ({
   base_url: baseUrl, static_path: staticPath, port, ping_interval: pingInterval,
-  preStaticInjection,
+  preStaticInjection, trusted_mode: trustedMode = false,
 }) => {
   http.globalAgent.keepAlive = true;
 
@@ -34,7 +34,7 @@ const socketServer = ({
     transports: ['websocket', 'polling'],
   });
 
-  attachEventHandlers({ server: socketio, pingInterval });
+  attachEventHandlers({ server: socketio, pingInterval, trustedMode });
 
   router.get('/health', (req, res) => {
     res.json(getHealth());
