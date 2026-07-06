@@ -18,9 +18,11 @@ users, and multi-household sync require additional Plex-authenticated testers.
 
 MovieNight intentionally keeps the upstream SyncLounge public-room model for beta: a room URL should be treated as joinable by anyone who knows or guesses the room name. Plex login still controls access to Plex accounts, servers, and libraries, but the room socket server does not treat the browser client as trusted just because the user reached a room.
 
-The server now applies MovieNight-specific safety limits before rebroadcasting shared room state. Nominations and playlist items are whitelisted and trimmed, unknown fields are ignored, malformed items are rejected, nominations and playlist arrays are capped at 100 items each, active polls are capped at 50 options, and votes must reference current poll option IDs. MovieNight mutating socket actions also have a generous per-socket fixed-window rate limit to reduce accidental or malicious spam.
+The server now applies MovieNight-specific safety limits before rebroadcasting shared room state. Nominations and playlist items are whitelisted and trimmed, unknown fields are ignored, malformed items are rejected, nominations and playlist arrays are capped at 100 items each, active polls are capped at 50 options, and votes must reference current poll option IDs. MovieNight mutating socket actions and chat messages also have generous per-socket fixed-window rate limits to reduce accidental or malicious spam. Chat messages are trimmed, capped, and treated as plain text.
 
-These caps and rate limits protect nomination, poll, vote, and playlist state from unbounded growth in public-room beta use. They are not a replacement for full server-side Plex authorization or token validation, which remains out of scope for the current beta architecture.
+These caps and rate limits protect nomination, poll, vote, playlist, and chat state from unbounded growth in public-room beta use. They are not a replacement for full server-side Plex authorization or token validation, which remains out of scope for the current beta architecture.
+
+The beta server also intentionally allows cross-origin HTTP and Socket.IO access for self-hosted deployments, alternate LAN hostnames, and reverse-proxy setups. This CORS policy is a compatibility choice, not an authentication boundary; room names and room URLs should still be treated as shareable access paths rather than private secrets.
 
 ## Core room flow
 
