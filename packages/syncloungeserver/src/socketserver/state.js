@@ -480,10 +480,6 @@ export const removeMovieNightPlaylistItem = ({ socketId, id }) => {
 
   movieNight.playlist = nextPlaylist;
 
-  if (movieNight.activePlaylistItem && String(movieNight.activePlaylistItem.id) === String(id)) {
-    movieNight.activePlaylistItem = null;
-  }
-
   return true;
 };
 

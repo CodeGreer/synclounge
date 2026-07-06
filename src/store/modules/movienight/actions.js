@@ -222,11 +222,18 @@ export default {
   },
 
   HANDLE_PLAYLIST_ITEM_ENDED: async ({
-    state, getters, commit, dispatch,
+    state, getters, rootGetters, dispatch,
   }, metadata) => {
     const activeItem = getters.GET_ACTIVE_PLAYLIST_ITEM;
 
     if (!metadata || !activeItem) {
+      return;
+    }
+
+    const shouldControlPlaylist = !rootGetters['synclounge/IS_IN_ROOM']
+      || rootGetters['synclounge/AM_I_HOST'];
+
+    if (!shouldControlPlaylist) {
       return;
     }
 
@@ -238,7 +245,7 @@ export default {
     }
 
     if (!getters.GET_PLAYLIST_AUTO_PLAY) {
-      commit('SET_ACTIVE_PLAYLIST_ITEM', null);
+      await dispatch('SET_ACTIVE_PLAYLIST_ITEM', null);
       return;
     }
 
@@ -248,11 +255,11 @@ export default {
       : state.playlist[0];
 
     if (!nextItem) {
-      commit('SET_ACTIVE_PLAYLIST_ITEM', null);
+      await dispatch('SET_ACTIVE_PLAYLIST_ITEM', null);
       return;
     }
 
-    commit('SET_ACTIVE_PLAYLIST_ITEM', nextItem);
+    await dispatch('SET_ACTIVE_PLAYLIST_ITEM', nextItem);
 
     const nextMetadata = await dispatch('plexservers/FETCH_PLEX_METADATA', {
       ratingKey: nextItem.ratingKey,
