@@ -12,7 +12,7 @@ export default (store) => {
       this.button = document.createElement('button');
       this.button.classList.add('shaka-manualsync-button');
       this.button.classList.add('shaka-slplayer-button');
-      this.button.classList.add('material-icons-round');
+      this.button.classList.add('material-icons');
       this.button.textContent = 'sync';
       this.parent.appendChild(this.button);
 
