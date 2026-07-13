@@ -4,18 +4,14 @@
     :role="showName ? null : 'img'"
     :aria-label="showName ? null : brandingName"
   >
-    <v-img
-      contain
-      :max-width="imageSize"
-      :max-height="imageSize"
-      :width="imageSize"
-      :height="imageSize"
+    <img
       :src="displayImageUrl"
-      :class="imageClass"
+      :class="['app-branding-image', imageClass]"
+      :style="imageStyles"
       alt=""
       aria-hidden="true"
       @error="useDefaultImage"
-    />
+    >
     <span
       v-if="showName"
       :class="textClass"
@@ -85,6 +81,16 @@ export default {
       return this.imageLoadFailed ? defaultBrandingImage : this.brandingImageUrl;
     },
 
+    imageStyles() {
+      const maxHeight = typeof this.imageSize === 'number'
+        ? `${this.imageSize}px`
+        : this.imageSize;
+
+      return {
+        maxHeight,
+      };
+    },
+
     brandingName() {
       return this.GET_BRANDING_NAME;
     },
@@ -105,3 +111,15 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.app-branding-image {
+  display: block;
+  flex-shrink: 1;
+  height: auto;
+  max-width: 100%;
+  min-width: 0;
+  object-fit: contain;
+  width: auto;
+}
+</style>

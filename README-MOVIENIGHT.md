@@ -108,12 +108,16 @@ Advanced optional location overrides:
 - `BRANDING_ROOM_CREATION_SHOW_NAME`: controls the normal room creation/connect
   screen.
 - `BRANDING_ADVANCED_JOIN_SHOW_NAME`: controls the advanced joining flow,
-  including client selection and server joining.
+  including client selection, server joining, and the advanced room walkthrough.
 
 Location overrides inherit from `BRANDING_SHOW_NAME`. Empty, whitespace-only, or
 unrecognized location override values inherit rather than forcing `true` or
 `false`. If `BRANDING_SHOW_NAME` is unset, empty, or unrecognized, name display
 ultimately defaults to `true`.
+
+Custom branding images may be square icons or wide combined logo/wordmark images.
+MovieNight preserves the image aspect ratio while constraining the image to the
+available UI space; there is no image-dimension configuration.
 
 Default deployment:
 
