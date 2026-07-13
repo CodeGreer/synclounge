@@ -140,16 +140,16 @@ Custom name and image:
 
 ```yaml
 environment:
-  BRANDING_NAME: "Cinemanauts"
-  BRANDING_IMAGE_URL: "https://example.com/cinemanauts.png"
+  BRANDING_NAME: "Example Movie Club"
+  BRANDING_IMAGE_URL: "https://example.com/example-logo.png"
 ```
 
 Image-only branding:
 
 ```yaml
 environment:
-  BRANDING_NAME: "Cinemanauts"
-  BRANDING_IMAGE_URL: "https://example.com/cinemanauts.png"
+  BRANDING_NAME: "Example Movie Club"
+  BRANDING_IMAGE_URL: "https://example.com/example-logo.png"
   BRANDING_SHOW_NAME: "false"
 ```
 
@@ -157,8 +157,8 @@ Image-only by default, but name visible in advanced joining:
 
 ```yaml
 environment:
-  BRANDING_NAME: "Cinemanauts"
-  BRANDING_IMAGE_URL: "https://example.com/cinemanauts.png"
+  BRANDING_NAME: "Example Movie Club"
+  BRANDING_IMAGE_URL: "https://example.com/example-logo.png"
   BRANDING_SHOW_NAME: "false"
   BRANDING_ADVANCED_JOIN_SHOW_NAME: "true"
 ```
