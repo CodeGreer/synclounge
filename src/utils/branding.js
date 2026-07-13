@@ -1,4 +1,5 @@
 export const DEFAULT_BRANDING_NAME = 'MovieNight';
+export const DEFAULT_BRANDING_IMAGE_SIZE = 56;
 
 export const normalizeBrandingName = (value) => (
   typeof value === 'string' && value.trim()
@@ -48,4 +49,33 @@ export const resolveBrandingShowName = (locationValue, globalValue) => {
   }
 
   return true;
+};
+
+export const normalizeBrandingImageSize = (value, fallback = DEFAULT_BRANDING_IMAGE_SIZE) => {
+  const fallbackValue = `${fallback}px`;
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0
+      ? `${value}px`
+      : fallbackValue;
+  }
+
+  if (typeof value !== 'string') {
+    return fallbackValue;
+  }
+
+  const normalized = value.trim();
+  if (!normalized) {
+    return fallbackValue;
+  }
+
+  if (/^\d+(?:\.\d+)?$/.test(normalized)) {
+    return `${normalized}px`;
+  }
+
+  if (/^\d+(?:\.\d+)?(?:px|rem|em|vh|vw|vmin|vmax|%)$/.test(normalized)) {
+    return normalized;
+  }
+
+  return fallbackValue;
 };

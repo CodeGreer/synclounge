@@ -11,6 +11,7 @@ const source = fs.readFileSync('src/utils/branding.js', 'utf8')
     normalizeBrandingImageUrl,
     normalizeOptionalBoolean,
     resolveBrandingShowName,
+    normalizeBrandingImageSize,
   };\n`);
 
 const sandbox = { module: { exports: {} } };
@@ -21,6 +22,7 @@ const {
   normalizeBrandingImageUrl,
   normalizeOptionalBoolean,
   resolveBrandingShowName,
+  normalizeBrandingImageSize,
 } = sandbox.module.exports;
 
 assert.strictEqual(normalizeBrandingName(undefined), 'MovieNight');
@@ -64,5 +66,19 @@ assert.strictEqual(resolveBrandingShowName('true', false), true);
 assert.strictEqual(resolveBrandingShowName(false, true), false);
 assert.strictEqual(resolveBrandingShowName('0', '1'), false);
 assert.strictEqual(resolveBrandingShowName('1', '0'), true);
+
+const sizeCases = [
+  [42, '42px'],
+  ['42', '42px'],
+  [' 42 ', '42px'],
+  ['42px', '42px'],
+  ['3rem', '3rem'],
+  ['', '56px'],
+  ['invalid', '56px'],
+];
+
+for (const [input, expected] of sizeCases) {
+  assert.strictEqual(normalizeBrandingImageSize(input), expected, `size case ${String(input)}`);
+}
 
 console.log('PASS branding utility normalization and inheritance checks');

@@ -24,6 +24,7 @@
 import { mapGetters } from 'vuex';
 
 import defaultBrandingImage from '@/assets/images/logos/logo-small-light.png';
+import { normalizeBrandingImageSize } from '@/utils/branding';
 
 export default {
   name: 'AppBranding',
@@ -82,12 +83,8 @@ export default {
     },
 
     imageStyles() {
-      const maxHeight = typeof this.imageSize === 'number'
-        ? `${this.imageSize}px`
-        : this.imageSize;
-
       return {
-        maxHeight,
+        maxHeight: normalizeBrandingImageSize(this.imageSize),
       };
     },
 
