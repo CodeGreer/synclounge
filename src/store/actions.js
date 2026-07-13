@@ -16,10 +16,11 @@ export default {
     commit('SET_SNACKBAR_OPEN', true);
   },
 
-  FETCH_CONFIG: async ({ dispatch, commit }) => {
+  FETCH_CONFIG: async ({ dispatch, commit, getters }) => {
     try {
       const config = await fetchJson('config.json');
       commit('SET_CONFIGURATION', config);
+      document.title = getters.GET_BRANDING_NAME;
     } catch (e) {
       console.error(e);
       await dispatch('DISPLAY_NOTIFICATION', {

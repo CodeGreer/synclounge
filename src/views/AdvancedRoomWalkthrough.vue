@@ -11,7 +11,7 @@
           lg="4"
           class="text-center"
         >
-          <AppBranding />
+          <AppBranding :show-name="GET_BRANDING_SHOW_NAME('branding_advanced_join_show_name')" />
         </v-col>
       </v-row>
 
@@ -297,6 +297,10 @@ export default {
   }),
 
   computed: {
+    ...mapGetters([
+      'GET_BRANDING_SHOW_NAME',
+    ]),
+
     ...mapGetters('plexclients', [
       'GET_PLEX_CLIENT_IDS_SORTED_BY_LAST_SEEN',
       'GET_CHOSEN_CLIENT_ID',

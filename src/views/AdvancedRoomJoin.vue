@@ -18,7 +18,7 @@
           xl="6"
           class="text-center"
         >
-          <AppBranding />
+          <AppBranding :show-name="GET_BRANDING_SHOW_NAME('branding_advanced_join_show_name')" />
         </v-col>
       </v-row>
 
@@ -212,14 +212,12 @@ import redirection from '@/mixins/redirection';
 import linkWithRoom from '@/mixins/linkwithroom';
 import { slPlayerClientId } from '@/player/constants';
 
-import defaultBrandingImage from '@/assets/images/logos/logo-small-light.png';
-
 export default {
+
+  name: 'AdvancedRoomJoin',
   components: {
     AppBranding: () => import('@/components/AppBranding.vue'),
   },
-
-  name: 'AdvancedRoomJoin',
 
   mixins: [
     redirection,
@@ -236,13 +234,12 @@ export default {
   computed: {
     ...mapGetters([
       'GET_CONFIG',
+      'GET_BRANDING_SHOW_NAME',
+      'GET_BRANDING_IMAGE_URL',
     ]),
 
     brandingImageUrl() {
-      const configuredImage = this.GET_CONFIG?.branding_image_url;
-      return typeof configuredImage === 'string' && configuredImage.trim()
-        ? configuredImage.trim()
-        : defaultBrandingImage;
+      return this.GET_BRANDING_IMAGE_URL;
     },
 
     ...mapGetters('plexclients', [

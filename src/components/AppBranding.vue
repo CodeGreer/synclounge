@@ -1,13 +1,20 @@
 <template>
-  <div :class="containerClasses">
+  <div
+    :class="containerClasses"
+    :role="showName ? null : 'img'"
+    :aria-label="showName ? null : brandingName"
+  >
     <v-img
       contain
       :max-width="imageSize"
       :max-height="imageSize"
       :width="imageSize"
       :height="imageSize"
-      :src="brandingImageUrl"
+      :src="displayImageUrl"
       :class="imageClass"
+      alt=""
+      aria-hidden="true"
+      @error="useDefaultImage"
     />
     <span
       v-if="showName"
@@ -52,9 +59,14 @@ export default {
     },
   },
 
+  data: () => ({
+    imageLoadFailed: false,
+  }),
+
   computed: {
     ...mapGetters([
-      'GET_CONFIG',
+      'GET_BRANDING_IMAGE_URL',
+      'GET_BRANDING_NAME',
     ]),
 
     containerClasses() {
@@ -66,17 +78,29 @@ export default {
     },
 
     brandingImageUrl() {
-      const configuredImage = this.GET_CONFIG?.branding_image_url;
-      return typeof configuredImage === 'string' && configuredImage.trim()
-        ? configuredImage.trim()
-        : defaultBrandingImage;
+      return this.GET_BRANDING_IMAGE_URL;
+    },
+
+    displayImageUrl() {
+      return this.imageLoadFailed ? defaultBrandingImage : this.brandingImageUrl;
     },
 
     brandingName() {
-      const configuredName = this.GET_CONFIG?.branding_name;
-      return typeof configuredName === 'string' && configuredName.trim()
-        ? configuredName.trim()
-        : 'MovieNight';
+      return this.GET_BRANDING_NAME;
+    },
+  },
+
+  watch: {
+    brandingImageUrl() {
+      this.imageLoadFailed = false;
+    },
+  },
+
+  methods: {
+    useDefaultImage() {
+      if (this.displayImageUrl !== defaultBrandingImage) {
+        this.imageLoadFailed = true;
+      }
     },
   },
 };

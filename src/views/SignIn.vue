@@ -18,7 +18,7 @@
           </v-alert>
 
           <v-card-title class="justify-center py-6">
-            <AppBranding />
+            <AppBranding :show-name="GET_BRANDING_SHOW_NAME('branding_sign_in_show_name')" />
           </v-card-title>
 
           <v-card-actions>
@@ -47,11 +47,11 @@ import { CAF } from 'caf';
 import getCookie from '@/utils/getcookie';
 
 export default {
+
+  name: 'SignIn',
   components: {
     AppBranding: () => import('@/components/AppBranding.vue'),
   },
-
-  name: 'SignIn',
 
   data: () => ({
     loading: false,
@@ -62,6 +62,7 @@ export default {
   computed: {
     ...mapGetters([
       'GET_CONFIG',
+      'GET_BRANDING_SHOW_NAME',
     ]),
 
     ...mapGetters('plex', [
