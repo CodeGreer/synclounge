@@ -79,7 +79,85 @@ BRANDING_IMAGE_URL=
 
 `SKIP_BUILD=true` prevents the package prepare script from running an extra build during install. The explicit `npm run build` in the service command still performs the production build before starting the server.
 
-Optional branding can be customized with `branding_name` and `branding_image_url` in runtime config, or with matching environment variables such as `BRANDING_NAME` and `BRANDING_IMAGE_URL`. Leave `branding_image_url` empty to use the bundled MovieNight logo. Use an HTTPS image URL when MovieNight is served over HTTPS, or use a same-origin/reverse-proxied relative path such as `/custom/branding.png`; browsers may block plain HTTP images on HTTPS pages.
+### Branding configuration
+
+No branding environment variables are required. With no branding variables set,
+MovieNight uses the canonical name `MovieNight`, the bundled MovieNight logo,
+visible branding text in the normal branding locations, and a browser title of
+`MovieNight` after runtime config loads.
+
+Common optional settings:
+
+- `BRANDING_NAME`: canonical instance name. Empty or whitespace-only values fall
+  back to `MovieNight`. This value also controls the browser tab title even when
+  visible branding text is hidden.
+- `BRANDING_IMAGE_URL`: custom branding image URL. Empty or whitespace-only
+  values use the bundled MovieNight logo. Use an HTTPS image URL when MovieNight
+  is served over HTTPS, or use a same-origin/reverse-proxied relative path such
+  as `/custom/branding.png`; browsers may block plain HTTP images on HTTPS pages.
+- `BRANDING_SHOW_NAME`: global control for the separately rendered branding name.
+  Supported values include `true`, `false`, `1`, `0`, `"true"`, `"false"`,
+  `"1"`, and `"0"`. Empty or unrecognized values are treated as unset. The
+  final default is `true`.
+
+Advanced optional location overrides:
+
+- `BRANDING_TOP_BAR_SHOW_NAME`: controls the persistent top application bar.
+- `BRANDING_SIGN_IN_SHOW_NAME`: controls the Plex sign-in screen.
+- `BRANDING_ROOM_JOIN_SHOW_NAME`: controls the normal room/invite joining screen.
+- `BRANDING_ROOM_CREATION_SHOW_NAME`: controls the normal room creation/connect
+  screen.
+- `BRANDING_ADVANCED_JOIN_SHOW_NAME`: controls the advanced joining flow,
+  including client selection and server joining.
+
+Location overrides inherit from `BRANDING_SHOW_NAME`. Empty, whitespace-only, or
+unrecognized location override values inherit rather than forcing `true` or
+`false`. If `BRANDING_SHOW_NAME` is unset, empty, or unrecognized, name display
+ultimately defaults to `true`.
+
+Default deployment:
+
+```yaml
+services:
+  movienight:
+    image: ghcr.io/codegreer/movienight:beta
+    ports:
+      - "8088:8088"
+```
+
+Basic renamed instance:
+
+```yaml
+environment:
+  BRANDING_NAME: "Tom's Movie Club"
+```
+
+Custom name and image:
+
+```yaml
+environment:
+  BRANDING_NAME: "Cinemanauts"
+  BRANDING_IMAGE_URL: "https://example.com/cinemanauts.png"
+```
+
+Image-only branding:
+
+```yaml
+environment:
+  BRANDING_NAME: "Cinemanauts"
+  BRANDING_IMAGE_URL: "https://example.com/cinemanauts.png"
+  BRANDING_SHOW_NAME: "false"
+```
+
+Image-only by default, but name visible in advanced joining:
+
+```yaml
+environment:
+  BRANDING_NAME: "Cinemanauts"
+  BRANDING_IMAGE_URL: "https://example.com/cinemanauts.png"
+  BRANDING_SHOW_NAME: "false"
+  BRANDING_ADVANCED_JOIN_SHOW_NAME: "true"
+```
 
 The app is confirmed working when this appears in logs:
 

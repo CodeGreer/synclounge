@@ -136,9 +136,10 @@
               <v-card>
                 <v-img
                   height="125"
-                  :src="brandingImageUrl"
+                  :src="customServerCardImageUrl"
                   class="white--text align-end"
                   gradient="to bottom, rgba(0,0,0,.6), rgba(0,0,0,.9)"
+                  @error="useDefaultCustomServerCardImage"
                 >
                   <v-card-title>
                     Custom
@@ -211,9 +212,9 @@ import { getRandomRoomId } from '@/utils/random';
 import redirection from '@/mixins/redirection';
 import linkWithRoom from '@/mixins/linkwithroom';
 import { slPlayerClientId } from '@/player/constants';
+import defaultBrandingImage from '@/assets/images/logos/logo-small-light.png';
 
 export default {
-
   name: 'AdvancedRoomJoin',
   components: {
     AppBranding: () => import('@/components/AppBranding.vue'),
@@ -229,6 +230,7 @@ export default {
     e1: 2,
     connectionPending: false,
     testConnectionInterval: null,
+    customServerCardImageLoadFailed: false,
   }),
 
   computed: {
@@ -240,6 +242,12 @@ export default {
 
     brandingImageUrl() {
       return this.GET_BRANDING_IMAGE_URL;
+    },
+
+    customServerCardImageUrl() {
+      return this.customServerCardImageLoadFailed
+        ? defaultBrandingImage
+        : this.brandingImageUrl;
     },
 
     ...mapGetters('plexclients', [
@@ -254,6 +262,12 @@ export default {
     ...mapState('settings', [
       'customServerUrl',
     ]),
+  },
+
+  watch: {
+    brandingImageUrl() {
+      this.customServerCardImageLoadFailed = false;
+    },
   },
 
   beforeDestroy() {
@@ -292,6 +306,12 @@ export default {
         return ['orange--text'];
       }
       return ['red--text'];
+    },
+
+    useDefaultCustomServerCardImage() {
+      if (this.customServerCardImageUrl !== defaultBrandingImage) {
+        this.customServerCardImageLoadFailed = true;
+      }
     },
 
     loadQualityClass(value) {
