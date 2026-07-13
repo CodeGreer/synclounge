@@ -135,9 +135,10 @@
             >
               <v-card>
                 <v-img
+                  contain
                   height="125"
                   :src="customServerCardImageUrl"
-                  class="white--text align-end"
+                  class="custom-server-card-image white--text align-end"
                   gradient="to bottom, rgba(0,0,0,.6), rgba(0,0,0,.9)"
                   @error="useDefaultCustomServerCardImage"
                 >
@@ -355,3 +356,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.custom-server-card-image {
+  background-color: rgb(0 0 0 / 35%);
+}
+</style>

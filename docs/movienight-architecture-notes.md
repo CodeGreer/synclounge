@@ -210,10 +210,6 @@ Common branding settings:
   text. Supported Boolean values include `true`, `false`, `1`, `0`, `"true"`,
   `"false"`, `"1"`, and `"0"`. It defaults to `true`.
 
-Custom branding images may be square icons or wide combined logo/wordmark images.
-MovieNight preserves the image aspect ratio while constraining the image to the
-available UI space; there is no image-dimension configuration.
-
 Advanced location overrides:
 
 - `BRANDING_TOP_BAR_SHOW_NAME`: controls the persistent top application bar.
