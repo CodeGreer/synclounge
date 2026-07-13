@@ -51,6 +51,12 @@ const defaults = {
   trusted_mode: false,
   branding_name: 'MovieNight',
   branding_image_url: null,
+  branding_show_name: true,
+  branding_top_bar_show_name: null,
+  branding_sign_in_show_name: null,
+  branding_room_join_show_name: null,
+  branding_room_creation_show_name: null,
+  branding_advanced_join_show_name: null,
   default_are_notification_enabled: false,
   default_are_sound_notification_enabled: false,
 

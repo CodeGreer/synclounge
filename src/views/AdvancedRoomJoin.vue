@@ -18,7 +18,7 @@
           xl="6"
           class="text-center"
         >
-          <AppBranding />
+          <AppBranding :show-name="GET_BRANDING_SHOW_NAME('branding_advanced_join_show_name')" />
         </v-col>
       </v-row>
 
@@ -135,10 +135,12 @@
             >
               <v-card>
                 <v-img
+                  contain
                   height="125"
-                  :src="brandingImageUrl"
-                  class="white--text align-end"
+                  :src="customServerCardImageUrl"
+                  class="custom-server-card-image white--text align-end"
                   gradient="to bottom, rgba(0,0,0,.6), rgba(0,0,0,.9)"
+                  @error="useDefaultCustomServerCardImage"
                 >
                   <v-card-title>
                     Custom
@@ -211,15 +213,13 @@ import { getRandomRoomId } from '@/utils/random';
 import redirection from '@/mixins/redirection';
 import linkWithRoom from '@/mixins/linkwithroom';
 import { slPlayerClientId } from '@/player/constants';
-
 import defaultBrandingImage from '@/assets/images/logos/logo-small-light.png';
 
 export default {
+  name: 'AdvancedRoomJoin',
   components: {
     AppBranding: () => import('@/components/AppBranding.vue'),
   },
-
-  name: 'AdvancedRoomJoin',
 
   mixins: [
     redirection,
@@ -231,18 +231,24 @@ export default {
     e1: 2,
     connectionPending: false,
     testConnectionInterval: null,
+    customServerCardImageLoadFailed: false,
   }),
 
   computed: {
     ...mapGetters([
       'GET_CONFIG',
+      'GET_BRANDING_SHOW_NAME',
+      'GET_BRANDING_IMAGE_URL',
     ]),
 
     brandingImageUrl() {
-      const configuredImage = this.GET_CONFIG?.branding_image_url;
-      return typeof configuredImage === 'string' && configuredImage.trim()
-        ? configuredImage.trim()
-        : defaultBrandingImage;
+      return this.GET_BRANDING_IMAGE_URL;
+    },
+
+    customServerCardImageUrl() {
+      return this.customServerCardImageLoadFailed
+        ? defaultBrandingImage
+        : this.brandingImageUrl;
     },
 
     ...mapGetters('plexclients', [
@@ -257,6 +263,12 @@ export default {
     ...mapState('settings', [
       'customServerUrl',
     ]),
+  },
+
+  watch: {
+    brandingImageUrl() {
+      this.customServerCardImageLoadFailed = false;
+    },
   },
 
   beforeDestroy() {
@@ -295,6 +307,12 @@ export default {
         return ['orange--text'];
       }
       return ['red--text'];
+    },
+
+    useDefaultCustomServerCardImage() {
+      if (this.customServerCardImageUrl !== defaultBrandingImage) {
+        this.customServerCardImageLoadFailed = true;
+      }
     },
 
     loadQualityClass(value) {
@@ -338,3 +356,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.custom-server-card-image {
+  background-color: rgb(0 0 0 / 35%);
+}
+</style>

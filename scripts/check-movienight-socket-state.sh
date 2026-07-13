@@ -284,10 +284,11 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
   ));
 
   host.emit("movieNightRemovePlaylistItem", latestState.playlist[0].id);
-  await waitForState("playlist remove clears active item", (state) => (
+  await waitForState("playlist remove preserves active item", (state) => (
     state.playlist.length === 1
     && state.playlist[0].playlistKey === itemOne.playlistKey
-    && state.activePlaylistItem === null
+    && state.activePlaylistItem
+    && state.activePlaylistItem.playlistKey === itemTwo.playlistKey
   ));
 
   host.emit("movieNightSetActivePlaylistItem", latestState.playlist[0]);

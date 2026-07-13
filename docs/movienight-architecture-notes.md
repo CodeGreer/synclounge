@@ -190,3 +190,85 @@ Important compatibility notes:
 - Config keys such as `synclounge_upnext_trigger_time_from_end` remain unchanged for compatibility.
 - Package names such as `syncloungeserver` and `synclounge-libjass` remain unchanged.
 - Documentation should reference SyncLounge when describing upstream architecture, compatibility names, package names, or the fork relationship; normal user-facing product docs should present the app as MovieNight.
+
+## Operator branding configuration
+
+No branding environment variables are required. With no branding variables set,
+MovieNight remains fully branded as MovieNight: the canonical name is
+`MovieNight`, the bundled MovieNight logo is used, branding names are visible in
+all controlled locations, and the browser title resolves to `MovieNight` after
+runtime config loads.
+
+Common branding settings:
+
+- `BRANDING_NAME`: optional canonical instance name. Empty or whitespace-only
+  values fall back to `MovieNight`. This name also controls the browser tab
+  title, even when visible branding text is hidden.
+- `BRANDING_IMAGE_URL`: optional custom branding image URL. Empty or
+  whitespace-only values use the bundled MovieNight logo.
+- `BRANDING_SHOW_NAME`: optional global control for separately rendered branding
+  text. Supported Boolean values include `true`, `false`, `1`, `0`, `"true"`,
+  `"false"`, `"1"`, and `"0"`. It defaults to `true`.
+
+Advanced location overrides:
+
+- `BRANDING_TOP_BAR_SHOW_NAME`: controls the persistent top application bar.
+- `BRANDING_SIGN_IN_SHOW_NAME`: controls the Plex sign-in screen.
+- `BRANDING_ROOM_JOIN_SHOW_NAME`: controls the normal room/invite joining screen.
+- `BRANDING_ROOM_CREATION_SHOW_NAME`: controls the normal room creation/connect
+  screen.
+- `BRANDING_ADVANCED_JOIN_SHOW_NAME`: controls the advanced joining flow,
+  including client selection, server joining, and the advanced room walkthrough.
+
+Location overrides inherit from `BRANDING_SHOW_NAME`. Empty, whitespace-only, or
+unrecognized location override values inherit rather than forcing either `true`
+or `false`. If `BRANDING_SHOW_NAME` is empty, unset, or unrecognized, it resolves
+to `true`.
+
+Custom branding images may be square icons or wide combined logo/wordmark images.
+MovieNight preserves the image aspect ratio while constraining the image to the
+available UI space; there is no image-dimension configuration.
+
+Default deployment:
+
+```yaml
+services:
+  movienight:
+    image: ghcr.io/codegreer/movienight:beta
+    ports:
+      - "8088:8088"
+```
+
+Basic renamed instance:
+
+```yaml
+environment:
+  BRANDING_NAME: "Tom's Movie Club"
+```
+
+Custom name and image:
+
+```yaml
+environment:
+  BRANDING_NAME: "Cinemanauts"
+  BRANDING_IMAGE_URL: "https://example.com/cinemanauts.png"
+```
+
+Image-only branding:
+
+```yaml
+environment:
+  BRANDING_NAME: "Cinemanauts"
+  BRANDING_IMAGE_URL: "https://example.com/cinemanauts.png"
+  BRANDING_SHOW_NAME: "false"
+```
+
+Image-only by default, but name visible in advanced joining:
+
+```yaml
+environment:
+  BRANDING_NAME: "Cinemanauts"
+  BRANDING_IMAGE_URL: "https://example.com/cinemanauts.png"
+  BRANDING_SHOW_NAME: "false"
+  BRANDING_ADVANCED_JOIN_SHOW_NAME: "true"
+```

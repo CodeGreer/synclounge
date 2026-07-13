@@ -22,6 +22,7 @@
         class="d-flex align-center text-decoration-none"
       >
         <AppBranding
+          :show-name="GET_BRANDING_SHOW_NAME('branding_top_bar_show_name')"
           :center="false"
           image-size="42"
           image-class=""
@@ -66,7 +67,6 @@
         >
           {{ item.title }}
         </v-btn>
-
       </v-toolbar-items>
 
       <router-view
@@ -186,6 +186,7 @@ export default {
     ...mapGetters([
       'GET_UP_NEXT_POST_PLAY_DATA',
       'GET_CONFIG',
+      'GET_BRANDING_SHOW_NAME',
       'GET_ACTIVE_METADATA',
       'GET_SNACKBAR_MESSAGE',
       'GET_SNACKBAR_OPEN',

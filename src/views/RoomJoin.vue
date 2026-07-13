@@ -11,7 +11,7 @@
           :loading="loading"
         >
           <v-card-title class="justify-center py-6">
-            <AppBranding />
+            <AppBranding :show-name="GET_BRANDING_SHOW_NAME('branding_room_join_show_name')" />
           </v-card-title>
 
           <v-alert
@@ -97,6 +97,7 @@ export default {
   computed: {
     ...mapGetters([
       'GET_CONFIG',
+      'GET_BRANDING_SHOW_NAME',
     ]),
 
     ...mapGetters('plexclients', [
