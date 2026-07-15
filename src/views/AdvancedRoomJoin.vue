@@ -18,7 +18,11 @@
           xl="6"
           class="text-center"
         >
-          <AppBranding :show-name="GET_BRANDING_SHOW_NAME('branding_advanced_join_show_name')" />
+          <AppBranding
+            :show-name="GET_BRANDING_SHOW_NAME('branding_advanced_join_show_name')"
+            fill-width
+            image-size="128"
+          />
         </v-col>
       </v-row>
 
