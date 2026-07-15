@@ -51,6 +51,7 @@ const defaults = {
   trusted_mode: false,
   branding_name: 'MovieNight',
   branding_image_url: null,
+  branding_favicon_url: null,
   branding_show_name: true,
   branding_top_bar_show_name: null,
   branding_sign_in_show_name: null,

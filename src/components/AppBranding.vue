@@ -6,7 +6,7 @@
   >
     <img
       :src="displayImageUrl"
-      :class="['app-branding-image', imageClass]"
+      :class="resolvedImageClasses"
       :style="imageStyles"
       alt=""
       aria-hidden="true"
@@ -33,6 +33,11 @@ export default {
     center: {
       type: Boolean,
       default: true,
+    },
+
+    fillWidth: {
+      type: Boolean,
+      default: false,
     },
 
     imageSize: {
@@ -71,6 +76,14 @@ export default {
         'd-flex',
         'align-center',
         this.center ? 'justify-center' : null,
+        this.fillWidth ? 'app-branding-fill-width' : null,
+      ].filter(Boolean);
+    },
+
+    resolvedImageClasses() {
+      return [
+        'app-branding-image',
+        this.showName ? this.imageClass : null,
       ].filter(Boolean);
     },
 
@@ -110,6 +123,10 @@ export default {
 </script>
 
 <style scoped>
+.app-branding-fill-width {
+  width: 100%;
+}
+
 .app-branding-image {
   display: block;
   flex-shrink: 1;

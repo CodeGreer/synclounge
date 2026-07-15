@@ -206,6 +206,8 @@ Common branding settings:
   title, even when visible branding text is hidden.
 - `BRANDING_IMAGE_URL`: optional custom branding image URL. Empty or
   whitespace-only values use the bundled MovieNight logo.
+- `BRANDING_FAVICON_URL`: optional browser favicon URL. Empty or whitespace-only
+  values retain the bundled MovieNight favicon.
 - `BRANDING_SHOW_NAME`: optional global control for separately rendered branding
   text. Supported Boolean values include `true`, `false`, `1`, `0`, `"true"`,
   `"false"`, `"1"`, and `"0"`. It defaults to `true`.
@@ -227,7 +229,9 @@ to `true`.
 
 Custom branding images may be square icons or wide combined logo/wordmark images.
 MovieNight preserves the image aspect ratio while constraining the image to the
-available UI space; there is no image-dimension configuration.
+available UI space. Full-page branding locations use a larger responsive image
+limit, while the persistent top bar remains compact; there is no operator-facing
+image-dimension configuration.
 
 Default deployment:
 
@@ -252,6 +256,7 @@ Custom name and image:
 environment:
   BRANDING_NAME: "Example Movie Club"
   BRANDING_IMAGE_URL: "https://example.com/example-logo.png"
+  BRANDING_FAVICON_URL: "https://example.com/example-icon.png"
 ```
 
 Image-only branding:

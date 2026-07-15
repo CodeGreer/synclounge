@@ -11,7 +11,11 @@
           :loading="loading"
         >
           <v-card-title class="justify-center py-6">
-            <AppBranding :show-name="GET_BRANDING_SHOW_NAME('branding_room_join_show_name')" />
+            <AppBranding
+              :show-name="GET_BRANDING_SHOW_NAME('branding_room_join_show_name')"
+              fill-width
+              image-size="128"
+            />
           </v-card-title>
 
           <v-alert

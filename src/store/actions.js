@@ -1,4 +1,5 @@
 import { fetchJson } from '@/utils/fetchutils';
+import { normalizeBrandingImageUrl } from '@/utils/branding';
 
 export default {
   RESET: ({ commit }) => {
@@ -21,6 +22,14 @@ export default {
       const config = await fetchJson('config.json');
       commit('SET_CONFIGURATION', config);
       document.title = getters.GET_BRANDING_NAME;
+
+      const favicon = document.getElementById('app-favicon');
+      if (favicon) {
+        favicon.href = normalizeBrandingImageUrl(
+          config.branding_favicon_url,
+          `${process.env.BASE_URL}favicon.png`,
+        );
+      }
     } catch (e) {
       console.error(e);
       await dispatch('DISPLAY_NOTIFICATION', {
