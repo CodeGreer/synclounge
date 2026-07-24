@@ -4,6 +4,16 @@ set -euo pipefail
 APP_URL="${APP_URL:-http://127.0.0.1:8092}"
 ROOM_ID="${ROOM_ID:-SYNCARAMA_SMOKE_$(date +%s)}"
 
+RATE_LIMIT_GUARD="if (!allowMovieNightAction(socket, 'autoHostIntent')) {"
+
+grep -Fq "$RATE_LIMIT_GUARD" packages/syncloungeserver/src/socketserver/handlers.js \
+  || { echo "FAIL: Auto-Host intent rate-limit guard missing from source"; exit 1; }
+
+grep -Fq "$RATE_LIMIT_GUARD" packages/syncloungeserver/dist/socketserver/handlers.js \
+  || { echo "FAIL: Auto-Host intent rate-limit guard missing from built server"; exit 1; }
+
+echo "PASS: Auto-Host intent rate-limit guard present in source and built server"
+
 docker exec -e APP_URL="$APP_URL" -e ROOM_ID="$ROOM_ID" movienight-dev sh -lc '
 cd /workspace/movienight
 

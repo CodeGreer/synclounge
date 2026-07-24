@@ -190,6 +190,10 @@ const autoHostIntent = ({ server, socket }) => {
     return;
   }
 
+  if (!allowMovieNightAction(socket, 'autoHostIntent')) {
+    return;
+  }
+
   if (isUserHost(socket.id) || !isAutoHostEnabledInSocketRoom(socket.id)) {
     return;
   }
