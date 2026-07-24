@@ -18,7 +18,7 @@ Run npm/node commands inside the project dev container when one is being used, u
 
 Example build command:
 
-    docker exec -it <dev-container-name> sh -lc 'cd /workspace/syncarama && npm run build'
+    docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build'
 
 A typical dev container startup command runs npm ci, then npm run build, then node server.js with the configured port. After a container restart, the app may be unavailable until install/build/startup completes.
 
@@ -42,7 +42,7 @@ Before and after meaningful changes, prefer these checks:
     git status --short
     git log --oneline -8
 
-    docker exec -it <dev-container-name> sh -lc 'cd /workspace/syncarama && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
+    docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
 
     ./scripts/check-syncarama-socket-state.sh
 
@@ -51,12 +51,12 @@ Before and after meaningful changes, prefer these checks:
 Expected results:
 
     DONE  Build complete. The dist directory is ready to be deployed.
-    PASS: Sync-A-Rama playlist and poll state synced to guest
+    PASS: Sync-A-Rama playlist, poll, Auto-Host, and host-transfer state verified
     {"load":"low"}
 
 If server source changes under packages/syncloungeserver/src, also run:
 
-    docker exec -it <dev-container-name> sh -lc 'cd /workspace/syncarama/packages/syncloungeserver && npm run build'
+    docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight/packages/syncloungeserver && npm run build'
 
 When server source changes are made, commit both the source files and generated packages/syncloungeserver/dist files.
 
@@ -119,21 +119,21 @@ Movies and episodes are playable playlist items. Shows/series can be nominated b
 
 Sync-A-Rama UI/components:
 
-- src/components/Sync-A-RamaPanel.vue
-- src/components/Sync-A-RamaPoll.vue
-- src/components/Sync-A-RamaPlaylist.vue
-- src/components/Sync-A-RamaNominationSearch.vue
+- src/components/MovieNightPanel.vue
+- src/components/MovieNightPoll.vue
+- src/components/MovieNightPlaylist.vue
+- src/components/MovieNightNominationSearch.vue
 - src/components/PlexItem.vue
 - src/components/PlexThumbnail.vue
-- src/mixins/syncaramacontrollerbridge.js
-- src/utils/syncaramacontrollerchannel.js
+- src/mixins/movienightcontrollerbridge.js
+- src/utils/movienightcontrollerchannel.js
 
 Sync-A-Rama Vuex module:
 
-- src/store/modules/syncarama/state.js
-- src/store/modules/syncarama/getters.js
-- src/store/modules/syncarama/mutations.js
-- src/store/modules/syncarama/actions.js
+- src/store/modules/movienight/state.js
+- src/store/modules/movienight/getters.js
+- src/store/modules/movienight/mutations.js
+- src/store/modules/movienight/actions.js
 
 Server state/socket handlers:
 

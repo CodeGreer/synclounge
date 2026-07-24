@@ -233,11 +233,12 @@ available UI space. Full-page branding locations use a larger responsive image
 limit, while the persistent top bar remains compact; there is no operator-facing
 image-dimension configuration.
 
-Default deployment:
+Planned beta image after publishing:
 
 ```yaml
 services:
   syncarama:
+    # Planned image; publish ghcr.io/codegreer/syncarama:beta before using this example.
     image: ghcr.io/codegreer/syncarama:beta
     ports:
       - "8088:8088"

@@ -62,7 +62,7 @@ Run the preferred beta checks from the repository root:
 ```sh
 git status --short
 git log --oneline -8
-docker exec -it syncarama-dev sh -lc 'cd /workspace/syncarama && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
+docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
 ./scripts/check-syncarama-socket-state.sh
 curl -s http://127.0.0.1:8092/health; echo
 ```
@@ -71,7 +71,7 @@ Expected successful output includes:
 
 ```text
 DONE  Build complete. The dist directory is ready to be deployed.
-PASS: Sync-A-Rama playlist and poll state synced to guest
+PASS: Sync-A-Rama playlist, poll, Auto-Host, and host-transfer state verified
 {"load":"low"}
 ```
 

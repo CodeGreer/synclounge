@@ -123,11 +123,12 @@ available UI space. Full-page branding locations use a larger responsive image
 limit, while the persistent top bar remains compact; there is no operator-facing
 image-dimension configuration.
 
-Default deployment:
+Planned beta image after publishing:
 
 ```yaml
 services:
   syncarama:
+    # Planned image; publish ghcr.io/codegreer/syncarama:beta before using this example.
     image: ghcr.io/codegreer/syncarama:beta
     ports:
       - "8088:8088"
@@ -181,7 +182,7 @@ Run before a beta session or documentation release when the dev container is ava
 ```sh
 git status --short
 git log --oneline -8
-docker exec -it <dev-container-name> sh -lc 'cd /workspace/syncarama && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
+docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
 ./scripts/check-syncarama-socket-state.sh
 curl -s http://127.0.0.1:8092/health; echo
 ```
@@ -190,7 +191,7 @@ Expected results:
 
 ```text
 DONE  Build complete. The dist directory is ready to be deployed.
-PASS: Sync-A-Rama playlist and poll state synced to guest
+PASS: Sync-A-Rama playlist, poll, Auto-Host, and host-transfer state verified
 {"load":"low"}
 ```
 

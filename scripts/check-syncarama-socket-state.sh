@@ -4,8 +4,8 @@ set -euo pipefail
 APP_URL="${APP_URL:-http://127.0.0.1:8092}"
 ROOM_ID="${ROOM_ID:-SYNCARAMA_SMOKE_$(date +%s)}"
 
-docker exec -e APP_URL="$APP_URL" -e ROOM_ID="$ROOM_ID" syncarama-dev sh -lc '
-cd /workspace/syncarama
+docker exec -e APP_URL="$APP_URL" -e ROOM_ID="$ROOM_ID" movienight-dev sh -lc '
+cd /workspace/movienight
 
 node <<\NODE
 const io = require("socket.io-client");

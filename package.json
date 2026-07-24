@@ -3,7 +3,10 @@
   "version": "0.0.0-semantically-released",
   "description": "Plex-backed group watch planning and synchronized playback for Sync-A-Rama",
   "author": "samcm",
-  "bin": "./server.js",
+  "bin": {
+    "syncarama": "server.js",
+    "synclounge": "server.js"
+  },
   "files": [
     "dist",
     "config",

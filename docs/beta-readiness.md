@@ -100,7 +100,7 @@ These checks require at least two Plex-authenticated users.
 - [ ] Join screen says Sync-A-Rama.
 - [ ] Built-in player labels say Sync-A-Rama.
 - [ ] Startup log says Sync-A-Rama.
-- [ ] Runtime config uses Sync-A-Rama image.
+- [ ] Runtime config uses the Sync-A-Rama name and the temporary legacy bundled image/favicon until final assets are supplied.
 - [ ] No obvious user-facing SyncLounge branding remains in normal flow.
 
 ## Smoke checks
@@ -109,7 +109,7 @@ Run before a beta session:
 
     git status --short
 
-    docker exec -it syncarama-dev sh -lc 'cd /workspace/syncarama && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
+    docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
 
     ./scripts/check-syncarama-socket-state.sh
 
@@ -118,7 +118,7 @@ Run before a beta session:
 Expected:
 
     DONE  Build complete. The dist directory is ready to be deployed.
-    PASS: Sync-A-Rama playlist and poll state synced to guest
+    PASS: Sync-A-Rama playlist, poll, Auto-Host, and host-transfer state verified
     {"load":"low"}
 
 ## Known beta limitations

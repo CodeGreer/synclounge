@@ -154,7 +154,11 @@ The preferred command bridge is a local browser-to-browser channel, scoped to th
 
 Likely mechanism:
 
-    BroadcastChannel("syncarama-controller:<roomId>")
+    BroadcastChannel("movienight-controller:<roomId>")
+
+The `movienight-controller:<roomId>` channel name is intentionally retained for
+compatibility with the existing Host Controller bridge. Do not change the runtime
+channel name in the Sync-A-Rama rebrand PR.
 
 Controller window sends commands such as:
 
