@@ -185,7 +185,38 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
   });
 });
 
+const connectUnjoinedSocket = () => new Promise((resolve, reject) => {
+  const socket = io(appUrl, {
+    path: "/socket.io",
+    transports: ["websocket", "polling"],
+  });
+
+  sockets.push(socket);
+  socket.on("connect_error", reject);
+  socket.once("slPing", (secret) => {
+    socket.emit("slPong", secret);
+    resolve(socket);
+  });
+});
+
+const delay = (ms) => new Promise((resolve) => {
+  const timeout = setTimeout(() => {
+    timers.delete(timeout);
+    resolve();
+  }, ms);
+  timers.add(timeout);
+});
+
 (async () => {
+  const unjoined = await connectUnjoinedSocket();
+  let unjoinedDisconnected = false;
+  unjoined.once("disconnect", () => {
+    unjoinedDisconnected = true;
+  });
+  unjoined.emit("autoHostIntent");
+  await delay(250);
+  assertCondition(!unjoinedDisconnected, "Unjoined autoHostIntent should be ignored without disconnecting");
+
   const host = await joinSocket({ username: "SyncaramaSmokeHost" });
   const guest = await joinSocket({ username: "SyncaramaSmokeGuest" });
 

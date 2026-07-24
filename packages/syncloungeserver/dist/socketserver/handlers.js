@@ -206,7 +206,6 @@ const autoHostIntent = ({
   socket
 }) => {
   if (!(0, _state.isUserInARoom)(socket.id)) {
-    socket.disconnect(true);
     return;
   }
   if ((0, _state.isUserHost)(socket.id) || !(0, _state.isAutoHostEnabledInSocketRoom)(socket.id)) {

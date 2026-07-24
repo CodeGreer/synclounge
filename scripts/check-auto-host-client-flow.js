@@ -193,7 +193,6 @@ const waitForOutboundRequest = async (store) => {
 };
 
 (async () => {
-
   const blockedStore = makeStore({ isAutoHostEnabled: false });
   await actions.PLAY_MEDIA(blockedStore, {
     mediaIndex: 0,
@@ -205,6 +204,9 @@ const waitForOutboundRequest = async (store) => {
   const blockedNotification = blockedStore.events.find((event) => event.type === 'DISPLAY_NOTIFICATION');
   if (!blockedNotification?.payload.text.includes('Only the current host can start different media')) {
     throw new Error('Auto-Host disabled non-host playback should show actionable warning');
+  }
+  if (blockedStore.events.some((event) => event.type === 'synclounge/REQUEST_AUTO_HOST')) {
+    throw new Error('Blocked non-host playback should not request Auto-Host');
   }
   if (blockedStore.fetches.length > 0 || blockedStore.state.activePlayQueue) {
     throw new Error('Auto-Host disabled non-host playback should stop before play queue or Plex request');
@@ -221,6 +223,9 @@ const waitForOutboundRequest = async (store) => {
   await waitForOutboundRequest(hostAutoHostOffStore);
   hostAutoHostOffStore.deferredRequests[0].resolve({ MediaContainer: [{ Timeline: [] }] });
   await hostAutoHostOffPlay;
+  if (hostAutoHostOffStore.events.some((event) => event.type === 'synclounge/REQUEST_AUTO_HOST')) {
+    throw new Error('Current host should not send unnecessary Auto-Host request');
+  }
 
   const outsideRoomStore = makeStore({ isInRoom: false, isAutoHostEnabled: false });
   const outsideRoomPlay = actions.PLAY_MEDIA(outsideRoomStore, {
@@ -233,6 +238,9 @@ const waitForOutboundRequest = async (store) => {
   await waitForOutboundRequest(outsideRoomStore);
   outsideRoomStore.deferredRequests[0].resolve({ MediaContainer: [{ Timeline: [] }] });
   await outsideRoomPlay;
+  if (outsideRoomStore.events.some((event) => event.type === 'synclounge/REQUEST_AUTO_HOST')) {
+    throw new Error('Playback outside a room should not send autoHostIntent');
+  }
 
   const externalStore = makeStore();
   const externalPlay = actions.PLAY_MEDIA(externalStore, {
@@ -244,8 +252,10 @@ const waitForOutboundRequest = async (store) => {
   });
   await waitForOutboundRequest(externalStore);
 
-  if (!externalStore.events.some((event) => event.type === 'synclounge/REQUEST_AUTO_HOST')) {
-    throw new Error('Interface-initiated external PLAY_MEDIA should request Auto-Host immediately');
+  const autoHostRequests = externalStore.events
+    .filter((event) => event.type === 'synclounge/REQUEST_AUTO_HOST');
+  if (autoHostRequests.length !== 1) {
+    throw new Error('Eligible interface-initiated external PLAY_MEDIA should request Auto-Host exactly once');
   }
   if (externalStore.events.some((event) => event.type === 'synclounge/PROCESS_MEDIA_UPDATE')) {
     throw new Error('External PLAY_MEDIA should not infer Auto-Host from an immediate media update');

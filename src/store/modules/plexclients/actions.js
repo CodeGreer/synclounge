@@ -79,10 +79,18 @@ export default {
   }) => {
     console.debug('PLAY_MEDIA');
 
-    const isBlockedNonHostPlayback = rootGetters['synclounge/IS_IN_ROOM']
-      && !rootGetters['synclounge/AM_I_HOST']
-      && userInitiated === true
-      && !rootGetters['synclounge/IS_AUTO_HOST_ENABLED'];
+    const isInRoom = rootGetters['synclounge/IS_IN_ROOM'];
+    const amIHost = rootGetters['synclounge/AM_I_HOST'];
+    const isAutoHostEnabled = rootGetters['synclounge/IS_AUTO_HOST_ENABLED'];
+    const isUserInitiated = userInitiated === true;
+    const shouldRequestAutoHost = isUserInitiated
+      && isInRoom
+      && !amIHost
+      && isAutoHostEnabled;
+    const isBlockedNonHostPlayback = isUserInitiated
+      && isInRoom
+      && !amIHost
+      && !isAutoHostEnabled;
 
     if (isBlockedNonHostPlayback) {
       await dispatch('DISPLAY_NOTIFICATION', {
@@ -95,7 +103,7 @@ export default {
     try {
       const server = rootGetters['plexservers/GET_PLEX_SERVER'](machineIdentifier);
 
-      if (userInitiated === true) {
+      if (shouldRequestAutoHost) {
         await dispatch('synclounge/REQUEST_AUTO_HOST', null, { root: true });
       }
 

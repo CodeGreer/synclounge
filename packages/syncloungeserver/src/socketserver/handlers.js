@@ -187,7 +187,6 @@ const transferHost = ({ server, socket, data: desiredHostId }) => {
 
 const autoHostIntent = ({ server, socket }) => {
   if (!isUserInARoom(socket.id)) {
-    socket.disconnect(true);
     return;
   }
 
