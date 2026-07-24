@@ -101,6 +101,8 @@ export default {
 
   GET_LAST_PLAY_MEDIA_COMMAND_ID: (state) => state.lastPlayMediaCommandId,
 
+  GET_PENDING_PLAY_MEDIA_ORIGIN: (state) => state.pendingPlayMediaOrigin,
+
   GET_ACTIVE_MEDIA_METADATA_MARKERS: (state, getters) => getters
     .GET_ACTIVE_MEDIA_METADATA?.Marker || [],
 

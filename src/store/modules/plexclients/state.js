@@ -30,6 +30,7 @@ const state = () => ({
   previousSyncTimelineCommandId: null,
   clientPollerCancelToken: null,
   lastPlayMediaCommandId: null,
+  pendingPlayMediaOrigin: null,
   latency: 0,
 });
 

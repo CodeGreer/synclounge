@@ -4,6 +4,16 @@ import contentTitleUtils from '@/utils/contenttitleutils';
 import { fetchXmlAndTransform } from '@/utils/fetchutils';
 import { slPlayerClientId } from '@/player/constants';
 
+const pendingPlayMediaOriginMaxAgeMs = 30000;
+
+const doesTimelineMatchPendingPlayMediaOrigin = (timeline, origin) => origin
+  && timeline.commandID >= origin.commandId
+  && timeline.machineIdentifier === origin.machineIdentifier
+  && String(timeline.playQueueItemID) === String(origin.playQueueItemID);
+
+const hasPendingPlayMediaOriginExpired = (origin) => !origin
+  || Date.now() - origin.createdAt > pendingPlayMediaOriginMaxAgeMs;
+
 export default {
   FIND_AND_SET_CONNECTION: async ({ dispatch, commit }, { clientIdentifier, signal }) => {
     const chosenConnection = await dispatch('FIND_CONNECTION', { clientIdentifier, signal });
@@ -126,6 +136,15 @@ export default {
       });
 
       commit('SET_LAST_PLAY_MEDIA_COMMAND_ID', commandId);
+      commit('SET_PENDING_PLAY_MEDIA_ORIGIN', {
+        commandId,
+        machineIdentifier,
+        playQueueItemID: getters.GET_ACTIVE_PLAY_QUEUE.Metadata[
+          getters.GET_ACTIVE_PLAY_QUEUE.playQueueSelectedItemOffset
+        ].playQueueItemID,
+        userInitiated,
+        createdAt: Date.now(),
+      });
 
       // TODO: fix wait for movement lol
       // await this.waitForMovement();
@@ -204,6 +223,23 @@ export default {
     };
   },
 
+  CONSUME_PENDING_PLAY_MEDIA_ORIGIN: ({ getters, commit }, timeline) => {
+    const origin = getters.GET_PENDING_PLAY_MEDIA_ORIGIN;
+
+    if (hasPendingPlayMediaOriginExpired(origin)) {
+      commit('SET_PENDING_PLAY_MEDIA_ORIGIN', null);
+      return null;
+    }
+
+    if (!doesTimelineMatchPendingPlayMediaOrigin(timeline, origin)) {
+      commit('SET_PENDING_PLAY_MEDIA_ORIGIN', null);
+      return null;
+    }
+
+    commit('SET_PENDING_PLAY_MEDIA_ORIGIN', null);
+    return origin.userInitiated;
+  },
+
   UPDATE_PLEX_CLIENT_TIMELINE: async ({
     getters, rootGetters, dispatch, commit,
   }, timeline) => {
@@ -241,9 +277,8 @@ export default {
       // Media changed
       commit('SET_PLEX_CLIENT_TIMELINE', timeline);
       if (rootGetters['synclounge/IS_IN_ROOM']) {
-        // TODO: add detection to see if this media change was user initiated or in response to a
-        // sync
-        await dispatch('synclounge/PROCESS_MEDIA_UPDATE', null, { root: true });
+        const mediaChangeOrigin = await dispatch('CONSUME_PENDING_PLAY_MEDIA_ORIGIN', timeline);
+        await dispatch('synclounge/PROCESS_MEDIA_UPDATE', mediaChangeOrigin, { root: true });
       }
     } else if (getters.GET_PLEX_CLIENT_TIMELINE.state !== timeline.state
       || getters.GET_PLEX_CLIENT_TIMELINE.duration !== timeline.duration
