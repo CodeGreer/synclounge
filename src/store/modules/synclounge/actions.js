@@ -179,6 +179,13 @@ export default {
     });
   },
 
+  REQUEST_AUTO_HOST: () => {
+    emit({
+      eventName: 'autoHostIntent',
+      data: null,
+    });
+  },
+
   SEND_SET_PARTY_PAUSING_ENABLED: (context, value) => {
     emit({
       eventName: 'setPartyPausingEnabled',
@@ -660,6 +667,7 @@ export default {
       offset: offset || 0,
       metadata: media,
       machineIdentifier: media.machineIdentifier,
+      userInitiated: false,
     }, { root: true });
   },
 

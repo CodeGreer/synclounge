@@ -131,3 +131,7 @@ Expected:
 - Games are deferred.
 - Dedicated user accounts are deferred.
 - Anonymous or Plex-free guest access is deferred.
+
+## Auto-Host beta scope
+
+Auto-Host responds to playback started through Sync-A-Rama. Starting different media directly in Plex will not transfer host.

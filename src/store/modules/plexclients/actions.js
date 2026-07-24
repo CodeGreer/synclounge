@@ -4,6 +4,13 @@ import contentTitleUtils from '@/utils/contenttitleutils';
 import { fetchXmlAndTransform } from '@/utils/fetchutils';
 import { slPlayerClientId } from '@/player/constants';
 
+const autoHostDisabledPlaybackMessage = 'Only the current host can start different media while '
+  + 'Auto-Host is off. Ask the host to enable Auto-Host or transfer host to you.';
+const playbackFailedMessage = 'Sync-A-Rama could not start this media on the selected player. '
+  + 'Check that the player is online and try again.';
+const hostPlaybackFailedMessage = 'You are now the host, but Sync-A-Rama could not start this '
+  + 'media on the selected player.';
+
 export default {
   FIND_AND_SET_CONNECTION: async ({ dispatch, commit }, { clientIdentifier, signal }) => {
     const chosenConnection = await dispatch('FIND_CONNECTION', { clientIdentifier, signal });
@@ -71,64 +78,104 @@ export default {
     mediaIndex, offset, metadata, machineIdentifier, userInitiated,
   }) => {
     console.debug('PLAY_MEDIA');
-    const server = rootGetters['plexservers/GET_PLEX_SERVER'](machineIdentifier);
 
-    commit('SET_ACTIVE_PLAY_QUEUE', await dispatch('plexservers/CREATE_PLAY_QUEUE', {
-      machineIdentifier,
-      ratingKey: metadata.ratingKey,
-    }, { root: true }));
+    const isInRoom = rootGetters['synclounge/IS_IN_ROOM'];
+    const amIHost = rootGetters['synclounge/AM_I_HOST'];
+    const isAutoHostEnabled = rootGetters['synclounge/IS_AUTO_HOST_ENABLED'];
+    const isUserInitiated = userInitiated === true;
+    const shouldRequestAutoHost = isUserInitiated
+      && isInRoom
+      && !amIHost
+      && isAutoHostEnabled;
+    const isBlockedNonHostPlayback = isUserInitiated
+      && isInRoom
+      && !amIHost
+      && !isAutoHostEnabled;
 
-    commit('SET_ACTIVE_PLAY_QUEUE_MACHINE_IDENTIFIER', machineIdentifier);
+    if (isBlockedNonHostPlayback) {
+      await dispatch('DISPLAY_NOTIFICATION', {
+        text: autoHostDisabledPlaybackMessage,
+        color: 'warning',
+      }, { root: true });
+      return;
+    }
 
-    if (getters.GET_CHOSEN_CLIENT_ID === slPlayerClientId) {
-      commit('SET_ACTIVE_MEDIA_METADATA', metadata);
-      commit('SET_ACTIVE_SERVER_ID', machineIdentifier);
-      commit('plexservers/SET_LAST_SERVER_ID', machineIdentifier, { root: true });
-      commit('slplayer/SET_MEDIA_INDEX', mediaIndex, { root: true });
-      commit('slplayer/SET_OFFSET_MS', Math.round(offset) || 0, { root: true });
-      commit('slplayer/SET_PLAYER_STATE', 'buffering', { root: true });
-      commit('slplayer/SET_MASK_PLAYER_STATE', true, { root: true });
-      await dispatch('synclounge/PROCESS_MEDIA_UPDATE', userInitiated, { root: true });
+    try {
+      const server = rootGetters['plexservers/GET_PLEX_SERVER'](machineIdentifier);
 
-      if (rootGetters['slplayer/IS_PLAYER_INITIALIZED']) {
-        await dispatch('slplayer/CHANGE_PLAYER_SRC', true, { root: true });
-      } else {
-        await dispatch('slplayer/NAVIGATE_AND_INITIALIZE_PLAYER', null, { root: true });
+      if (shouldRequestAutoHost) {
+        await dispatch('synclounge/REQUEST_AUTO_HOST', null, { root: true });
       }
-    } else {
-      // Play a media item given a mediaId key and a server to play from
-      // We need the following variables to build our paramaters:
-      // MediaId Key, Offset, server MachineId,
-      // Server Ip, Server Port, Server Protocol, Path
 
-      // TODO: potentially wait for stuff..
+      commit('SET_ACTIVE_PLAY_QUEUE', await dispatch('plexservers/CREATE_PLAY_QUEUE', {
+        machineIdentifier,
+        ratingKey: metadata.ratingKey,
+      }, { root: true }));
 
-      // Plex remote control API says:
-      // "After sending PlayMedia, the controller ignores timelines older than the last PlayMedia
-      // commandID."
-      const commandId = getters.GET_COMMAND_ID;
+      commit('SET_ACTIVE_PLAY_QUEUE_MACHINE_IDENTIFIER', machineIdentifier);
 
-      await dispatch('SEND_CHOSEN_CLIENT_REQUEST', {
-        path: '/player/playback/playMedia',
-        params: {
-          wait: 0,
-          key: metadata.key,
-          offset: Math.round(offset) || 0,
-          machineIdentifier,
-          address: server.chosenConnection.address,
-          port: server.chosenConnection.port,
-          protocol: server.chosenConnection.protocol,
-          path: server.chosenConnection.uri + metadata.key,
-          token: server.accessToken,
-          containerKey: `/playQueues/${getters.GET_ACTIVE_PLAY_QUEUE.playQueueID}`,
-          ...mediaIndex && { mediaIndex },
-        },
-      });
+      if (getters.GET_CHOSEN_CLIENT_ID === slPlayerClientId) {
+        commit('SET_ACTIVE_MEDIA_METADATA', metadata);
+        commit('SET_ACTIVE_SERVER_ID', machineIdentifier);
+        commit('plexservers/SET_LAST_SERVER_ID', machineIdentifier, { root: true });
+        commit('slplayer/SET_MEDIA_INDEX', mediaIndex, { root: true });
+        commit('slplayer/SET_OFFSET_MS', Math.round(offset) || 0, { root: true });
+        commit('slplayer/SET_PLAYER_STATE', 'buffering', { root: true });
+        commit('slplayer/SET_MASK_PLAYER_STATE', true, { root: true });
+        await dispatch('synclounge/PROCESS_MEDIA_UPDATE', userInitiated, { root: true });
 
-      commit('SET_LAST_PLAY_MEDIA_COMMAND_ID', commandId);
+        if (rootGetters['slplayer/IS_PLAYER_INITIALIZED']) {
+          await dispatch('slplayer/CHANGE_PLAYER_SRC', true, { root: true });
+        } else {
+          await dispatch('slplayer/NAVIGATE_AND_INITIALIZE_PLAYER', null, { root: true });
+        }
+      } else {
+        // Play a media item given a mediaId key and a server to play from
+        // We need the following variables to build our paramaters:
+        // MediaId Key, Offset, server MachineId,
+        // Server Ip, Server Port, Server Protocol, Path
 
-      // TODO: fix wait for movement lol
-      // await this.waitForMovement();
+        // TODO: potentially wait for stuff..
+
+        // Plex remote control API says:
+        // "After sending PlayMedia, the controller ignores timelines older than the last PlayMedia
+        // commandID."
+        const commandId = getters.GET_COMMAND_ID;
+
+        await dispatch('SEND_CHOSEN_CLIENT_REQUEST', {
+          path: '/player/playback/playMedia',
+          params: {
+            wait: 0,
+            key: metadata.key,
+            offset: Math.round(offset) || 0,
+            machineIdentifier,
+            address: server.chosenConnection.address,
+            port: server.chosenConnection.port,
+            protocol: server.chosenConnection.protocol,
+            path: server.chosenConnection.uri + metadata.key,
+            token: server.accessToken,
+            containerKey: `/playQueues/${getters.GET_ACTIVE_PLAY_QUEUE.playQueueID}`,
+            ...mediaIndex && { mediaIndex },
+          },
+        });
+
+        commit('SET_LAST_PLAY_MEDIA_COMMAND_ID', commandId);
+
+        // TODO: fix wait for movement lol
+        // await this.waitForMovement();
+      }
+    } catch (e) {
+      if (userInitiated === true) {
+        await dispatch('DISPLAY_NOTIFICATION', {
+          text: rootGetters['synclounge/AM_I_HOST']
+            ? hostPlaybackFailedMessage
+            : playbackFailedMessage,
+          color: 'error',
+        }, { root: true });
+        return;
+      }
+
+      throw e;
     }
   },
 
@@ -241,8 +288,6 @@ export default {
       // Media changed
       commit('SET_PLEX_CLIENT_TIMELINE', timeline);
       if (rootGetters['synclounge/IS_IN_ROOM']) {
-        // TODO: add detection to see if this media change was user initiated or in response to a
-        // sync
         await dispatch('synclounge/PROCESS_MEDIA_UPDATE', null, { root: true });
       }
     } else if (getters.GET_PLEX_CLIENT_TIMELINE.state !== timeline.state

@@ -117,21 +117,28 @@ const waitForEvent = (socket, eventName, label, predicate = () => true) => new P
   socket.on(eventName, handler);
 });
 
-const mediaPayload = ({ mediaId, userInitiated }) => ({
-  state: "playing",
-  time: 1000,
-  duration: 60000,
-  playbackRate: 1,
-  media: {
-    source: "plex",
-    title: `Auto-Host Regression ${mediaId}`,
-    type: "movie",
-    ratingKey: mediaId,
-    key: `/library/metadata/${mediaId}`,
-    machineIdentifier: "smoke-server",
-  },
-  userInitiated,
-});
+const mediaPayload = ({ mediaId, userInitiated } = {}) => {
+  const payload = {
+    state: "playing",
+    time: 1000,
+    duration: 60000,
+    playbackRate: 1,
+    media: {
+      source: "plex",
+      title: `Auto-Host Regression ${mediaId}`,
+      type: "movie",
+      ratingKey: mediaId,
+      key: `/library/metadata/${mediaId}`,
+      machineIdentifier: "smoke-server",
+    },
+  };
+
+  if (userInitiated !== undefined) {
+    payload.userInitiated = userInitiated;
+  }
+
+  return payload;
+};
 
 const assertCondition = (condition, message) => {
   if (!condition) {
@@ -178,7 +185,38 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
   });
 });
 
+const connectUnjoinedSocket = () => new Promise((resolve, reject) => {
+  const socket = io(appUrl, {
+    path: "/socket.io",
+    transports: ["websocket", "polling"],
+  });
+
+  sockets.push(socket);
+  socket.on("connect_error", reject);
+  socket.once("slPing", (secret) => {
+    socket.emit("slPong", secret);
+    resolve(socket);
+  });
+});
+
+const delay = (ms) => new Promise((resolve) => {
+  const timeout = setTimeout(() => {
+    timers.delete(timeout);
+    resolve();
+  }, ms);
+  timers.add(timeout);
+});
+
 (async () => {
+  const unjoined = await connectUnjoinedSocket();
+  let unjoinedDisconnected = false;
+  unjoined.once("disconnect", () => {
+    unjoinedDisconnected = true;
+  });
+  unjoined.emit("autoHostIntent");
+  await delay(250);
+  assertCondition(!unjoinedDisconnected, "Unjoined autoHostIntent should be ignored without disconnecting");
+
   const host = await joinSocket({ username: "SyncaramaSmokeHost" });
   const guest = await joinSocket({ username: "SyncaramaSmokeGuest" });
 
@@ -374,20 +412,30 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
   assertCondition(autoHostB.joinResult.hostId === autoHostA.id, "B should see A as host");
   assertCondition(autoHostB.joinResult.isAutoHostEnabled === true, "B should see Auto-Host enabled");
 
+  const aReceivesAutoNewHost = waitForEvent(
+    autoHostA,
+    "newHost",
+    "Auto-Host newHost sent to A",
+    (hostId) => hostId === autoHostB.id,
+  );
   const bReceivesAutoNewHost = waitForEvent(
     autoHostB,
     "newHost",
     "Auto-Host newHost sent to B",
     (hostId) => hostId === autoHostB.id,
   );
+
+  autoHostB.emit("autoHostIntent");
+  await Promise.all([aReceivesAutoNewHost, bReceivesAutoNewHost]);
+
   const aReceivesAutoMediaUpdate = waitForEvent(
     autoHostA,
     "mediaUpdate",
-    "Auto-Host mediaUpdate sent to A with makeHost",
-    (update) => update.id === autoHostB.id && update.makeHost === true,
+    "Auto-Host mediaUpdate sent to A after intent transfer",
+    (update) => update.id === autoHostB.id && update.makeHost === false,
   );
   autoHostB.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-b", userInitiated: true }));
-  await Promise.all([bReceivesAutoNewHost, aReceivesAutoMediaUpdate]);
+  await aReceivesAutoMediaUpdate;
 
   const autoHostC = await joinSocket({ username: "AutoHostC", room: autoHostRoomId });
   assertCondition(autoHostC.joinResult.hostId === autoHostB.id, "C should see B as host after Auto-Host transfer");
@@ -435,6 +483,80 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
   await Promise.all([formerHostAReceivesAutoNewHost, bReceivesFormerHostMediaUpdate]);
   const formerHostVerifier = await joinSocket({ username: "AutoHostFormerHostVerifier", room: autoHostRoomId });
   assertCondition(formerHostVerifier.joinResult.hostId === autoHostA.id, "Current behavior: former host A can take host back with a user-initiated mediaUpdate");
+
+  const directPlexRoomId = `${autoHostRoomId}_DIRECT_PLEX`;
+  const directA = await joinSocket({
+    username: "DirectPlexA",
+    room: directPlexRoomId,
+    desiredAutoHostEnabled: true,
+  });
+  const directB = await joinSocket({ username: "DirectPlexB", room: directPlexRoomId });
+  assertCondition(directB.joinResult.hostId === directA.id, "Direct Plex scenario should begin with A as host");
+
+  const directAReceivesNullMediaUpdate = waitForEvent(
+    directA,
+    "mediaUpdate",
+    "polling-origin Plex media detection with userInitiated omitted does not make host",
+    (update) => update.id === directB.id && update.makeHost === false,
+  );
+  directB.emit("mediaUpdate", mediaPayload({ mediaId: "direct-plex-b" }));
+  await directAReceivesNullMediaUpdate;
+  const directVerifier = await joinSocket({ username: "DirectPlexVerifier", room: directPlexRoomId });
+  assertCondition(directVerifier.joinResult.hostId === directA.id, "Polling-origin null media update should not initiate Auto-Host");
+
+  const interfaceExternalRoomId = `${autoHostRoomId}_INTERFACE_EXTERNAL`;
+  const interfaceA = await joinSocket({
+    username: "InterfaceExternalA",
+    room: interfaceExternalRoomId,
+    desiredAutoHostEnabled: true,
+  });
+  const interfaceB = await joinSocket({ username: "InterfaceExternalB", room: interfaceExternalRoomId });
+  assertCondition(interfaceB.joinResult.hostId === interfaceA.id, "Interface external scenario should begin with A as host");
+
+  const interfaceNewHostEvents = [interfaceA, interfaceB].map((socket) => waitForEvent(
+    socket,
+    "newHost",
+    `interface playback Auto-Host broadcast to ${socket.joinResult.user.username}`,
+    (hostId) => hostId === interfaceB.id,
+  ));
+  interfaceB.emit("autoHostIntent");
+  await Promise.all(interfaceNewHostEvents);
+  const interfaceHostVerifier = await joinSocket({ username: "InterfaceHostVerifier", room: interfaceExternalRoomId });
+  assertCondition(interfaceHostVerifier.joinResult.hostId === interfaceB.id, "Interface playback should transfer host to B exactly once");
+
+  const interfaceAReceivesMedia = waitForEvent(
+    interfaceA,
+    "mediaUpdate",
+    "new host media update after interface Auto-Host works normally",
+    (update) => update.id === interfaceB.id && update.makeHost === false && update.media.ratingKey === "interface-external-b",
+  );
+  interfaceB.emit("mediaUpdate", mediaPayload({ mediaId: "interface-external-b" }));
+  await interfaceAReceivesMedia;
+
+  const interfaceBReceivesSyncEcho = waitForEvent(
+    interfaceB,
+    "mediaUpdate",
+    "old host sync-directed update cannot reclaim host",
+    (update) => update.id === interfaceA.id && update.makeHost === false,
+  );
+  interfaceA.emit("mediaUpdate", mediaPayload({ mediaId: "interface-external-b", userInitiated: false }));
+  await interfaceBReceivesSyncEcho;
+  const interfaceEchoVerifier = await joinSocket({ username: "InterfaceEchoVerifier", room: interfaceExternalRoomId });
+  assertCondition(interfaceEchoVerifier.joinResult.hostId === interfaceB.id, "Old host sync/poll echo should not reclaim host");
+
+  const autoHostDisabledRoomId = `${autoHostRoomId}_DISABLED`;
+  const disabledA = await joinSocket({ username: "AutoHostDisabledA", room: autoHostDisabledRoomId });
+  const disabledB = await joinSocket({ username: "AutoHostDisabledB", room: autoHostDisabledRoomId });
+  const disabledAReceivesMediaUpdate = waitForEvent(
+    disabledA,
+    "mediaUpdate",
+    "Auto-Host disabled leaves user-initiated media update as non-transfer",
+    (update) => update.id === disabledB.id && update.makeHost === false,
+  );
+  disabledB.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-disabled-b", userInitiated: true }));
+  await disabledAReceivesMediaUpdate;
+  const disabledVerifier = await joinSocket({ username: "AutoHostDisabledVerifier", room: autoHostDisabledRoomId });
+  assertCondition(disabledVerifier.joinResult.hostId === disabledA.id, "Auto-Host disabled behavior should remain unchanged");
 
   const manualParticipants = [
     autoHostA,
