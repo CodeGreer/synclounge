@@ -208,6 +208,9 @@ const autoHostIntent = ({
   if (!(0, _state.isUserInARoom)(socket.id)) {
     return;
   }
+  if (!allowMovieNightAction(socket, 'autoHostIntent')) {
+    return;
+  }
   if ((0, _state.isUserHost)(socket.id) || !(0, _state.isAutoHostEnabledInSocketRoom)(socket.id)) {
     return;
   }
