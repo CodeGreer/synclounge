@@ -24,11 +24,15 @@ Movies and episodes are playable playlist items. Shows/series can be nominated b
 
 - Plex authentication is required.
 - Every participant needs Plex credentials.
-- Every participant needs access to the relevant Plex server/library.
+- For supported playback, every participant needs pre-existing Plex access to the originating server/library for each selected item.
 - Anonymous guests are not implemented.
 - Local-only guest accounts are not implemented.
 - Voting-only users are not implemented.
 - Room state is in memory and is not persisted after server restart.
+
+The group may draw from any number of Plex servers and libraries that have been made available through Plex's normal sharing system before the session begins.
+
+Sync-A-Rama does not grant library access during a session. The inherited Plex client may attempt a best-effort match on another Plex server already available to a participant, but that fallback is not currently validated or supported.
 
 ## Local dev/runtime URL
 

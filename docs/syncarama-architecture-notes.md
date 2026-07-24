@@ -94,6 +94,18 @@ Relevant store file:
 
 FETCH_PLEX_SERVER gets the selected Plex server connection URI from Vuex state and calls Plex directly.
 
+## Shared-library access and fallback matching
+
+Media-server access is established outside Sync-A-Rama. Plex servers and libraries must already be shared with participants through Plex's account and library-sharing system before a session begins. Future Jellyfin and Emby support should preserve the same boundary by relying on each backend's existing permission model.
+
+The group may have access to any number of pre-shared servers and libraries. Each selected Plex item identifies an originating server and item through `machineIdentifier` and `ratingKey`. Supported playback assumes that each participant can access that originating source.
+
+The inherited `FIND_BEST_MEDIA_MATCH` path first tries the exact item on the originating server. If that source is unavailable, it searches other unblocked Plex servers already available to the participant and chooses a heuristic match using title, parent title, grandparent title, and media type.
+
+That fallback has no documented confidence threshold, dedicated regression coverage, or established reliability in group use. Treat it as an unsupported best-effort safety net, not as part of the supported playback architecture.
+
+Future backend work should not assume that every participant routinely supplies an independent backend. Supporting Plex, Jellyfin, and Emby primarily means supporting pre-shared sources through each backend's normal access model.
+
 ## Server-side socket implementation
 
 The current socket server is maintained in the vendored `packages/syncloungeserver` package.

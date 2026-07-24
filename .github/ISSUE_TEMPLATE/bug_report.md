@@ -25,8 +25,9 @@ What did you expect to happen?
 ## Plex Media Server details
 
 - Server version:
-- Shared library involved:
-- Does the affected participant have Plex access to this server/library? (Yes/No):
+- Originating Plex server/library:
+- Did each affected participant already have Plex access to that source before the session? (Yes/No):
+- Was best-effort fallback matching involved? (Yes/No/Unknown):
 
 ## Plex Client details
 

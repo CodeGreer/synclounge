@@ -103,7 +103,7 @@ The Sync-A-Rama socket smoke test covers:
 
 - Plex authentication is required.
 - The host and every participant need Plex credentials.
-- Participants need access to the relevant Plex server/library.
+- For supported playback, participants need pre-existing Plex access to the originating server/library for each selected item.
 - Anonymous guests, local-only guest accounts, and voting-only users are not implemented.
 
 ## Non-goals
