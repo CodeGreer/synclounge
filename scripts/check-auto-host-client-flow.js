@@ -86,7 +86,12 @@ const makePlayQueue = ({ ratingKey = 'movie-b', playQueueItemID = 700 } = {}) =>
   Metadata: [{ ...media, ratingKey, playQueueItemID }],
 });
 
-const makeStore = ({ chosenClientId = 'external-client' } = {}) => {
+const makeStore = ({
+  chosenClientId = 'external-client',
+  isInRoom = true,
+  amIHost = false,
+  isAutoHostEnabled = true,
+} = {}) => {
   const state = stateFactory();
   state.chosenClientId = chosenClientId;
   state.commandId = 10;
@@ -112,7 +117,9 @@ const makeStore = ({ chosenClientId = 'external-client' } = {}) => {
       },
     }),
     'slplayer/IS_PLAYER_INITIALIZED': true,
-    'synclounge/IS_IN_ROOM': true,
+    'synclounge/IS_IN_ROOM': isInRoom,
+    'synclounge/AM_I_HOST': amIHost,
+    'synclounge/IS_AUTO_HOST_ENABLED': isAutoHostEnabled,
     'plex/GET_PLEX_BASE_PARAMS': () => ({}),
     GET_CONFIG: { plex_client_time_delta_state_change_threshold: 500 },
   };
@@ -186,6 +193,47 @@ const waitForOutboundRequest = async (store) => {
 };
 
 (async () => {
+
+  const blockedStore = makeStore({ isAutoHostEnabled: false });
+  await actions.PLAY_MEDIA(blockedStore, {
+    mediaIndex: 0,
+    offset: 0,
+    metadata: media,
+    machineIdentifier: media.machineIdentifier,
+    userInitiated: true,
+  });
+  const blockedNotification = blockedStore.events.find((event) => event.type === 'DISPLAY_NOTIFICATION');
+  if (!blockedNotification?.payload.text.includes('Only the current host can start different media')) {
+    throw new Error('Auto-Host disabled non-host playback should show actionable warning');
+  }
+  if (blockedStore.fetches.length > 0 || blockedStore.state.activePlayQueue) {
+    throw new Error('Auto-Host disabled non-host playback should stop before play queue or Plex request');
+  }
+
+  const hostAutoHostOffStore = makeStore({ amIHost: true, isAutoHostEnabled: false });
+  const hostAutoHostOffPlay = actions.PLAY_MEDIA(hostAutoHostOffStore, {
+    mediaIndex: 0,
+    offset: 0,
+    metadata: media,
+    machineIdentifier: media.machineIdentifier,
+    userInitiated: true,
+  });
+  await waitForOutboundRequest(hostAutoHostOffStore);
+  hostAutoHostOffStore.deferredRequests[0].resolve({ MediaContainer: [{ Timeline: [] }] });
+  await hostAutoHostOffPlay;
+
+  const outsideRoomStore = makeStore({ isInRoom: false, isAutoHostEnabled: false });
+  const outsideRoomPlay = actions.PLAY_MEDIA(outsideRoomStore, {
+    mediaIndex: 0,
+    offset: 0,
+    metadata: media,
+    machineIdentifier: media.machineIdentifier,
+    userInitiated: true,
+  });
+  await waitForOutboundRequest(outsideRoomStore);
+  outsideRoomStore.deferredRequests[0].resolve({ MediaContainer: [{ Timeline: [] }] });
+  await outsideRoomPlay;
+
   const externalStore = makeStore();
   const externalPlay = actions.PLAY_MEDIA(externalStore, {
     mediaIndex: 0,
@@ -212,6 +260,24 @@ const waitForOutboundRequest = async (store) => {
   const pollUpdate = externalStore.events.filter((event) => event.type === 'synclounge/PROCESS_MEDIA_UPDATE').pop();
   if (!pollUpdate || pollUpdate.userInitiated !== null) {
     throw new Error('Polling-origin media update should remain null after external PLAY_MEDIA');
+  }
+
+
+  const failedStore = makeStore();
+  const failedPlay = actions.PLAY_MEDIA(failedStore, {
+    mediaIndex: 0,
+    offset: 0,
+    metadata: media,
+    machineIdentifier: media.machineIdentifier,
+    userInitiated: true,
+  });
+  await waitForOutboundRequest(failedStore);
+  failedStore.rootGetters['synclounge/AM_I_HOST'] = true;
+  failedStore.deferredRequests[0].reject(new Error('simulated Plex failure'));
+  await failedPlay;
+  const failedNotification = failedStore.events.filter((event) => event.type === 'DISPLAY_NOTIFICATION').pop();
+  if (!failedNotification?.payload.text.includes('You are now the host')) {
+    throw new Error('User-initiated playback failure should show visible error notification');
   }
 
   const syncStore = makeStore();
