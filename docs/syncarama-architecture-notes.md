@@ -1,6 +1,6 @@
-# MovieNight Architecture Notes
+# Sync-A-Rama Architecture Notes
 
-These notes describe the current SyncLounge architecture as observed in the MovieNight fork.
+These notes describe the current SyncLounge architecture as observed in the Sync-A-Rama fork.
 
 ## Runtime responsibilities
 
@@ -24,10 +24,10 @@ Plex requests are made directly from the browser to the chosen Plex server conne
 
 Runtime config comes from config/defaults.js and is served at /config.json.
 
-Operator-facing branding can be customized through runtime config with `branding_name` and `branding_image_url`. The app falls back to the bundled MovieNight logo and name when those values are unset.
+Operator-facing branding can be customized through runtime config with `branding_name` and `branding_image_url`. The app falls back to the current bundled legacy branding asset and name when those values are unset.
 
-Current local SyncLounge server label:
-- MovieNight Local
+Current local Sync-A-Rama server label:
+- Sync-A-Rama Local
 
 ## Main client-side files
 
@@ -149,9 +149,9 @@ The health response is based on joined user count:
 Expected local health response:
 - {"load":"low"}
 
-## MovieNight feature pattern
+## Sync-A-Rama feature pattern
 
-MovieNight features follow the existing socket pattern:
+Sync-A-Rama features follow the existing socket pattern:
 1. Client emits a room event.
 2. Server validates room/user/host permissions.
 3. Server updates in-memory room state.
@@ -160,12 +160,12 @@ MovieNight features follow the existing socket pattern:
 
 ## Current implementation checkpoint
 
-As of the current MovieNight fork, the app has moved beyond basic SyncLounge rebranding and now includes a working MovieNight host workflow.
+As of the current Sync-A-Rama fork, the app has moved beyond basic SyncLounge rebranding and now includes a working Sync-A-Rama host workflow.
 
 Implemented pieces:
 
-- MovieNight branding in the app header, browser title, visible room copy, local server label, Plex product header, and built-in web player label.
-- A MovieNight panel with nominations, playlist management, and host/controller controls.
+- Sync-A-Rama branding in the app header, browser title, visible room copy, local server label, Plex product header, and built-in web player label.
+- A Sync-A-Rama panel with nominations, playlist management, and host/controller controls.
 - Plex search-based nominations for movies, shows, and episodes.
 - Playlist support for movies and episodes, including add, remove, reorder, clear, visibility, and active item state.
 - Playlist visibility modes:
@@ -173,8 +173,8 @@ Implemented pieces:
   - next item only
   - public
 - Host-only playlist control over the socket room state.
-- Server-backed MovieNight room state in the vendored syncloungeserver package.
-- Broadcast of MovieNight state to room participants through `movieNightState`.
+- Server-backed Sync-A-Rama room state in the vendored syncloungeserver package.
+- Broadcast of Sync-A-Rama state to room participants through `movieNightState`.
 - Active playlist item tracking, including cleanup when the active item is removed or the playlist is cleared.
 - Optional playlist auto-play when a media item naturally ends.
 - Manual stop remains separate from natural media end, so pressing Stop does not auto-advance the playlist.
@@ -182,32 +182,32 @@ Implemented pieces:
 - Controller windows do not join as additional room participants.
 - Controller actions are routed through the real host/player window using BroadcastChannel.
 - The controller can manage nominations, manage the playlist, change playlist settings, and trigger playback through the host window.
-- Room state smoke coverage exists in `scripts/check-movienight-socket-state.sh`.
+- Room state smoke coverage exists in `scripts/check-syncarama-socket-state.sh`.
 
 Important compatibility notes:
 
 - The Vuex module namespace `synclounge` remains unchanged for now.
 - Config keys such as `synclounge_upnext_trigger_time_from_end` remain unchanged for compatibility.
 - Package names such as `syncloungeserver` and `synclounge-libjass` remain unchanged.
-- Documentation should reference SyncLounge when describing upstream architecture, compatibility names, package names, or the fork relationship; normal user-facing product docs should present the app as MovieNight.
+- Documentation should reference SyncLounge when describing upstream architecture, compatibility names, package names, or the fork relationship; normal user-facing product docs should present the app as Sync-A-Rama.
 
 ## Operator branding configuration
 
 No branding environment variables are required. With no branding variables set,
-MovieNight remains fully branded as MovieNight: the canonical name is
-`MovieNight`, the bundled MovieNight logo is used, branding names are visible in
-all controlled locations, and the browser title resolves to `MovieNight` after
+Sync-A-Rama remains fully branded as Sync-A-Rama: the canonical name is
+`Sync-A-Rama`, the current bundled legacy branding asset is used, branding names are visible in
+all controlled locations, and the browser title resolves to `Sync-A-Rama` after
 runtime config loads.
 
 Common branding settings:
 
 - `BRANDING_NAME`: optional canonical instance name. Empty or whitespace-only
-  values fall back to `MovieNight`. This name also controls the browser tab
+  values fall back to `Sync-A-Rama`. This name also controls the browser tab
   title, even when visible branding text is hidden.
 - `BRANDING_IMAGE_URL`: optional custom branding image URL. Empty or
-  whitespace-only values use the bundled MovieNight logo.
+  whitespace-only values use the current bundled legacy branding asset.
 - `BRANDING_FAVICON_URL`: optional browser favicon URL. Empty or whitespace-only
-  values retain the bundled MovieNight favicon.
+  values retain the current bundled favicon.
 - `BRANDING_SHOW_NAME`: optional global control for separately rendered branding
   text. Supported Boolean values include `true`, `false`, `1`, `0`, `"true"`,
   `"false"`, `"1"`, and `"0"`. It defaults to `true`.
@@ -228,17 +228,18 @@ or `false`. If `BRANDING_SHOW_NAME` is empty, unset, or unrecognized, it resolve
 to `true`.
 
 Custom branding images may be square icons or wide combined logo/wordmark images.
-MovieNight preserves the image aspect ratio while constraining the image to the
+Sync-A-Rama preserves the image aspect ratio while constraining the image to the
 available UI space. Full-page branding locations use a larger responsive image
 limit, while the persistent top bar remains compact; there is no operator-facing
 image-dimension configuration.
 
-Default deployment:
+Planned beta image after publishing:
 
 ```yaml
 services:
-  movienight:
-    image: ghcr.io/codegreer/movienight:beta
+  syncarama:
+    # Planned image; publish ghcr.io/codegreer/syncarama:beta before using this example.
+    image: ghcr.io/codegreer/syncarama:beta
     ports:
       - "8088:8088"
 ```

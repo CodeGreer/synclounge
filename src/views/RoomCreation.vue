@@ -32,7 +32,7 @@
           >
             <v-row align="center">
               <v-col class="grow">
-                No connectable MovieNight servers
+                No connectable Sync-A-Rama servers
               </v-col>
               <v-col class="shrink">
                 <v-btn

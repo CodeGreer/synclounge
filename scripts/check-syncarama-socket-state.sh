@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_URL="${APP_URL:-http://127.0.0.1:8092}"
-ROOM_ID="${ROOM_ID:-MOVIENIGHT_SMOKE_$(date +%s)}"
+ROOM_ID="${ROOM_ID:-SYNCARAMA_SMOKE_$(date +%s)}"
 
 docker exec -e APP_URL="$APP_URL" -e ROOM_ID="$ROOM_ID" movienight-dev sh -lc '
 cd /workspace/movienight
@@ -18,7 +18,7 @@ const itemOne = {
   source: "plex",
   playlistKey: "plex:smoke-server:smoke-rating-key-1",
   nominationKey: "plex:smoke-server:smoke-rating-key-1",
-  title: "MovieNight Smoke Test One",
+  title: "Sync-A-Rama Smoke Test One",
   year: 2026,
   type: "movie",
   ratingKey: "smoke-rating-key-1",
@@ -33,7 +33,7 @@ const itemTwo = {
   source: "plex",
   playlistKey: "plex:smoke-server:smoke-rating-key-2",
   nominationKey: "plex:smoke-server:smoke-rating-key-2",
-  title: "MovieNight Smoke Test Two",
+  title: "Sync-A-Rama Smoke Test Two",
   year: 2026,
   type: "movie",
   ratingKey: "smoke-rating-key-2",
@@ -157,7 +157,7 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
       desiredPartyPausingEnabled: true,
       desiredAutoHostEnabled,
       thumb: null,
-      playerProduct: "movienight-smoke-test",
+      playerProduct: "syncarama-smoke-test",
       state: "stopped",
       time: 0,
       duration: 0,
@@ -179,8 +179,8 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
 });
 
 (async () => {
-  const host = await joinSocket({ username: "MovieNightSmokeHost" });
-  const guest = await joinSocket({ username: "MovieNightSmokeGuest" });
+  const host = await joinSocket({ username: "SyncaramaSmokeHost" });
+  const guest = await joinSocket({ username: "SyncaramaSmokeGuest" });
 
   guest.on("movieNightState", (state) => {
     latestState = state;
@@ -453,7 +453,7 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
   autoHostA.emit("transferHost", autoHostB.id);
   await Promise.all(manualNewHostEvents);
 
-  pass("MovieNight playlist, poll, Auto-Host, and host-transfer state verified");
+  pass("Sync-A-Rama playlist, poll, Auto-Host, and host-transfer state verified");
 })().catch((error) => {
   fail(error.message);
 });

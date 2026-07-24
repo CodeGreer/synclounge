@@ -1,12 +1,12 @@
 ---
 name: Feature request
-about: Suggest a MovieNight improvement
+about: Suggest a Sync-A-Rama improvement
 labels: enhancement
 ---
 
-## MovieNight feature request
+## Sync-A-Rama feature request
 
-MovieNight is currently a SyncLounge fork focused on Plex-authenticated group movie nights. Anonymous/local-only/voting-only users are not implemented yet.
+Sync-A-Rama is currently a SyncLounge fork focused on Plex-authenticated group movie nights. Anonymous/local-only/voting-only users are not implemented yet.
 
 ## Problem or use case
 

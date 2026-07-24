@@ -25,12 +25,12 @@ const {
   normalizeBrandingImageSize,
 } = sandbox.module.exports;
 
-assert.strictEqual(normalizeBrandingName(undefined), 'MovieNight');
-assert.strictEqual(normalizeBrandingName(null), 'MovieNight');
-assert.strictEqual(normalizeBrandingName(''), 'MovieNight');
-assert.strictEqual(normalizeBrandingName('   '), 'MovieNight');
+assert.strictEqual(normalizeBrandingName(undefined), 'Sync-A-Rama');
+assert.strictEqual(normalizeBrandingName(null), 'Sync-A-Rama');
+assert.strictEqual(normalizeBrandingName(''), 'Sync-A-Rama');
+assert.strictEqual(normalizeBrandingName('   '), 'Sync-A-Rama');
 assert.strictEqual(normalizeBrandingName(" Tom's Movie Club "), "Tom's Movie Club");
-assert.strictEqual(normalizeBrandingName(123), 'MovieNight');
+assert.strictEqual(normalizeBrandingName(123), 'Sync-A-Rama');
 
 assert.strictEqual(normalizeBrandingImageUrl(undefined, 'fallback.png'), 'fallback.png');
 assert.strictEqual(normalizeBrandingImageUrl(null, 'fallback.png'), 'fallback.png');

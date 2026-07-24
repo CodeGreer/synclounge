@@ -1,6 +1,6 @@
-# MovieNight Selection Sessions
+# Sync-A-Rama Selection Sessions
 
-MovieNight currently supports an approval-voting workflow built around nominations.
+Sync-A-Rama currently supports an approval-voting workflow built around nominations.
 
 ## Current workflow
 
@@ -8,7 +8,7 @@ MovieNight currently supports an approval-voting workflow built around nominatio
 2. The host starts an approval vote from current nominations.
 3. Participants approve any title they would be happy watching.
 4. The host closes the vote.
-5. MovieNight shows winner, tie, or no-approval state.
+5. Sync-A-Rama shows winner, tie, or no-approval state.
 6. The host can add the winner/top tied result to the playlist.
 7. The host can start a runoff from the top 2, top 3, or top 5 results.
 8. Runoffs start a new round and clear previous votes.
@@ -60,7 +60,7 @@ Supported controller actions:
 
 ## Intended beta scope
 
-For beta, MovieNight should focus on making the Plex-backed Saturday-night flow reliable:
+For beta, Sync-A-Rama should focus on making the Plex-backed Saturday-night flow reliable:
 
 - Host Controller
 - Nominations

@@ -1,10 +1,10 @@
-# MovieNight Beta Tester Quick Start
+# Sync-A-Rama Beta Tester Quick Start
 
-MovieNight is a shared movie-night app for choosing and watching Plex media together. It helps a group join the same room, nominate titles, vote on what to watch, build a host-managed playlist, and keep playback coordinated.
+Sync-A-Rama is a shared movie-night app for choosing and watching Plex media together. It helps a group join the same room, nominate titles, vote on what to watch, build a host-managed playlist, and keep playback coordinated.
 
-MovieNight is currently a fork, rebrand, and extension of SyncLounge. Some internal names and flows still come from SyncLounge, especially around Plex sign-in and synchronized playback.
+Sync-A-Rama is currently a fork, rebrand, and extension of SyncLounge. Some internal names and flows still come from SyncLounge, especially around Plex sign-in and synchronized playback.
 
-MovieNight is in beta. Please treat it as a test version for coordinated movie nights, not as a finished production service.
+Sync-A-Rama is in beta. Please treat it as a test version for coordinated movie nights, not as a finished production service.
 
 ## Current beta constraints
 
@@ -21,7 +21,7 @@ If someone cannot sign in with Plex or cannot see the host's Plex library, they 
 
 ## Joining a room
 
-1. Open the MovieNight link shared by the host.
+1. Open the Sync-A-Rama link shared by the host.
 2. Sign in with Plex when prompted.
 3. Join the room name or room link provided by the host.
 4. Confirm that you appear as a participant in the room.
@@ -31,7 +31,7 @@ If you join late, you may need to ask the host what stage the room is in. For ex
 
 ## Host and guest roles
 
-MovieNight has one active host at a time.
+Sync-A-Rama has one active host at a time.
 
 The host can:
 
@@ -80,7 +80,7 @@ Movies and episodes are intended to be playable playlist items. Shows or series 
 
 ## Approval voting
 
-MovieNight currently uses approval voting.
+Sync-A-Rama currently uses approval voting.
 
 In an approval vote:
 
@@ -89,7 +89,7 @@ In an approval vote:
 3. Participants may approve more than one title.
 4. Participants can change their approvals while the vote is open.
 5. The host closes the vote.
-6. MovieNight shows the result, such as a winner, a tie, or no approved titles.
+6. Sync-A-Rama shows the result, such as a winner, a tie, or no approved titles.
 
 Approval voting is useful when the group wants to find every title people would accept, not just each person's single favorite.
 
@@ -112,10 +112,10 @@ The host can build a playlist from playable nominations or vote results.
 At a high level:
 
 - Playlist visibility controls how much of the playlist is shown to participants.
-- Auto-play controls whether MovieNight should try to move to the next playlist item automatically.
+- Auto-play controls whether Sync-A-Rama should try to move to the next playlist item automatically.
 - The active playlist item shows what the room is currently watching or preparing to watch.
 
-For beta sessions, pay attention to whether playlist visibility is understandable and whether auto-play behaves the way the group expects. If the host manually stops playback, report whether MovieNight unexpectedly advances or stays stopped.
+For beta sessions, pay attention to whether playlist visibility is understandable and whether auto-play behaves the way the group expects. If the host manually stops playback, report whether Sync-A-Rama unexpectedly advances or stays stopped.
 
 ## What to test during a beta session
 
@@ -150,7 +150,7 @@ Please capture:
 - Date and approximate time of the session.
 - Room name or room link used, if safe to share with the maintainer.
 - Whether you were the host or a guest.
-- Whether you were using the main MovieNight window or the Host Controller.
+- Whether you were using the main Sync-A-Rama window or the Host Controller.
 - Browser and device type.
 - The title or playlist item involved.
 - What you expected to happen.
@@ -166,11 +166,11 @@ Avoid sharing Plex passwords, private tokens, or screenshots that expose sensiti
 ## Copy/paste beta feedback template
 
 ```text
-MovieNight beta feedback
+Sync-A-Rama beta feedback
 
 Session date/time:
 Your role: Host / Guest
-Window used: Main MovieNight window / Host Controller / Both
+Window used: Main Sync-A-Rama window / Host Controller / Both
 Browser and device:
 Room name or link, if safe to share:
 
@@ -193,7 +193,7 @@ Plex/library context:
 - Could you see the expected Plex library? Yes / No
 - Were other participants affected? Yes / No / Not sure
 
-MovieNight feature involved:
+Sync-A-Rama feature involved:
 - Joining
 - Nominations
 - Approval voting

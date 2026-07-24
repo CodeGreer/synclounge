@@ -26,7 +26,7 @@
       nav
     >
       <template v-if="IS_IN_ROOM">
-        <v-subheader>MovieNight</v-subheader>
+        <v-subheader>Sync-A-Rama</v-subheader>
 
         <v-list-item>
           <v-list-item-icon>
@@ -90,7 +90,7 @@
         </v-list-item-icon>
 
         <v-list-item-content>
-          <v-list-item-title>MovieNight</v-list-item-title>
+          <v-list-item-title>Sync-A-Rama</v-list-item-title>
           <v-list-item-subtitle>Local build</v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>

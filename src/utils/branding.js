@@ -1,4 +1,4 @@
-export const DEFAULT_BRANDING_NAME = 'MovieNight';
+export const DEFAULT_BRANDING_NAME = 'Sync-A-Rama';
 export const DEFAULT_BRANDING_IMAGE_SIZE = 56;
 
 export const normalizeBrandingName = (value) => (

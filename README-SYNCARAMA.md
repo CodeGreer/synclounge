@@ -1,12 +1,12 @@
-# MovieNight Fork Notes
+# Sync-A-Rama Fork Notes
 
-This repository is MovieNight, a fork/rebrand/extension of SyncLounge for weekly group movie nights.
+This repository is Sync-A-Rama, a fork/rebrand/extension of SyncLounge for weekly group movie nights.
 
-MovieNight still uses some SyncLounge architecture, package names, config keys, and Plex authentication flow internally. Do not treat every internal `synclounge` name as stale branding; package names and compatibility keys remain intentionally unchanged for now.
+Sync-A-Rama still uses some SyncLounge architecture, package names, config keys, and Plex authentication flow internally. Do not treat every internal `synclounge` name as stale branding; package names and compatibility keys remain intentionally unchanged for now.
 
 ## Implemented beta features
 
-MovieNight currently includes:
+Sync-A-Rama currently includes:
 
 - Host Controller browsing/control from a separate window
 - nominations for Plex movies, shows, and episodes
@@ -60,7 +60,7 @@ Expected health response:
 
 ## Docker/Compose notes
 
-MovieNight can be run with Docker or Docker Compose.
+Sync-A-Rama can be run with Docker or Docker Compose.
 
 Example source-development command:
 
@@ -73,7 +73,7 @@ Example environment values:
 ```text
 TZ=Etc/UTC
 SKIP_BUILD=true
-BRANDING_NAME=MovieNight
+BRANDING_NAME=Sync-A-Rama
 BRANDING_IMAGE_URL=
 ```
 
@@ -82,21 +82,21 @@ BRANDING_IMAGE_URL=
 ### Branding configuration
 
 No branding environment variables are required. With no branding variables set,
-MovieNight uses the canonical name `MovieNight`, the bundled MovieNight logo,
+Sync-A-Rama uses the canonical name `Sync-A-Rama`, the current bundled legacy branding asset,
 visible branding text in the normal branding locations, and a browser title of
-`MovieNight` after runtime config loads.
+`Sync-A-Rama` after runtime config loads.
 
 Common optional settings:
 
 - `BRANDING_NAME`: canonical instance name. Empty or whitespace-only values fall
-  back to `MovieNight`. This value also controls the browser tab title even when
+  back to `Sync-A-Rama`. This value also controls the browser tab title even when
   visible branding text is hidden.
 - `BRANDING_IMAGE_URL`: custom branding image URL. Empty or whitespace-only
-  values use the bundled MovieNight logo. Use an HTTPS image URL when MovieNight
+  values use the current bundled legacy branding asset. Use an HTTPS image URL when Sync-A-Rama
   is served over HTTPS, or use a same-origin/reverse-proxied relative path such
   as `/custom/branding.png`; browsers may block plain HTTP images on HTTPS pages.
 - `BRANDING_FAVICON_URL`: optional browser favicon URL. Empty or whitespace-only
-  values retain the bundled MovieNight favicon.
+  values retain the current bundled favicon.
 - `BRANDING_SHOW_NAME`: global control for the separately rendered branding name.
   Supported values include `true`, `false`, `1`, `0`, `"true"`, `"false"`,
   `"1"`, and `"0"`. Empty or unrecognized values are treated as unset. The
@@ -118,17 +118,18 @@ unrecognized location override values inherit rather than forcing `true` or
 ultimately defaults to `true`.
 
 Custom branding images may be square icons or wide combined logo/wordmark images.
-MovieNight preserves the image aspect ratio while constraining the image to the
+Sync-A-Rama preserves the image aspect ratio while constraining the image to the
 available UI space. Full-page branding locations use a larger responsive image
 limit, while the persistent top bar remains compact; there is no operator-facing
 image-dimension configuration.
 
-Default deployment:
+Planned beta image after publishing:
 
 ```yaml
 services:
-  movienight:
-    image: ghcr.io/codegreer/movienight:beta
+  syncarama:
+    # Planned image; publish ghcr.io/codegreer/syncarama:beta before using this example.
+    image: ghcr.io/codegreer/syncarama:beta
     ports:
       - "8088:8088"
 ```
@@ -171,7 +172,7 @@ environment:
 The app is confirmed working when this appears in logs:
 
 ```text
-MovieNight Server successfully started on port <port>
+Sync-A-Rama Server successfully started on port <port>
 ```
 
 ## Beta smoke checks
@@ -181,8 +182,8 @@ Run before a beta session or documentation release when the dev container is ava
 ```sh
 git status --short
 git log --oneline -8
-docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
-./scripts/check-movienight-socket-state.sh
+docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
+./scripts/check-syncarama-socket-state.sh
 curl -s http://127.0.0.1:8092/health; echo
 ```
 
@@ -190,7 +191,7 @@ Expected results:
 
 ```text
 DONE  Build complete. The dist directory is ready to be deployed.
-PASS: MovieNight playlist and poll state synced to guest
+PASS: Sync-A-Rama playlist, poll, Auto-Host, and host-transfer state verified
 {"load":"low"}
 ```
 
@@ -200,7 +201,7 @@ PASS: MovieNight playlist and poll state synced to guest
 - `docs/beta-readiness.md`
 - `docs/selection-sessions.md`
 - `docs/host-controller-browser.md`
-- `docs/movienight-architecture-notes.md`
+- `docs/syncarama-architecture-notes.md`
 
 ## Safety notes
 

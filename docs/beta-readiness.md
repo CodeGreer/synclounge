@@ -1,13 +1,13 @@
-# MovieNight Beta Readiness
+# Sync-A-Rama Beta Readiness
 
-This checklist defines what should be true before trying MovieNight with the regular group.
+This checklist defines what should be true before trying Sync-A-Rama with the regular group.
 
 ## Current beta constraints
 
-MovieNight currently inherits SyncLounge's Plex authentication model.
+Sync-A-Rama currently inherits SyncLounge's Plex authentication model.
 
 Every beta participant must sign in with Plex credentials and must have access
-to the relevant Plex server/library. MovieNight does not currently support
+to the relevant Plex server/library. Sync-A-Rama does not currently support
 anonymous guests, local-only guest accounts, or voting-only users.
 
 Because of this, real guest joining, guest voting clarity, host transfer between
@@ -16,9 +16,9 @@ users, and multi-household sync require additional Plex-authenticated testers.
 
 ## Public room trust boundary
 
-MovieNight intentionally keeps the upstream SyncLounge public-room model for beta: a room URL should be treated as joinable by anyone who knows or guesses the room name. Plex login still controls access to Plex accounts, servers, and libraries, but the room socket server does not treat the browser client as trusted just because the user reached a room.
+Sync-A-Rama intentionally keeps the upstream SyncLounge public-room model for beta: a room URL should be treated as joinable by anyone who knows or guesses the room name. Plex login still controls access to Plex accounts, servers, and libraries, but the room socket server does not treat the browser client as trusted just because the user reached a room.
 
-The server now applies MovieNight-specific safety limits before rebroadcasting shared room state. Nominations and playlist items are whitelisted and trimmed, unknown fields are ignored, malformed items are rejected, nominations and playlist arrays are capped at 100 items each, active polls are capped at 50 options, and votes must reference current poll option IDs. MovieNight mutating socket actions and chat messages also have generous per-socket fixed-window rate limits to reduce accidental or malicious spam. Chat messages are trimmed, capped, and treated as plain text.
+The server now applies Sync-A-Rama-specific safety limits before rebroadcasting shared room state. Nominations and playlist items are whitelisted and trimmed, unknown fields are ignored, malformed items are rejected, nominations and playlist arrays are capped at 100 items each, active polls are capped at 50 options, and votes must reference current poll option IDs. Sync-A-Rama mutating socket actions and chat messages also have generous per-socket fixed-window rate limits to reduce accidental or malicious spam. Chat messages are trimmed, capped, and treated as plain text.
 
 These caps and rate limits protect nomination, poll, vote, playlist, and chat state from unbounded growth in public-room beta use. They are not a replacement for full server-side Plex authorization or token validation, which remains out of scope for the current beta architecture.
 
@@ -96,11 +96,11 @@ These checks require at least two Plex-authenticated users.
 
 ## Branding and visible copy
 
-- [ ] Browser title says MovieNight.
-- [ ] Join screen says MovieNight.
-- [ ] Built-in player labels say MovieNight.
-- [ ] Startup log says MovieNight.
-- [ ] Runtime config uses MovieNight image.
+- [ ] Browser title says Sync-A-Rama.
+- [ ] Join screen says Sync-A-Rama.
+- [ ] Built-in player labels say Sync-A-Rama.
+- [ ] Startup log says Sync-A-Rama.
+- [ ] Runtime config uses the Sync-A-Rama name and the temporary legacy bundled image/favicon until final assets are supplied.
 - [ ] No obvious user-facing SyncLounge branding remains in normal flow.
 
 ## Smoke checks
@@ -109,16 +109,16 @@ Run before a beta session:
 
     git status --short
 
-    docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
+    docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
 
-    ./scripts/check-movienight-socket-state.sh
+    ./scripts/check-syncarama-socket-state.sh
 
     curl -s http://127.0.0.1:8092/health; echo
 
 Expected:
 
     DONE  Build complete. The dist directory is ready to be deployed.
-    PASS: MovieNight playlist and poll state synced to guest
+    PASS: Sync-A-Rama playlist, poll, Auto-Host, and host-transfer state verified
     {"load":"low"}
 
 ## Known beta limitations
