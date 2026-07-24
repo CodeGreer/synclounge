@@ -74,6 +74,6 @@ This fallback is therefore an unsupported safety net rather than a promised capa
 
 ## Compatibility and scope
 
-Existing internal SyncLounge and MovieNight compatibility identifiers do not prevent this roadmap. They should be migrated only through deliberate compatibility work rather than broad renaming.
+Existing legacy compatibility identifiers do not prevent this roadmap. They should be migrated only through deliberate compatibility work rather than broad renaming.
 
 Planned support does not mean that every backend will expose identical capabilities. Sync-A-Rama may need to document backend-specific limitations while maintaining consistent room behavior whenever possible.
