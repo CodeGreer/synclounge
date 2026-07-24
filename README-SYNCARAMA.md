@@ -197,6 +197,7 @@ PASS: Sync-A-Rama playlist, poll, Auto-Host, and host-transfer state verified
 
 ## Useful docs
 
+- `docs/roadmap.md`
 - `docs/current-implementation.md`
 - `docs/beta-readiness.md`
 - `docs/selection-sessions.md`

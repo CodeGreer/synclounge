@@ -75,6 +75,9 @@ Sync-A-Rama currently inherits SyncLounge's Plex authentication model:
 - Local-only guest accounts are not implemented.
 - Voting-only users are not implemented.
 - Votes and room state are not persisted after server restart.
+- Plex is currently the only implemented media-server backend.
+
+Jellyfin and Emby are planned as first-class selectable backends. Mixed-backend rooms are a later goal. See `docs/roadmap.md` for the intended direction and architectural guidance.
 
 ## Technical notes
 
