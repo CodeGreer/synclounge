@@ -2,6 +2,23 @@
 const path = require('path');
 const Module = require('module');
 
+const fetchXmlCalls = [];
+
+const originalLoad = Module._load;
+Module._load = function loadMocked(request, parent, isMain) {
+  if (request === '@/utils/fetchutils') {
+    return {
+      fetchXmlAndTransform: (...args) => {
+        const deferred = makeDeferred();
+        fetchXmlCalls.push({ args, deferred });
+        return deferred.promise;
+      },
+    };
+  }
+
+  return originalLoad.call(this, request, parent, isMain);
+};
+
 const originalResolveFilename = Module._resolveFilename;
 Module._resolveFilename = function resolveAlias(request, parent, isMain, options) {
   if (request.startsWith('@/')) {
@@ -87,7 +104,7 @@ const makeStore = ({ chosenClientId = 'external-client' } = {}) => {
 
   const events = [];
   const requests = [];
-  const deferredRequests = [];
+  const fetchStartIndex = fetchXmlCalls.length;
   const dispatched = [];
 
   const localGetters = {};
@@ -111,6 +128,8 @@ const makeStore = ({ chosenClientId = 'external-client' } = {}) => {
     }),
     'slplayer/IS_PLAYER_INITIALIZED': true,
     'synclounge/IS_IN_ROOM': true,
+    'plex/GET_PLEX_BASE_PARAMS': () => ({}),
+    GET_CONFIG: { plex_client_time_delta_state_change_threshold: 500 },
   };
 
   const commit = (type, payload) => {
@@ -144,16 +163,13 @@ const makeStore = ({ chosenClientId = 'external-client' } = {}) => {
         return null;
       }
 
-      if (type === 'SEND_CHOSEN_CLIENT_REQUEST') {
-        requests.push(payload);
-        const deferred = makeDeferred();
-        deferredRequests.push(deferred);
-        return deferred.promise;
-      }
-
-      if (type === 'RESERVE_COMMAND_ID'
+      if (type === 'SEND_CHOSEN_CLIENT_REQUEST'
+        || type === 'SEND_CLIENT_REQUEST'
+        || type === 'SEND_CLIENT_REQUEST_WITH_URI'
+        || type === 'RESERVE_COMMAND_ID'
         || type === 'CONSUME_PENDING_PLAY_MEDIA_ORIGIN'
-        || type === 'CLEAR_PENDING_PLAY_MEDIA_ORIGIN_IF_MATCHES') {
+        || type === 'CLEAR_PENDING_PLAY_MEDIA_ORIGIN_IF_MATCHES'
+        || type === 'MARK_PENDING_PLAY_MEDIA_ORIGIN_COMPLETE_IF_MATCHES') {
         return actions[type](context, payload);
       }
 
@@ -173,7 +189,14 @@ const makeStore = ({ chosenClientId = 'external-client' } = {}) => {
     },
   };
 
-  return { ...context, events, requests, deferredRequests, dispatched };
+  return {
+    ...context,
+    events,
+    requests,
+    get fetches() { return fetchXmlCalls.slice(fetchStartIndex); },
+    get deferredRequests() { return fetchXmlCalls.slice(fetchStartIndex).map((call) => call.deferred); },
+    dispatched,
+  };
 };
 
 const waitForOutboundRequest = async (store, count = 1) => {
@@ -205,8 +228,9 @@ const processMatchingTimeline = async (store, timeline = makeTimeline()) => {
   if (raceStore.state.pendingPlayMediaOrigin?.userInitiated !== false) {
     throw new Error('PLAY_MEDIA must install pending origin before outbound Plex request resolves');
   }
-  if (raceStore.requests[0]?.commandId !== raceStore.state.pendingPlayMediaOrigin.commandId) {
-    throw new Error('Pending origin command id must exactly match outbound Plex request command id');
+  const sentCommandID = raceStore.fetches[0]?.args[1]?.commandID;
+  if (sentCommandID !== raceStore.state.pendingPlayMediaOrigin.commandId) {
+    throw new Error('Pending origin command id must exactly match commandID sent by SEND_CLIENT_REQUEST_WITH_URI');
   }
 
   const raceUpdate = await processMatchingTimeline(raceStore);
@@ -216,7 +240,40 @@ const processMatchingTimeline = async (store, timeline = makeTimeline()) => {
   raceStore.deferredRequests[0].resolve(null);
   await playPromise;
 
+
+  const intermediateStore = makeStore();
+  intermediateStore.state.plexClientTimeline = makeTimeline({ commandID: 8, playQueueItemID: 600, ratingKey: 'movie-a' });
+  intermediateStore.state.activePlayQueue = makePlayQueue({ ratingKey: 'movie-a', playQueueItemID: 600 });
+  const intermediatePlay = actions.PLAY_MEDIA(intermediateStore, {
+    mediaIndex: 0,
+    offset: 0,
+    metadata: media,
+    machineIdentifier: media.machineIdentifier,
+    userInitiated: false,
+  });
+  await waitForOutboundRequest(intermediateStore);
+  const mediaEventCountBeforeIntermediate = intermediateStore.events.filter((event) => event.type === 'synclounge/PROCESS_MEDIA_UPDATE').length;
+  const intermediateUpdate = await processMatchingTimeline(
+    intermediateStore,
+    makeTimeline({ commandID: 11, playQueueItemID: 600, ratingKey: 'movie-a' }),
+  );
+  if (intermediateUpdate
+    || intermediateStore.events.filter((event) => event.type === 'synclounge/PROCESS_MEDIA_UPDATE').length
+      !== mediaEventCountBeforeIntermediate) {
+    throw new Error('Intermediate pre-command media timeline should not emit an Auto-Host-eligible update');
+  }
+  if (!intermediateStore.state.pendingPlayMediaOrigin) {
+    throw new Error('Intermediate pre-command media timeline must preserve pending origin');
+  }
+  const intermediateTargetUpdate = await processMatchingTimeline(intermediateStore, makeTimeline({ commandID: 12 }));
+  if (!intermediateTargetUpdate || intermediateTargetUpdate.userInitiated !== false) {
+    throw new Error('Target media after intermediate timeline should consume pending origin as explicit false');
+  }
+  intermediateStore.deferredRequests[0].resolve(null);
+  await intermediatePlay;
+
   const failureStore = makeStore();
+  failureStore.state.lastPlayMediaCommandId = 5;
   const failurePromise = actions.PLAY_MEDIA(failureStore, {
     mediaIndex: 0,
     offset: 0,
@@ -230,8 +287,19 @@ const processMatchingTimeline = async (store, timeline = makeTimeline()) => {
   if (!(failureResult instanceof Error) || failureStore.state.pendingPlayMediaOrigin !== null) {
     throw new Error('Failed play command should clear its own pending marker and reject');
   }
-  if (failureStore.state.lastPlayMediaCommandId !== null) {
-    throw new Error('Failed play command should not leave lastPlayMediaCommandId invalid');
+  if (failureStore.state.lastPlayMediaCommandId !== 5) {
+    throw new Error('Failed play command should restore the previous valid lastPlayMediaCommandId boundary');
+  }
+  await actions.POLL_PLEX_CLIENT({
+    ...failureStore,
+    dispatch: async (type, payload) => {
+      if (type === 'FETCH_CHOSEN_CLIENT_TIMELINE') return makeTimeline({ commandID: 4 });
+      if (type === 'UPDATE_PLEX_CLIENT_TIMELINE') return actions.UPDATE_PLEX_CLIENT_TIMELINE(failureStore, payload);
+      return failureStore.dispatch(type, payload);
+    },
+  });
+  if (failureStore.events.some((event) => event.type === 'synclounge/PROCESS_MEDIA_UPDATE')) {
+    throw new Error('Stale older timeline should remain rejected after later play command failure');
   }
 
   const supersedeStore = makeStore();

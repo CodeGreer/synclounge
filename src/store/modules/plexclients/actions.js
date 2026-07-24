@@ -6,10 +6,13 @@ import { slPlayerClientId } from '@/player/constants';
 
 const pendingPlayMediaOriginMaxAgeMs = 30000;
 
+const doesTimelineMatchMediaIdentity = (timeline, identity) => identity
+  && timeline.machineIdentifier === identity.machineIdentifier
+  && String(timeline.playQueueItemID) === String(identity.playQueueItemID);
+
 const doesTimelineMatchPendingPlayMediaOrigin = (timeline, origin) => origin
   && timeline.commandID >= origin.commandId
-  && timeline.machineIdentifier === origin.machineIdentifier
-  && String(timeline.playQueueItemID) === String(origin.playQueueItemID);
+  && doesTimelineMatchMediaIdentity(timeline, origin.expectedMediaIdentity);
 
 const hasPendingPlayMediaOriginExpired = (origin) => !origin
   || Date.now() - origin.createdAt > pendingPlayMediaOriginMaxAgeMs;
@@ -82,6 +85,13 @@ export default {
   }) => {
     console.debug('PLAY_MEDIA');
     const server = rootGetters['plexservers/GET_PLEX_SERVER'](machineIdentifier);
+    const preCommandMediaIdentity = getters.GET_PLEX_CLIENT_TIMELINE
+      && getters.GET_ACTIVE_PLAY_QUEUE_SELECTED_ITEM
+      ? {
+        machineIdentifier: getters.GET_PLEX_CLIENT_TIMELINE.machineIdentifier,
+        playQueueItemID: getters.GET_ACTIVE_PLAY_QUEUE_SELECTED_ITEM.playQueueItemID,
+      }
+      : null;
 
     commit('SET_ACTIVE_PLAY_QUEUE', await dispatch('plexservers/CREATE_PLAY_QUEUE', {
       machineIdentifier,
@@ -117,13 +127,19 @@ export default {
       // "After sending PlayMedia, the controller ignores timelines older than the last PlayMedia
       // commandID."
       const commandId = await dispatch('RESERVE_COMMAND_ID');
+      const previousLastPlayMediaCommandId = getters.GET_LAST_PLAY_MEDIA_COMMAND_ID;
       commit('SET_LAST_PLAY_MEDIA_COMMAND_ID', commandId);
       commit('SET_PENDING_PLAY_MEDIA_ORIGIN', {
         commandId,
-        machineIdentifier,
-        playQueueItemID: getters.GET_ACTIVE_PLAY_QUEUE.Metadata[
-          getters.GET_ACTIVE_PLAY_QUEUE.playQueueSelectedItemOffset
-        ].playQueueItemID,
+        expectedMediaIdentity: {
+          machineIdentifier,
+          playQueueItemID: getters.GET_ACTIVE_PLAY_QUEUE.Metadata[
+            getters.GET_ACTIVE_PLAY_QUEUE.playQueueSelectedItemOffset
+          ].playQueueItemID,
+        },
+        preCommandMediaIdentity,
+        previousLastPlayMediaCommandId,
+        requestCompleted: false,
         userInitiated,
         createdAt: Date.now(),
       });
@@ -146,10 +162,11 @@ export default {
           },
           commandId,
         });
+        await dispatch('MARK_PENDING_PLAY_MEDIA_ORIGIN_COMPLETE_IF_MATCHES', commandId);
       } catch (e) {
         await dispatch('CLEAR_PENDING_PLAY_MEDIA_ORIGIN_IF_MATCHES', commandId);
         if (getters.GET_LAST_PLAY_MEDIA_COMMAND_ID === commandId) {
-          commit('SET_LAST_PLAY_MEDIA_COMMAND_ID', null);
+          commit('SET_LAST_PLAY_MEDIA_COMMAND_ID', previousLastPlayMediaCommandId);
         }
         throw e;
       }
@@ -237,12 +254,27 @@ export default {
     }
   },
 
+  MARK_PENDING_PLAY_MEDIA_ORIGIN_COMPLETE_IF_MATCHES: ({ getters, commit }, commandId) => {
+    const origin = getters.GET_PENDING_PLAY_MEDIA_ORIGIN;
+
+    if (origin?.commandId === commandId) {
+      commit('SET_PENDING_PLAY_MEDIA_ORIGIN', {
+        ...origin,
+        requestCompleted: true,
+      });
+    }
+  },
+
   CONSUME_PENDING_PLAY_MEDIA_ORIGIN: ({ getters, commit }, timeline) => {
     const origin = getters.GET_PENDING_PLAY_MEDIA_ORIGIN;
 
     if (hasPendingPlayMediaOriginExpired(origin)) {
       commit('SET_PENDING_PLAY_MEDIA_ORIGIN', null);
       return null;
+    }
+
+    if (doesTimelineMatchMediaIdentity(timeline, origin.preCommandMediaIdentity)) {
+      return undefined;
     }
 
     if (!doesTimelineMatchPendingPlayMediaOrigin(timeline, origin)) {
@@ -257,7 +289,13 @@ export default {
   UPDATE_PLEX_CLIENT_TIMELINE: async ({
     getters, rootGetters, dispatch, commit,
   }, timeline) => {
-    if (!getters.GET_PLEX_CLIENT_TIMELINE
+    const isPendingExpectedMedia = doesTimelineMatchPendingPlayMediaOrigin(
+      timeline,
+      getters.GET_PENDING_PLAY_MEDIA_ORIGIN,
+    );
+
+    if (isPendingExpectedMedia
+      || !getters.GET_PLEX_CLIENT_TIMELINE
       || getters.GET_PLEX_CLIENT_TIMELINE.machineIdentifier !== timeline.machineIdentifier
       || !getters.GET_ACTIVE_PLAY_QUEUE_SELECTED_ITEM
       || getters.GET_ACTIVE_PLAY_QUEUE_SELECTED_ITEM.playQueueItemID !== timeline.playQueueItemID) {
@@ -292,7 +330,9 @@ export default {
       commit('SET_PLEX_CLIENT_TIMELINE', timeline);
       if (rootGetters['synclounge/IS_IN_ROOM']) {
         const mediaChangeOrigin = await dispatch('CONSUME_PENDING_PLAY_MEDIA_ORIGIN', timeline);
-        await dispatch('synclounge/PROCESS_MEDIA_UPDATE', mediaChangeOrigin, { root: true });
+        if (mediaChangeOrigin !== undefined) {
+          await dispatch('synclounge/PROCESS_MEDIA_UPDATE', mediaChangeOrigin, { root: true });
+        }
       }
     } else if (getters.GET_PLEX_CLIENT_TIMELINE.state !== timeline.state
       || getters.GET_PLEX_CLIENT_TIMELINE.duration !== timeline.duration
