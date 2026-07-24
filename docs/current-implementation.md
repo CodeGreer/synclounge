@@ -1,12 +1,12 @@
-# MovieNight Current Implementation
+# Sync-A-Rama Current Implementation
 
-This document summarizes the MovieNight features that are implemented today and the beta constraints that still apply.
+This document summarizes the Sync-A-Rama features that are implemented today and the beta constraints that still apply.
 
 ## Project identity
 
-MovieNight is currently a SyncLounge fork. It retains the SyncLounge playback-sync foundation, socket room model, Plex authentication flow, and several internal package/module names while adding group movie-night features.
+Sync-A-Rama is currently a SyncLounge fork. It retains the SyncLounge playback-sync foundation, socket room model, Plex authentication flow, and several internal package/module names while adding group movie-night features.
 
-Remaining internal names such as `synclounge`, `syncloungeserver`, and SyncLounge-flavored config keys are technical compatibility details. User-facing documentation and normal product copy should present the project as MovieNight while still acknowledging the fork relationship and upstream attribution.
+Remaining internal names such as `synclounge`, `syncloungeserver`, and SyncLounge-flavored config keys are technical compatibility details. User-facing documentation and normal product copy should present the project as Sync-A-Rama while still acknowledging the fork relationship and upstream attribution.
 
 ## Implemented features
 
@@ -66,7 +66,7 @@ Server-side host checks remain authoritative; client-side controller invalidatio
 
 ## Beta constraints
 
-MovieNight currently inherits SyncLounge's Plex authentication model:
+Sync-A-Rama currently inherits SyncLounge's Plex authentication model:
 
 - Plex authentication is required.
 - Every participant needs Plex credentials.
@@ -81,8 +81,18 @@ MovieNight currently inherits SyncLounge's Plex authentication model:
 - The Vuex room module namespace remains `synclounge`.
 - The server package name remains `syncloungeserver`.
 - Config keys with `synclounge` names remain for compatibility.
-- The root Dockerfile predates the MovieNight fork and should be tested before production use.
-- The server package default port is `8088`; the current dev environment commonly runs MovieNight on `8092`.
+- The root Dockerfile predates the Sync-A-Rama fork and should be tested before production use.
+- The server package default port is `8088`; the current dev environment commonly runs Sync-A-Rama on `8092`.
+
+## Compatibility identifiers intentionally retained
+
+The rebrand intentionally keeps these identifiers until there is a separate compatibility migration plan:
+
+- `synclounge` Vuex namespaces and inherited `synclounge_*` config keys.
+- The `syncloungeserver` package and binary name.
+- Socket protocol names such as `movieNightState` and `movieNight*` mutating events.
+- MovieNight-specific source filenames, Vue component names, helper names, the `movienight` Vuex namespace, and `movienight-controller` BroadcastChannel names.
+- The existing bundled `movienight-small-light.png` image and current favicon as temporary legacy assets.
 
 ## Beta verification
 
@@ -91,8 +101,8 @@ Run these checks before a beta session when the dev container is available:
 ```sh
 git status --short
 git log --oneline -8
-docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
-./scripts/check-movienight-socket-state.sh
+docker exec -it syncarama-dev sh -lc 'cd /workspace/syncarama && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
+./scripts/check-syncarama-socket-state.sh
 curl -s http://127.0.0.1:8092/health; echo
 ```
 
@@ -100,6 +110,6 @@ Expected output includes:
 
 ```text
 DONE  Build complete. The dist directory is ready to be deployed.
-PASS: MovieNight playlist and poll state synced to guest
+PASS: Sync-A-Rama playlist and poll state synced to guest
 {"load":"low"}
 ```

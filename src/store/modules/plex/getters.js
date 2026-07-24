@@ -20,7 +20,7 @@ export default {
     }
   },
 
-  GET_PLEX_PRODUCT_HEADER: () => 'MovieNight',
+  GET_PLEX_PRODUCT_HEADER: () => 'Sync-A-Rama',
   GET_PLEX_DEVICE_DEVICE_HEADER: (state, getters, rootState, rootGetters) => rootGetters
     .GET_BROWSER.os,
 

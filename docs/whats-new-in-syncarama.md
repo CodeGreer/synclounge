@@ -1,14 +1,14 @@
-# What's New in MovieNight Compared to SyncLounge
+# What's New in Sync-A-Rama Compared to SyncLounge
 
-MovieNight is a fork, rebrand, and extension of SyncLounge. It preserves the core SyncLounge idea of synchronized Plex playback in shared rooms, then adds group decision-making and host workflow tools for weekly movie nights.
+Sync-A-Rama is a fork, rebrand, and extension of SyncLounge. It preserves the core SyncLounge idea of synchronized Plex playback in shared rooms, then adds group decision-making and host workflow tools for weekly movie nights.
 
-SyncLounge focused primarily on helping people watch Plex media together in sync. MovieNight builds around that playback experience by adding nomination, voting, playlist, and host-control features so a group can decide what to watch, line up media, and manage playback from a clearer host workflow.
+SyncLounge focused primarily on helping people watch Plex media together in sync. Sync-A-Rama builds around that playback experience by adding nomination, voting, playlist, and host-control features so a group can decide what to watch, line up media, and manage playback from a clearer host workflow.
 
-This document is for regular participants, hosts/operators, testers, and people already familiar with SyncLounge who need to understand what MovieNight adds without assuming it is a production-ready replacement for every SyncLounge use case.
+This document is for regular participants, hosts/operators, testers, and people already familiar with SyncLounge who need to understand what Sync-A-Rama adds without assuming it is a production-ready replacement for every SyncLounge use case.
 
 ## What is intentionally unchanged from SyncLounge
 
-MovieNight still depends on several important SyncLounge-era assumptions:
+Sync-A-Rama still depends on several important SyncLounge-era assumptions:
 
 - Plex authentication is still required.
 - Participants still need Plex credentials.
@@ -16,24 +16,24 @@ MovieNight still depends on several important SyncLounge-era assumptions:
 - Synchronized playback still relies on the SyncLounge room and socket model.
 - Some internal package names, configuration keys, paths, and implementation details may still say `SyncLounge`.
 
-Do not treat remaining internal `SyncLounge` names as automatically wrong. MovieNight is still built on the SyncLounge architecture and preserves upstream SyncLounge attribution.
+Do not treat remaining internal `SyncLounge` names as automatically wrong. Sync-A-Rama is still built on the SyncLounge architecture and preserves upstream SyncLounge attribution.
 
 
 ## Public room trust boundary
 
-MovieNight intentionally keeps the upstream SyncLounge public-room model for beta: a room URL should be treated as joinable by anyone who knows or guesses the room name. Plex login still controls access to Plex accounts, servers, and libraries, but the room socket server does not treat the browser client as trusted just because the user reached a room.
+Sync-A-Rama intentionally keeps the upstream SyncLounge public-room model for beta: a room URL should be treated as joinable by anyone who knows or guesses the room name. Plex login still controls access to Plex accounts, servers, and libraries, but the room socket server does not treat the browser client as trusted just because the user reached a room.
 
-The server now applies MovieNight-specific safety limits before rebroadcasting shared room state. Nominations and playlist items are whitelisted and trimmed, unknown fields are ignored, malformed items are rejected, nominations and playlist arrays are capped at 100 items each, active polls are capped at 50 options, and votes must reference current poll option IDs. MovieNight mutating socket actions and chat messages also have generous per-socket fixed-window rate limits to reduce accidental or malicious spam. Chat messages are trimmed, capped, and treated as plain text.
+The server now applies Sync-A-Rama-specific safety limits before rebroadcasting shared room state. Nominations and playlist items are whitelisted and trimmed, unknown fields are ignored, malformed items are rejected, nominations and playlist arrays are capped at 100 items each, active polls are capped at 50 options, and votes must reference current poll option IDs. Sync-A-Rama mutating socket actions and chat messages also have generous per-socket fixed-window rate limits to reduce accidental or malicious spam. Chat messages are trimmed, capped, and treated as plain text.
 
 These caps and rate limits protect nomination, poll, vote, playlist, and chat state from unbounded growth in public-room beta use. They are not a replacement for full server-side Plex authorization or token validation, which remains out of scope for the current beta architecture.
 
 The beta server also intentionally allows cross-origin HTTP and Socket.IO access for self-hosted deployments, alternate LAN hostnames, and reverse-proxy setups. This CORS policy is a compatibility choice, not an authentication boundary; room names and room URLs should still be treated as shareable access paths rather than private secrets.
 
-## New MovieNight UX elements
+## New Sync-A-Rama UX elements
 
-### MovieNight panel
+### Sync-A-Rama panel
 
-The MovieNight panel is the main in-room surface for the added MovieNight workflow. It brings nominations, polls, voting status, playlist controls, and current selection context into the shared room experience.
+The Sync-A-Rama panel is the main in-room surface for the added Sync-A-Rama workflow. It brings nominations, polls, voting status, playlist controls, and current selection context into the shared room experience.
 
 - **Problem it solves:** Gives the group one place to manage the "what should we watch?" flow instead of relying only on chat or out-of-band discussion.
 - **Who uses it:** Hosts and guests use it during the selection process. Hosts may use additional controls when they are managing the room.
@@ -44,9 +44,9 @@ The MovieNight panel is the main in-room surface for the added MovieNight workfl
 
 The Host Controller is a host-only control surface paired with the host's main player window. It is not a separate room participant, is not eligible to become host, and should not appear in the attendee list.
 
-- **Problem it solves:** Lets the host browse and manage MovieNight controls from a separate controller window without turning that controller into another participant or playback identity.
+- **Problem it solves:** Lets the host browse and manage Sync-A-Rama controls from a separate controller window without turning that controller into another participant or playback identity.
 - **Who uses it:** The active host/operator.
-- **What guests should expect:** Guests should not need the Host Controller. They should continue using the normal room and MovieNight panel.
+- **What guests should expect:** Guests should not need the Host Controller. They should continue using the normal room and Sync-A-Rama panel.
 - **What hosts should expect:** The Host Controller should feel like a remote control for the paired host/player window, not like a second user in the room.
 
 ### Nominations
@@ -78,7 +78,7 @@ Runoff voting narrows the field from top approval results into a smaller follow-
 
 ### Host playlist
 
-The host playlist is the ordered list of playable MovieNight items the host can prepare for the room.
+The host playlist is the ordered list of playable Sync-A-Rama items the host can prepare for the room.
 
 - **Problem it solves:** Lets the host line up the selected movie or episode, and optionally additional items, before or during playback.
 - **Who uses it:** The host manages the playlist. Guests may see some or all of it depending on visibility settings.
@@ -107,7 +107,7 @@ Playlist auto-play lets the host playlist advance through queued items automatic
 
 Active playlist item tracking marks which playlist item is currently active for the room.
 
-- **Problem it solves:** Keeps the playlist, MovieNight panel, and playback context aligned so users can tell which queued item is currently in use.
+- **Problem it solves:** Keeps the playlist, Sync-A-Rama panel, and playback context aligned so users can tell which queued item is currently in use.
 - **Who uses it:** Hosts rely on it to manage playback state; guests use it to understand what is currently selected or playing.
 - **What guests should expect:** The active item should help explain what the room is watching now.
 - **What hosts should expect:** The active item should reflect the host's current playback workflow and help avoid confusion when multiple items are queued.
@@ -123,7 +123,7 @@ When host control transfers away from a user, that user's old Host Controller be
 
 ## Current beta limits
 
-MovieNight is still in beta and should not be described as production-ready. Current limits include:
+Sync-A-Rama is still in beta and should not be described as production-ready. Current limits include:
 
 - Anonymous guests are not implemented.
 - Local-only guest accounts are not implemented.

@@ -41,7 +41,7 @@ const allowMovieNightAction = (socket, actionName) => {
   if (bucket.count >= MOVIENIGHT_RATE_LIMIT_MAX_ACTIONS) {
     logSocket({
       socketId: socket.id,
-      message: `MovieNight action rate limited: ${actionName}`,
+      message: `Sync-A-Rama action rate limited: ${actionName}`,
     });
     return false;
   }

@@ -1,10 +1,10 @@
-# MovieNight Host Controller Browser
+# Sync-A-Rama Host Controller Browser
 
 ## Product goal
 
-MovieNight should let the host fully browse Plex libraries while playback continues uninterrupted.
+Sync-A-Rama should let the host fully browse Plex libraries while playback continues uninterrupted.
 
-This is the primary differentiator from SyncLounge. Voting, nominations, games, and other group features are valuable, but the core MovieNight experience is:
+This is the primary differentiator from SyncLounge. Voting, nominations, games, and other group features are valuable, but the core Sync-A-Rama experience is:
 
 - the main room/player window keeps playing and syncing content
 - the host can open a separate controller/browser surface
@@ -13,9 +13,9 @@ This is the primary differentiator from SyncLounge. Voting, nominations, games, 
 
 ## Current related features
 
-MovieNight already has:
+Sync-A-Rama already has:
 
-- room-backed MovieNight state
+- room-backed Sync-A-Rama state
 - nominations
 - host playlist
 - playlist visibility
@@ -37,7 +37,7 @@ The Host Controller can currently:
 
 - browse Plex libraries and search results
 - nominate playable media
-- add playable media to the MovieNight playlist
+- add playable media to the Sync-A-Rama playlist
 - reorder playlist items
 - remove playlist items
 - clear the playlist
@@ -59,7 +59,7 @@ look usable after host transfer.
 
 ## Playlist behavior
 
-The MovieNight playlist is room-backed state.
+The Sync-A-Rama playlist is room-backed state.
 
 The playlist supports:
 
@@ -87,7 +87,7 @@ When playlist auto-play is off:
 
 ## Regression coverage
 
-The MovieNight socket smoke test covers:
+The Sync-A-Rama socket smoke test covers:
 
 - playlist item add
 - playlist reorder
@@ -131,7 +131,7 @@ It should:
 - be eligible for existing host transfer
 - be eligible for existing auto-host behavior
 - manage playback and sync state
-- execute MovieNight room actions
+- execute Sync-A-Rama room actions
 
 ### Controller/browser window
 
@@ -154,7 +154,7 @@ The preferred command bridge is a local browser-to-browser channel, scoped to th
 
 Likely mechanism:
 
-    BroadcastChannel("movienight-controller:<roomId>")
+    BroadcastChannel("syncarama-controller:<roomId>")
 
 Controller window sends commands such as:
 
@@ -182,7 +182,7 @@ That keeps the existing socket/server model intact:
     -> real host/player window
     -> existing Vuex action
     -> existing room socket event
-    -> server MovieNight state
+    -> server Sync-A-Rama state
     -> movieNightState broadcast
 
 ## Host and auto-host behavior

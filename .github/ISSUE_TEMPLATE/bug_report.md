@@ -1,12 +1,12 @@
 ---
 name: Bug report
-about: Report a MovieNight problem
+about: Report a Sync-A-Rama problem
 labels: bug
 ---
 
-## MovieNight bug report
+## Sync-A-Rama bug report
 
-Before reporting, please check the repository docs, especially `README.md`, `README-MOVIENIGHT.md`, and `docs/beta-readiness.md`.
+Before reporting, please check the repository docs, especially `README.md`, `README-SYNCARAMA.md`, and `docs/beta-readiness.md`.
 
 ## Describe the bug
 
@@ -34,9 +34,9 @@ What did you expect to happen?
 - Client version:
 - Browser/OS if using the built-in player:
 
-## MovieNight details
+## Sync-A-Rama details
 
-- MovieNight URL or deployment:
+- Sync-A-Rama URL or deployment:
 - Running in Docker/container? (Yes/No):
 - Room host or guest?
 - Using Host Controller? (Yes/No):

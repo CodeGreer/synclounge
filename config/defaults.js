@@ -1,7 +1,7 @@
 const defaults = {
   servers: [
     {
-      name: 'MovieNight Local',
+      name: 'Sync-A-Rama Local',
       location: 'Local',
       url: '',
       image: 'movienight-small-light.png',
@@ -49,7 +49,7 @@ const defaults = {
   default_party_pause_enabled: true,
   default_auto_host_enabled: false,
   trusted_mode: false,
-  branding_name: 'MovieNight',
+  branding_name: 'Sync-A-Rama',
   branding_image_url: null,
   branding_favicon_url: null,
   branding_show_name: true,

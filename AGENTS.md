@@ -2,13 +2,13 @@
 
 ## Project identity
 
-This repository is MovieNight, a fork/rebrand/extension of SyncLounge for weekly group movie nights.
+This repository is Sync-A-Rama, a fork/rebrand/extension of SyncLounge for weekly group movie nights.
 
-MovieNight still uses much of the SyncLounge architecture, package naming, and Plex authentication flow. Do not assume old SyncLounge names are automatically wrong, but do flag obvious remaining user-facing SyncLounge branding.
+Sync-A-Rama still uses much of the SyncLounge architecture, package naming, and Plex authentication flow. Do not assume old SyncLounge names are automatically wrong, but do flag obvious remaining user-facing SyncLounge branding.
 
 ## Working environment
 
-- Repository: git@github.com:CodeGreer/synclounge.git
+- Repository: git@github.com:CodeGreer/syncarama.git
 - Main branch: master
 - Local checkout path: use the path where this repository is cloned.
 - App URL: use the host/port configured for the local or containerized dev environment.
@@ -18,7 +18,7 @@ Run npm/node commands inside the project dev container when one is being used, u
 
 Example build command:
 
-    docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build'
+    docker exec -it <dev-container-name> sh -lc 'cd /workspace/syncarama && npm run build'
 
 A typical dev container startup command runs npm ci, then npm run build, then node server.js with the configured port. After a container restart, the app may be unavailable until install/build/startup completes.
 
@@ -42,27 +42,27 @@ Before and after meaningful changes, prefer these checks:
     git status --short
     git log --oneline -8
 
-    docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
+    docker exec -it <dev-container-name> sh -lc 'cd /workspace/syncarama && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
 
-    ./scripts/check-movienight-socket-state.sh
+    ./scripts/check-syncarama-socket-state.sh
 
     curl -s http://127.0.0.1:8092/health; echo
 
 Expected results:
 
     DONE  Build complete. The dist directory is ready to be deployed.
-    PASS: MovieNight playlist and poll state synced to guest
+    PASS: Sync-A-Rama playlist and poll state synced to guest
     {"load":"low"}
 
 If server source changes under packages/syncloungeserver/src, also run:
 
-    docker exec -it <dev-container-name> sh -lc 'cd /workspace/movienight/packages/syncloungeserver && npm run build'
+    docker exec -it <dev-container-name> sh -lc 'cd /workspace/syncarama/packages/syncloungeserver && npm run build'
 
 When server source changes are made, commit both the source files and generated packages/syncloungeserver/dist files.
 
 ## Current architecture notes
 
-MovieNight currently uses Plex authentication. There are no anonymous guests, local-only guest accounts, or voting-only users yet.
+Sync-A-Rama currently uses Plex authentication. There are no anonymous guests, local-only guest accounts, or voting-only users yet.
 
 Every beta participant must sign in with Plex credentials and must have access to the relevant Plex server/library.
 
@@ -72,7 +72,7 @@ The Host Controller model is:
   - real room participant
   - eligible to be host
   - owns playback/sync identity
-  - executes MovieNight room actions
+  - executes Sync-A-Rama room actions
 
 - Host Controller window:
   - control surface only
@@ -99,9 +99,9 @@ When host control transfers away from a user:
 
 Do not make controller windows participants or host candidates.
 
-## Implemented MovieNight features
+## Implemented Sync-A-Rama features
 
-MovieNight currently includes:
+Sync-A-Rama currently includes:
 
 - nominations
 - approval voting
@@ -117,23 +117,23 @@ Movies and episodes are playable playlist items. Shows/series can be nominated b
 
 ## Important files
 
-MovieNight UI/components:
+Sync-A-Rama UI/components:
 
-- src/components/MovieNightPanel.vue
-- src/components/MovieNightPoll.vue
-- src/components/MovieNightPlaylist.vue
-- src/components/MovieNightNominationSearch.vue
+- src/components/Sync-A-RamaPanel.vue
+- src/components/Sync-A-RamaPoll.vue
+- src/components/Sync-A-RamaPlaylist.vue
+- src/components/Sync-A-RamaNominationSearch.vue
 - src/components/PlexItem.vue
 - src/components/PlexThumbnail.vue
-- src/mixins/movienightcontrollerbridge.js
-- src/utils/movienightcontrollerchannel.js
+- src/mixins/syncaramacontrollerbridge.js
+- src/utils/syncaramacontrollerchannel.js
 
-MovieNight Vuex module:
+Sync-A-Rama Vuex module:
 
-- src/store/modules/movienight/state.js
-- src/store/modules/movienight/getters.js
-- src/store/modules/movienight/mutations.js
-- src/store/modules/movienight/actions.js
+- src/store/modules/syncarama/state.js
+- src/store/modules/syncarama/getters.js
+- src/store/modules/syncarama/mutations.js
+- src/store/modules/syncarama/actions.js
 
 Server state/socket handlers:
 
@@ -144,7 +144,7 @@ Server state/socket handlers:
 
 Regression/smoke test:
 
-- scripts/check-movienight-socket-state.sh
+- scripts/check-syncarama-socket-state.sh
 
 Docs:
 
@@ -155,7 +155,7 @@ Docs:
 
 ## Docker/package notes
 
-The root Dockerfile predates the MovieNight fork but may still be usable because it builds the current checkout.
+The root Dockerfile predates the Sync-A-Rama fork but may still be usable because it builds the current checkout.
 
 Do not assume Docker packaging is production-ready without testing:
 

@@ -2,7 +2,7 @@ import { detect } from 'detect-browser';
 
 const state = () => ({
   version: process.env.VUE_APP_VERSION,
-  repositoryUrl: 'https://github.com/CodeGreer/synclounge',
+  repositoryUrl: 'https://github.com/CodeGreer/syncarama',
 
   background: null,
   configuration: null,

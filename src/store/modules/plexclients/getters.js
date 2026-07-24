@@ -7,8 +7,8 @@ const normalizeMovieNightClient = (client) => {
 
   return {
     ...client,
-    product: 'MovieNight',
-    name: 'MovieNight Player',
+    product: 'Sync-A-Rama',
+    name: 'Sync-A-Rama Player',
   };
 };
 

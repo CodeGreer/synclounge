@@ -1,14 +1,14 @@
-# MovieNight
+# Sync-A-Rama
 
-MovieNight is a Plex-backed group movie-night app built as a fork, rebrand, and extension of [SyncLounge](https://github.com/synclounge/synclounge). It keeps the core SyncLounge idea of syncing Plex playback across multiple participants, while adding room workflows for choosing and managing what the group watches.
+Sync-A-Rama is a Plex-backed group movie-night app built as a fork, rebrand, and extension of [SyncLounge](https://github.com/synclounge/synclounge). It keeps the core SyncLounge idea of syncing Plex playback across multiple participants, while adding room workflows for choosing and managing what the group watches.
 
-MovieNight still intentionally uses several SyncLounge internals, package names, and configuration keys. Those names are compatibility details and are not by themselves stale branding.
+Sync-A-Rama still intentionally uses several SyncLounge internals, package names, and configuration keys. Those names are compatibility details and are not by themselves stale branding.
 
 ## Current status
 
-MovieNight is in beta-oriented development. It is usable for Plex-authenticated group testing, but it is not a replacement for every upstream SyncLounge deployment pattern yet.
+Sync-A-Rama is in beta-oriented development. It is usable for Plex-authenticated group testing, but it is not a replacement for every upstream SyncLounge deployment pattern yet.
 
-### Implemented MovieNight features
+### Implemented Sync-A-Rama features
 
 - **Host Controller**: the host can open a separate controller/browser window while the main player window keeps playback and room identity.
 - **Nominations**: participants can nominate Plex movies, shows, or episodes.
@@ -34,36 +34,36 @@ Movies and episodes are playable playlist items. Shows/series can be nominated b
 
 ## How it works
 
-MovieNight uses the SyncLounge room/socket model for synchronized Plex playback:
+Sync-A-Rama uses the SyncLounge room/socket model for synchronized Plex playback:
 
 1. Participants sign in with Plex.
-2. Participants choose a Plex player, a MovieNight server, and a room.
+2. Participants choose a Plex player, a Sync-A-Rama server, and a room.
 3. The first participant to join normally becomes host.
 4. Host playback commands are synced to the rest of the room.
-5. MovieNight room state layers nominations, voting, playlist state, playlist visibility, and Host Controller commands on top of the existing room flow.
+5. Sync-A-Rama room state layers nominations, voting, playlist state, playlist visibility, and Host Controller commands on top of the existing room flow.
 
 The main host/player window remains the real room participant and playback identity. The Host Controller window is a control surface only; it does not join as another room participant, does not appear in the attendee list, and is not eligible to become host.
 
 ## Documentation
 
-- [MovieNight fork notes](README-MOVIENIGHT.md)
+- [Sync-A-Rama fork notes](README-SYNCARAMA.md)
 - [Current implementation](docs/current-implementation.md)
 - [Beta readiness checklist](docs/beta-readiness.md)
 - [Selection sessions and voting](docs/selection-sessions.md)
 - [Host Controller browser](docs/host-controller-browser.md)
-- [Architecture notes](docs/movienight-architecture-notes.md)
+- [Architecture notes](docs/syncarama-architecture-notes.md)
 
 ## Local development and beta smoke checks
 
-The current dev environment commonly serves MovieNight on port `8092` while the underlying server package default remains `8088`.
+The current dev environment commonly serves Sync-A-Rama on port `8092` while the underlying server package default remains `8088`.
 
 Run the preferred beta checks from the repository root:
 
 ```sh
 git status --short
 git log --oneline -8
-docker exec -it movienight-dev sh -lc 'cd /workspace/movienight && npm run build >/tmp/movienight-build.log 2>&1; code=$?; tail -80 /tmp/movienight-build.log; exit $code'
-./scripts/check-movienight-socket-state.sh
+docker exec -it syncarama-dev sh -lc 'cd /workspace/syncarama && npm run build >/tmp/syncarama-build.log 2>&1; code=$?; tail -80 /tmp/syncarama-build.log; exit $code'
+./scripts/check-syncarama-socket-state.sh
 curl -s http://127.0.0.1:8092/health; echo
 ```
 
@@ -71,13 +71,13 @@ Expected successful output includes:
 
 ```text
 DONE  Build complete. The dist directory is ready to be deployed.
-PASS: MovieNight playlist and poll state synced to guest
+PASS: Sync-A-Rama playlist and poll state synced to guest
 {"load":"low"}
 ```
 
 ## Self-hosting notes
 
-The root Dockerfile and package layout predate the MovieNight fork. They may still be useful for building the current checkout, but Docker packaging should not be assumed production-ready without testing image build, container startup, `/health`, browser loading, and socket smoke behavior.
+The root Dockerfile and package layout predate the Sync-A-Rama fork. They may still be useful for building the current checkout, but Docker packaging should not be assumed production-ready without testing image build, container startup, `/health`, browser loading, and socket smoke behavior.
 
 Do not rename package names such as `synclounge` or `syncloungeserver` just for branding. They remain part of the current technical architecture.
 
@@ -92,7 +92,7 @@ SERVERS='[{"name":"My Server","location":"Mothership","url":"https://myserver.co
 
 ### Reverse proxy example
 
-MovieNight can be proxied to the running Node process. Keep WebSocket upgrade headers intact.
+Sync-A-Rama can be proxied to the running Node process. Keep WebSocket upgrade headers intact.
 
 ```nginx
 map $http_upgrade $connection_upgrade {
@@ -106,7 +106,7 @@ server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
 
-    server_name movienight.example.com;
+    server_name syncarama.example.com;
 
     location / {
         proxy_pass http://containeraddress:8088;
@@ -129,9 +129,20 @@ server {
 }
 ```
 
+
+## Compatibility identifiers intentionally retained
+
+The following identifiers are intentionally retained to avoid compatibility or protocol risk during this product rebrand:
+
+- `synclounge` Vuex/module namespaces, the root binary compatibility path, and inherited SyncLounge configuration keys.
+- The `syncloungeserver` package and binary name, plus upstream SyncLounge attribution in package docs.
+- Socket event names and room-state fields such as `movieNightState` and `movieNight*` actions.
+- MovieNight-specific component/module filenames, Vue component names, helper symbols, the `movienight` Vuex namespace, and `movienight-controller` BroadcastChannel names.
+- The existing bundled `movienight-small-light.png` branding asset and current favicon remain temporary legacy assets until final Sync-A-Rama logo/favicon files are supplied.
+
 ## Upstream attribution
 
-MovieNight is based on SyncLounge, previously PlexTogether. SyncLounge's original purpose was syncing Plex content across multiple players in multiple locations. MovieNight preserves that foundation while adding group selection and host-control workflows.
+Sync-A-Rama is based on SyncLounge, previously PlexTogether. SyncLounge's original purpose was syncing Plex content across multiple players in multiple locations. Sync-A-Rama preserves that foundation while adding group selection and host-control workflows.
 
 Original SyncLounge contributors listed in the inherited README included:
 
@@ -146,8 +157,8 @@ Original SyncLounge contributors listed in the inherited README included:
 
 ## License
 
-MovieNight retains the inherited MIT license. See `LICENSE`.
+Sync-A-Rama retains the inherited MIT license. See `LICENSE`.
 
-MovieNight and SyncLounge are in no way affiliated with Plex Inc.
+Sync-A-Rama and SyncLounge are in no way affiliated with Plex Inc.
 
 This project uses [Material Design libraries](https://material.io/) provided under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode).

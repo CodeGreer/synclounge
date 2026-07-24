@@ -4,7 +4,7 @@
     style="background: rgb(0 0 0 / 60%);"
   >
     <v-card-title>
-      MovieNight
+      Sync-A-Rama
     </v-card-title>
 
     <v-card-subtitle>

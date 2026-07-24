@@ -1,7 +1,7 @@
 {
-  "name": "synclounge",
+  "name": "syncarama",
   "version": "0.0.0-semantically-released",
-  "description": "Synced playback of Plex content",
+  "description": "Plex-backed group watch planning and synchronized playback for Sync-A-Rama",
   "author": "samcm",
   "bin": "./server.js",
   "files": [
@@ -68,13 +68,13 @@
     "vuex-persistedstate": "^4.1.0"
   },
   "bugs": {
-    "url": "https://github.com/synclounge/synclounge/issues"
+    "url": "https://github.com/CodeGreer/syncarama/issues"
   },
-  "homepage": "https://synclounge.tv",
+  "homepage": "https://syncarama.com",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/synclounge/synclounge.git"
+    "url": "https://github.com/CodeGreer/syncarama.git"
   },
   "engines": {
     "node": ">=12"

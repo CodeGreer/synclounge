@@ -47,7 +47,7 @@ module.exports = {
       .plugin('html')
       .tap((args) => {
         // eslint-disable-next-line no-param-reassign
-        args[0].title = 'MovieNight';
+        args[0].title = 'Sync-A-Rama';
         return args;
       });
   },

@@ -61,7 +61,7 @@
             class="pt-0"
           >
             Choose a client from the list below. Once you've found the client you would like to
-            use, click the connect button. MovieNight will test to see if it can connect with the
+            use, click the connect button. Sync-A-Rama will test to see if it can connect with the
             client and will let you know if it cannot.
           </v-col>
         </v-row>
