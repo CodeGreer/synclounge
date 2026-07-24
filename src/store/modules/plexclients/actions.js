@@ -116,25 +116,7 @@ export default {
       // Plex remote control API says:
       // "After sending PlayMedia, the controller ignores timelines older than the last PlayMedia
       // commandID."
-      const commandId = getters.GET_COMMAND_ID;
-
-      await dispatch('SEND_CHOSEN_CLIENT_REQUEST', {
-        path: '/player/playback/playMedia',
-        params: {
-          wait: 0,
-          key: metadata.key,
-          offset: Math.round(offset) || 0,
-          machineIdentifier,
-          address: server.chosenConnection.address,
-          port: server.chosenConnection.port,
-          protocol: server.chosenConnection.protocol,
-          path: server.chosenConnection.uri + metadata.key,
-          token: server.accessToken,
-          containerKey: `/playQueues/${getters.GET_ACTIVE_PLAY_QUEUE.playQueueID}`,
-          ...mediaIndex && { mediaIndex },
-        },
-      });
-
+      const commandId = await dispatch('RESERVE_COMMAND_ID');
       commit('SET_LAST_PLAY_MEDIA_COMMAND_ID', commandId);
       commit('SET_PENDING_PLAY_MEDIA_ORIGIN', {
         commandId,
@@ -145,6 +127,32 @@ export default {
         userInitiated,
         createdAt: Date.now(),
       });
+
+      try {
+        await dispatch('SEND_CHOSEN_CLIENT_REQUEST', {
+          path: '/player/playback/playMedia',
+          params: {
+            wait: 0,
+            key: metadata.key,
+            offset: Math.round(offset) || 0,
+            machineIdentifier,
+            address: server.chosenConnection.address,
+            port: server.chosenConnection.port,
+            protocol: server.chosenConnection.protocol,
+            path: server.chosenConnection.uri + metadata.key,
+            token: server.accessToken,
+            containerKey: `/playQueues/${getters.GET_ACTIVE_PLAY_QUEUE.playQueueID}`,
+            ...mediaIndex && { mediaIndex },
+          },
+          commandId,
+        });
+      } catch (e) {
+        await dispatch('CLEAR_PENDING_PLAY_MEDIA_ORIGIN_IF_MATCHES', commandId);
+        if (getters.GET_LAST_PLAY_MEDIA_COMMAND_ID === commandId) {
+          commit('SET_LAST_PLAY_MEDIA_COMMAND_ID', null);
+        }
+        throw e;
+      }
 
       // TODO: fix wait for movement lol
       // await this.waitForMovement();
@@ -158,9 +166,9 @@ export default {
   },
 
   SEND_CLIENT_REQUEST_WITH_URI: async ({ dispatch, rootGetters }, {
-    clientIdentifier, accessToken, uri, path, params, signal,
+    clientIdentifier, accessToken, uri, path, params, signal, commandId,
   }) => {
-    const commandID = await dispatch('RESERVE_COMMAND_ID');
+    const commandID = commandId ?? await dispatch('RESERVE_COMMAND_ID');
 
     return fetchXmlAndTransform(
       `${uri}${path}`,
@@ -221,6 +229,12 @@ export default {
       playQueueItemID: parseInt(videoTimeline.playQueueItemID, 10),
       commandID: parseInt(data.MediaContainer[0].commandID, 10),
     };
+  },
+
+  CLEAR_PENDING_PLAY_MEDIA_ORIGIN_IF_MATCHES: ({ getters, commit }, commandId) => {
+    if (getters.GET_PENDING_PLAY_MEDIA_ORIGIN?.commandId === commandId) {
+      commit('SET_PENDING_PLAY_MEDIA_ORIGIN', null);
+    }
   },
 
   CONSUME_PENDING_PLAY_MEDIA_ORIGIN: ({ getters, commit }, timeline) => {
