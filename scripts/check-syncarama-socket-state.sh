@@ -412,21 +412,30 @@ const delay = (ms) => new Promise((resolve) => {
   assertCondition(autoHostB.joinResult.hostId === autoHostA.id, "B should see A as host");
   assertCondition(autoHostB.joinResult.isAutoHostEnabled === true, "B should see Auto-Host enabled");
 
+  const aReceivesAutoNewHost = waitForEvent(
+    autoHostA,
+    "newHost",
+    "Auto-Host newHost sent to A",
+    (hostId) => hostId === autoHostB.id,
+  );
   const bReceivesAutoNewHost = waitForEvent(
     autoHostB,
     "newHost",
     "Auto-Host newHost sent to B",
     (hostId) => hostId === autoHostB.id,
   );
+
+  autoHostB.emit("autoHostIntent");
+  await Promise.all([aReceivesAutoNewHost, bReceivesAutoNewHost]);
+
   const aReceivesAutoMediaUpdate = waitForEvent(
     autoHostA,
     "mediaUpdate",
     "Auto-Host mediaUpdate sent to A after intent transfer",
     (update) => update.id === autoHostB.id && update.makeHost === false,
   );
-  autoHostB.emit("autoHostIntent");
   autoHostB.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-b", userInitiated: true }));
-  await Promise.all([bReceivesAutoNewHost, aReceivesAutoMediaUpdate]);
+  await aReceivesAutoMediaUpdate;
 
   const autoHostC = await joinSocket({ username: "AutoHostC", room: autoHostRoomId });
   assertCondition(autoHostC.joinResult.hostId === autoHostB.id, "C should see B as host after Auto-Host transfer");
