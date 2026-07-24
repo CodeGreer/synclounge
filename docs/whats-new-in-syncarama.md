@@ -12,7 +12,7 @@ Sync-A-Rama still depends on several important SyncLounge-era assumptions:
 
 - Plex authentication is still required.
 - Participants still need Plex credentials.
-- Participants still need access to the relevant Plex server and library.
+- For supported playback, participants still need pre-existing access to each selected item's originating Plex server and library.
 - Synchronized playback still relies on the SyncLounge room and socket model.
 - Some internal package names, configuration keys, paths, and implementation details may still say `SyncLounge`.
 
@@ -131,7 +131,7 @@ Sync-A-Rama is still in beta and should not be described as production-ready. Cu
 - Room, vote, and playlist state is not persisted after a server restart.
 - Real multi-user UX issues are expected during beta testing.
 
-Every beta participant must sign in with Plex credentials and must have access to the relevant Plex server and library.
+Every beta participant must sign in with Plex credentials. For supported playback, each participant must already have access to the originating Plex server and library for every item the group plans to watch. The inherited fallback search across other accessible Plex servers is not currently a supported beta capability.
 
 ## UX questions to watch during beta
 

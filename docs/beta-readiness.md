@@ -6,9 +6,15 @@ This checklist defines what should be true before trying Sync-A-Rama with the re
 
 Sync-A-Rama currently inherits SyncLounge's Plex authentication model.
 
-Every beta participant must sign in with Plex credentials and must have access
-to the relevant Plex server/library. Sync-A-Rama does not currently support
-anonymous guests, local-only guest accounts, or voting-only users.
+Every beta participant must sign in with Plex credentials. For supported
+playback, each participant must already have Plex access to the originating
+server/library for every item the group plans to watch. Sync-A-Rama does not
+currently support anonymous guests, local-only guest accounts, or voting-only
+users.
+
+The inherited Plex client may attempt to find a matching copy on another Plex
+server already available to the participant. This is an unverified,
+best-effort safety net and is not part of the supported beta workflow.
 
 Because of this, real guest joining, guest voting clarity, host transfer between
 users, and multi-household sync require additional Plex-authenticated testers.

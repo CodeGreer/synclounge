@@ -51,17 +51,26 @@ A likely development sequence is:
 3. Move Plex behavior behind clearer backend interfaces without changing user-visible behavior.
 4. Add Jellyfin support through the shared backend model.
 5. Add Emby support through the shared backend model.
-6. Support mixed-backend rooms where participants using different systems can match and play equivalent media.
 
 The exact order of Jellyfin and Emby implementation may change based on technical findings and contributor interest.
 
-## Mixed-backend rooms
+## Shared libraries and source access
 
-The long-term goal includes rooms whose participants may use Plex, Jellyfin, or Emby independently.
+Sync-A-Rama may be used with any number of media servers and libraries that have already been shared with the group through the backend's normal account, permission, and library-sharing system.
 
-This will require a backend-neutral media identity and matching strategy. A title existing on multiple servers cannot be assumed to share the same native identifier, file path, edition, runtime, or metadata.
+Sync-A-Rama does not create, broker, or temporarily grant library access during a group session. Access must be configured through Plex, Jellyfin, Emby, or the applicable backend beforehand.
 
-Mixed-backend support is therefore a later capability, separate from simply allowing an entire room to select Jellyfin or Emby instead of Plex.
+Each selected item has an originating server and library. The supported playback model assumes that every participant can access that originating source.
+
+Adding Jellyfin or Emby support means allowing shared sources to be provided through those backends. It does not by itself commit Sync-A-Rama to a decentralized room model in which every participant routinely uses an unrelated private backend.
+
+## Exploratory fallback matching
+
+The inherited Plex client currently makes a best-effort attempt to find a matching copy on another Plex server already available to a participant when the originating item cannot be used.
+
+The current matcher searches by title and applies a basic heuristic using title, parent title, grandparent title, and media type. It has no documented confidence threshold or dedicated regression coverage, and its reliability has not been established in group use.
+
+This fallback is therefore an unsupported safety net rather than a promised capability. Sync-A-Rama may evaluate whether it can be made reliable enough to improve, but only if real beta experience demonstrates sufficient value. No implementation effort or cross-backend fallback support is currently committed.
 
 ## Compatibility and scope
 

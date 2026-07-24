@@ -48,14 +48,14 @@ Supported controller actions:
 ## Current beta constraints and limitations
 
 - Plex authentication is required for all participants.
-- Participants need Plex credentials and access to the relevant Plex server/library.
+- Participants need Plex credentials and, for supported playback, pre-existing access to the originating Plex server/library for each selected item.
 - Anonymous guests, local-only guest accounts, and voting-only users are not implemented.
 - Votes are not persisted after a room/server restart.
 - Votes are tied to the current socket connection, not a permanent user identity.
 - Library-based polls are deferred.
 - Single-choice, ranked-choice, timers, and blind results are deferred.
 - Jellyfin and Emby are planned media-server backends but are not implemented.
-- Mixed-backend rooms are a later roadmap goal.
+- Cross-library fallback matching is an unsupported inherited safety net, not part of the intended beta workflow.
 - Games are deferred.
 
 ## Intended beta scope

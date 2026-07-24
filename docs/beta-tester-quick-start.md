@@ -12,12 +12,14 @@ Before joining a beta session, make sure these constraints are clear to everyone
 
 - Plex authentication is required.
 - Every participant needs their own Plex credentials.
-- Every participant needs access to the relevant Plex server and library before the session starts.
+- For supported playback, every participant must already have Plex access to the originating server and library for each title the group plans to watch.
 - Anonymous guests are not implemented.
 - Local-only guest accounts are not implemented.
 - Voting-only users are not implemented.
 
-If someone cannot sign in with Plex or cannot see the host's Plex library, they should expect trouble joining, nominating, voting on, or watching titles.
+A session may draw from any number of Plex servers and libraries that have already been made available through Plex's normal sharing system.
+
+If someone cannot sign in with Plex or cannot access the selected item's originating server and library, they should expect playback to fail. The client may attempt an unverified best-effort match on another Plex server already available to that account, but beta testers should not rely on that fallback.
 
 ## Joining a room
 
