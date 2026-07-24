@@ -7,11 +7,12 @@ ROOM_ID="${ROOM_ID:-MOVIENIGHT_SMOKE_$(date +%s)}"
 docker exec -e APP_URL="$APP_URL" -e ROOM_ID="$ROOM_ID" movienight-dev sh -lc '
 cd /workspace/movienight
 
-node <<NODE
+node <<\NODE
 const io = require("socket.io-client");
 
 const appUrl = process.env.APP_URL;
 const roomId = process.env.ROOM_ID;
+const autoHostRoomId = `${roomId}_AUTO_HOST`;
 
 const itemOne = {
   source: "plex",
@@ -44,24 +45,36 @@ const itemTwo = {
 };
 
 const sockets = [];
+const timers = new Set();
 let latestState = null;
 
 const fail = (message) => {
   console.error("FAIL:", message);
-  sockets.forEach((socket) => socket.close());
+  cleanup();
   process.exit(1);
 };
 
 const pass = (message) => {
   console.log("PASS:", message);
-  sockets.forEach((socket) => socket.close());
+  cleanup();
   process.exit(0);
+};
+
+const cleanup = () => {
+  timers.forEach((timer) => clearTimeout(timer));
+  timers.clear();
+  sockets.forEach((socket) => {
+    socket.removeAllListeners();
+    socket.close();
+  });
 };
 
 const waitForState = (label, predicate) => new Promise((resolve, reject) => {
   const timeout = setTimeout(() => {
+    timers.delete(timeout);
     reject(new Error("Timed out waiting for " + label));
   }, 10000);
+  timers.add(timeout);
 
   const check = (state) => {
     if (!predicate(state)) {
@@ -69,6 +82,7 @@ const waitForState = (label, predicate) => new Promise((resolve, reject) => {
     }
 
     clearTimeout(timeout);
+    timers.delete(timeout);
     resolve(state);
   };
 
@@ -81,7 +95,51 @@ const waitForState = (label, predicate) => new Promise((resolve, reject) => {
 
 const stateWaiters = [];
 
-const joinSocket = ({ username }) => new Promise((resolve, reject) => {
+const waitForEvent = (socket, eventName, label, predicate = () => true) => new Promise((resolve, reject) => {
+  const timeout = setTimeout(() => {
+    socket.off(eventName, handler);
+    timers.delete(timeout);
+    reject(new Error("Timed out waiting for " + label));
+  }, 10000);
+  timers.add(timeout);
+
+  const handler = (data) => {
+    if (!predicate(data)) {
+      return;
+    }
+
+    clearTimeout(timeout);
+    timers.delete(timeout);
+    socket.off(eventName, handler);
+    resolve(data);
+  };
+
+  socket.on(eventName, handler);
+});
+
+const mediaPayload = ({ mediaId, userInitiated }) => ({
+  state: "playing",
+  time: 1000,
+  duration: 60000,
+  playbackRate: 1,
+  media: {
+    source: "plex",
+    title: `Auto-Host Regression ${mediaId}`,
+    type: "movie",
+    ratingKey: mediaId,
+    key: `/library/metadata/${mediaId}`,
+    machineIdentifier: "smoke-server",
+  },
+  userInitiated,
+});
+
+const assertCondition = (condition, message) => {
+  if (!condition) {
+    throw new Error(message);
+  }
+};
+
+const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false }) => new Promise((resolve, reject) => {
   const socket = io(appUrl, {
     path: "/socket.io",
     transports: ["websocket", "polling"],
@@ -94,10 +152,10 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
   socket.once("slPing", (secret) => {
     socket.emit("slPong", secret);
     socket.emit("join", {
-      roomId,
+      roomId: room,
       desiredUsername: username,
       desiredPartyPausingEnabled: true,
-      desiredAutoHostEnabled: false,
+      desiredAutoHostEnabled,
       thumb: null,
       playerProduct: "movienight-smoke-test",
       state: "stopped",
@@ -115,6 +173,7 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
       return;
     }
 
+    socket.joinResult = data;
     resolve(socket);
   });
 });
@@ -303,7 +362,98 @@ const joinSocket = ({ username }) => new Promise((resolve, reject) => {
     && state.activePlaylistItem === null
   ));
 
-  pass("MovieNight playlist and poll state synced to guest");
+  const autoHostA = await joinSocket({
+    username: "AutoHostA",
+    room: autoHostRoomId,
+    desiredAutoHostEnabled: true,
+  });
+  assertCondition(autoHostA.joinResult.hostId === autoHostA.id, "A should begin as host");
+  assertCondition(autoHostA.joinResult.isAutoHostEnabled === true, "A should enable Auto-Host");
+
+  const autoHostB = await joinSocket({ username: "AutoHostB", room: autoHostRoomId });
+  assertCondition(autoHostB.joinResult.hostId === autoHostA.id, "B should see A as host");
+  assertCondition(autoHostB.joinResult.isAutoHostEnabled === true, "B should see Auto-Host enabled");
+
+  const bReceivesAutoNewHost = waitForEvent(
+    autoHostB,
+    "newHost",
+    "Auto-Host newHost sent to B",
+    (hostId) => hostId === autoHostB.id,
+  );
+  const aReceivesAutoMediaUpdate = waitForEvent(
+    autoHostA,
+    "mediaUpdate",
+    "Auto-Host mediaUpdate sent to A with makeHost",
+    (update) => update.id === autoHostB.id && update.makeHost === true,
+  );
+  autoHostB.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-b", userInitiated: true }));
+  await Promise.all([bReceivesAutoNewHost, aReceivesAutoMediaUpdate]);
+
+  const autoHostC = await joinSocket({ username: "AutoHostC", room: autoHostRoomId });
+  assertCondition(autoHostC.joinResult.hostId === autoHostB.id, "C should see B as host after Auto-Host transfer");
+
+  const bReceivesStalePlayerState = waitForEvent(
+    autoHostB,
+    "playerStateUpdate",
+    "B receives stale playerStateUpdate from A before authoritative join check",
+    (update) => update.id === autoHostA.id && update.state === "paused",
+  );
+  autoHostA.emit("playerStateUpdate", {
+    state: "paused",
+    time: 2000,
+    duration: 60000,
+    playbackRate: 1,
+  });
+  await bReceivesStalePlayerState;
+  const staleVerifier = await joinSocket({ username: "AutoHostStaleVerifier", room: autoHostRoomId });
+  assertCondition(staleVerifier.joinResult.hostId === autoHostB.id, "A stale playerStateUpdate should not change authoritative host state");
+
+  const bReceivesNonUserMediaUpdate = waitForEvent(
+    autoHostB,
+    "mediaUpdate",
+    "B receives non-user-initiated mediaUpdate from A before authoritative join check",
+    (update) => update.id === autoHostA.id && update.makeHost === false,
+  );
+  autoHostA.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-a-background", userInitiated: false }));
+  await bReceivesNonUserMediaUpdate;
+  const nonUserVerifier = await joinSocket({ username: "AutoHostNonUserVerifier", room: autoHostRoomId });
+  assertCondition(nonUserVerifier.joinResult.hostId === autoHostB.id, "A non-user-initiated mediaUpdate should not transfer host");
+
+  const formerHostAReceivesAutoNewHost = waitForEvent(
+    autoHostA,
+    "newHost",
+    "former host A receives Auto-Host newHost when taking host back",
+    (hostId) => hostId === autoHostA.id,
+  );
+  const bReceivesFormerHostMediaUpdate = waitForEvent(
+    autoHostB,
+    "mediaUpdate",
+    "B receives former host A mediaUpdate with makeHost",
+    (update) => update.id === autoHostA.id && update.makeHost === true,
+  );
+  autoHostA.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-a-return", userInitiated: true }));
+  await Promise.all([formerHostAReceivesAutoNewHost, bReceivesFormerHostMediaUpdate]);
+  const formerHostVerifier = await joinSocket({ username: "AutoHostFormerHostVerifier", room: autoHostRoomId });
+  assertCondition(formerHostVerifier.joinResult.hostId === autoHostA.id, "Current behavior: former host A can take host back with a user-initiated mediaUpdate");
+
+  const manualParticipants = [
+    autoHostA,
+    autoHostB,
+    autoHostC,
+    staleVerifier,
+    nonUserVerifier,
+    formerHostVerifier,
+  ];
+  const manualNewHostEvents = manualParticipants.map((socket) => waitForEvent(
+    socket,
+    "newHost",
+    `manual transfer newHost broadcast to ${socket.joinResult.user.username}`,
+    (hostId) => hostId === autoHostB.id,
+  ));
+  autoHostA.emit("transferHost", autoHostB.id);
+  await Promise.all(manualNewHostEvents);
+
+  pass("MovieNight playlist, poll, Auto-Host, and host-transfer state verified");
 })().catch((error) => {
   fail(error.message);
 });
