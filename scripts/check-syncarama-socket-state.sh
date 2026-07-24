@@ -390,8 +390,8 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
   const aReceivesAutoMediaUpdate = waitForEvent(
     autoHostA,
     "mediaUpdate",
-    "Auto-Host mediaUpdate sent to A with makeHost",
-    (update) => update.id === autoHostB.id && update.makeHost === true,
+    "Auto-Host mediaUpdate sent to A after intent transfer",
+    (update) => update.id === autoHostB.id && update.makeHost === false,
   );
   autoHostB.emit("autoHostIntent");
   autoHostB.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-b", userInitiated: true }));

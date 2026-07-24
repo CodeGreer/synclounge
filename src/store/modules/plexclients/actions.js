@@ -143,9 +143,9 @@ export default {
   },
 
   SEND_CLIENT_REQUEST_WITH_URI: async ({ dispatch, rootGetters }, {
-    clientIdentifier, accessToken, uri, path, params, signal, commandId,
+    clientIdentifier, accessToken, uri, path, params, signal,
   }) => {
-    const commandID = commandId ?? await dispatch('RESERVE_COMMAND_ID');
+    const commandID = await dispatch('RESERVE_COMMAND_ID');
 
     return fetchXmlAndTransform(
       `${uri}${path}`,
