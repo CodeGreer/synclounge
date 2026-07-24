@@ -7,7 +7,7 @@ ROOM_ID="${ROOM_ID:-MOVIENIGHT_SMOKE_$(date +%s)}"
 docker exec -e APP_URL="$APP_URL" -e ROOM_ID="$ROOM_ID" movienight-dev sh -lc '
 cd /workspace/movienight
 
-node <<NODE
+node <<\NODE
 const io = require("socket.io-client");
 
 const appUrl = process.env.APP_URL;
@@ -392,16 +392,30 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
   const autoHostC = await joinSocket({ username: "AutoHostC", room: autoHostRoomId });
   assertCondition(autoHostC.joinResult.hostId === autoHostB.id, "C should see B as host after Auto-Host transfer");
 
+  const bReceivesStalePlayerState = waitForEvent(
+    autoHostB,
+    "playerStateUpdate",
+    "B receives stale playerStateUpdate from A before authoritative join check",
+    (update) => update.id === autoHostA.id && update.state === "paused",
+  );
   autoHostA.emit("playerStateUpdate", {
     state: "paused",
     time: 2000,
     duration: 60000,
     playbackRate: 1,
   });
+  await bReceivesStalePlayerState;
   const staleVerifier = await joinSocket({ username: "AutoHostStaleVerifier", room: autoHostRoomId });
   assertCondition(staleVerifier.joinResult.hostId === autoHostB.id, "A stale playerStateUpdate should not change authoritative host state");
 
+  const bReceivesNonUserMediaUpdate = waitForEvent(
+    autoHostB,
+    "mediaUpdate",
+    "B receives non-user-initiated mediaUpdate from A before authoritative join check",
+    (update) => update.id === autoHostA.id && update.makeHost === false,
+  );
   autoHostA.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-a-background", userInitiated: false }));
+  await bReceivesNonUserMediaUpdate;
   const nonUserVerifier = await joinSocket({ username: "AutoHostNonUserVerifier", room: autoHostRoomId });
   assertCondition(nonUserVerifier.joinResult.hostId === autoHostB.id, "A non-user-initiated mediaUpdate should not transfer host");
 
