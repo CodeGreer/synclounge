@@ -254,7 +254,7 @@ const mediaUpdate = ({
     socketId: socket.id,
     media
   });
-  const makeHost = userInitiated && !(0, _state.isUserHost)(socket.id) && (0, _state.isAutoHostEnabledInSocketRoom)(socket.id);
+  const makeHost = userInitiated !== false && !(0, _state.isUserHost)(socket.id) && (0, _state.isAutoHostEnabledInSocketRoom)(socket.id);
   if (makeHost) {
     // Emit to user that they are host now
     (0, _state.makeUserHost)(socket.id);

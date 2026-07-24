@@ -220,7 +220,7 @@ const mediaUpdate = ({
     media,
   });
 
-  const makeHost = userInitiated && !isUserHost(socket.id)
+  const makeHost = userInitiated !== false && !isUserHost(socket.id)
     && isAutoHostEnabledInSocketRoom(socket.id);
 
   if (makeHost) {

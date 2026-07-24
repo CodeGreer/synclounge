@@ -409,7 +409,11 @@ export default {
 
     await dispatch('PROCESS_UPNEXT', playerState);
 
-    if (!userInitiated) {
+    const shouldWaitForAutoHostDecision = userInitiated == null
+      && getters.IS_AUTO_HOST_ENABLED
+      && !getters.AM_I_HOST;
+
+    if (!userInitiated && !shouldWaitForAutoHostDecision) {
       await dispatch('SYNC_PLAYER_STATE');
     }
   },
@@ -660,6 +664,7 @@ export default {
       offset: offset || 0,
       metadata: media,
       machineIdentifier: media.machineIdentifier,
+      userInitiated: false,
     }, { root: true });
   },
 
