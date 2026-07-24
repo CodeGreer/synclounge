@@ -54,8 +54,8 @@ Supported controller actions:
 - Votes are tied to the current socket connection, not a permanent user identity.
 - Library-based polls are deferred.
 - Single-choice, ranked-choice, timers, and blind results are deferred.
-- Mixed backend rooms are deferred.
-- Jellyfin and Emby support are deferred.
+- Jellyfin and Emby are planned media-server backends but are not implemented.
+- Mixed-backend rooms are a later roadmap goal.
 - Games are deferred.
 
 ## Intended beta scope
