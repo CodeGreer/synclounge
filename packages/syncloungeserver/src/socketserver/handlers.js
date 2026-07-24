@@ -184,6 +184,32 @@ const transferHost = ({ server, socket, data: desiredHostId }) => {
   });
 };
 
+
+const autoHostIntent = ({ server, socket }) => {
+  if (!isUserInARoom(socket.id)) {
+    socket.disconnect(true);
+    return;
+  }
+
+  if (isUserHost(socket.id) || !isAutoHostEnabledInSocketRoom(socket.id)) {
+    return;
+  }
+
+  const roomId = getUserRoomId(socket.id);
+  makeUserHost(socket.id);
+
+  logSocket({
+    socketId: socket.id,
+    message: 'Making host because user initiated playback through Sync-A-Rama',
+  });
+
+  announceNewHost({
+    server,
+    roomId,
+    hostId: socket.id,
+  });
+};
+
 const playerStateUpdate = ({
   server, socket, data: {
     state, time, duration, playbackRate,
@@ -220,7 +246,7 @@ const mediaUpdate = ({
     media,
   });
 
-  const makeHost = userInitiated !== false && !isUserHost(socket.id)
+  const makeHost = userInitiated === true && !isUserHost(socket.id)
     && isAutoHostEnabledInSocketRoom(socket.id);
 
   if (makeHost) {
@@ -637,6 +663,7 @@ const eventHandlers = {
   slPong,
   playerStateUpdate,
   mediaUpdate,
+  autoHostIntent,
   syncFlexibilityUpdate,
   transferHost,
   sendMessage,

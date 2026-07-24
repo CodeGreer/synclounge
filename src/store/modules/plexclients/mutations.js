@@ -75,10 +75,6 @@ export default {
     state.lastPlayMediaCommandId = id;
   },
 
-  SET_PENDING_PLAY_MEDIA_ORIGIN: (state, origin) => {
-    state.pendingPlayMediaOrigin = origin;
-  },
-
   SET_LATENCY: (state, latency) => {
     state.latency = latency;
   },

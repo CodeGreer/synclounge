@@ -179,6 +179,13 @@ export default {
     });
   },
 
+  REQUEST_AUTO_HOST: () => {
+    emit({
+      eventName: 'autoHostIntent',
+      data: null,
+    });
+  },
+
   SEND_SET_PARTY_PAUSING_ENABLED: (context, value) => {
     emit({
       eventName: 'setPartyPausingEnabled',
@@ -409,11 +416,7 @@ export default {
 
     await dispatch('PROCESS_UPNEXT', playerState);
 
-    const shouldWaitForAutoHostDecision = userInitiated == null
-      && getters.IS_AUTO_HOST_ENABLED
-      && !getters.AM_I_HOST;
-
-    if (!userInitiated && !shouldWaitForAutoHostDecision) {
+    if (!userInitiated) {
       await dispatch('SYNC_PLAYER_STATE');
     }
   },

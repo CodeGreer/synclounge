@@ -393,6 +393,7 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
     "Auto-Host mediaUpdate sent to A with makeHost",
     (update) => update.id === autoHostB.id && update.makeHost === true,
   );
+  autoHostB.emit("autoHostIntent");
   autoHostB.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-b", userInitiated: true }));
   await Promise.all([bReceivesAutoNewHost, aReceivesAutoMediaUpdate]);
 
@@ -443,51 +444,65 @@ const joinSocket = ({ username, room = roomId, desiredAutoHostEnabled = false })
   const formerHostVerifier = await joinSocket({ username: "AutoHostFormerHostVerifier", room: autoHostRoomId });
   assertCondition(formerHostVerifier.joinResult.hostId === autoHostA.id, "Current behavior: former host A can take host back with a user-initiated mediaUpdate");
 
-  const autoHostExternalRoomId = `${autoHostRoomId}_EXTERNAL`;
-  const externalA = await joinSocket({
-    username: "AutoHostExternalA",
-    room: autoHostExternalRoomId,
+  const directPlexRoomId = `${autoHostRoomId}_DIRECT_PLEX`;
+  const directA = await joinSocket({
+    username: "DirectPlexA",
+    room: directPlexRoomId,
     desiredAutoHostEnabled: true,
   });
-  const externalB = await joinSocket({ username: "AutoHostExternalB", room: autoHostExternalRoomId });
-  assertCondition(externalB.joinResult.hostId === externalA.id, "External scenario should begin with A as host");
+  const directB = await joinSocket({ username: "DirectPlexB", room: directPlexRoomId });
+  assertCondition(directB.joinResult.hostId === directA.id, "Direct Plex scenario should begin with A as host");
 
-  const externalBReceivesNewHost = waitForEvent(
-    externalB,
+  const directAReceivesNullMediaUpdate = waitForEvent(
+    directA,
+    "mediaUpdate",
+    "polling-origin Plex media detection with userInitiated omitted does not make host",
+    (update) => update.id === directB.id && update.makeHost === false,
+  );
+  directB.emit("mediaUpdate", mediaPayload({ mediaId: "direct-plex-b" }));
+  await directAReceivesNullMediaUpdate;
+  const directVerifier = await joinSocket({ username: "DirectPlexVerifier", room: directPlexRoomId });
+  assertCondition(directVerifier.joinResult.hostId === directA.id, "Polling-origin null media update should not initiate Auto-Host");
+
+  const interfaceExternalRoomId = `${autoHostRoomId}_INTERFACE_EXTERNAL`;
+  const interfaceA = await joinSocket({
+    username: "InterfaceExternalA",
+    room: interfaceExternalRoomId,
+    desiredAutoHostEnabled: true,
+  });
+  const interfaceB = await joinSocket({ username: "InterfaceExternalB", room: interfaceExternalRoomId });
+  assertCondition(interfaceB.joinResult.hostId === interfaceA.id, "Interface external scenario should begin with A as host");
+
+  const interfaceNewHostEvents = [interfaceA, interfaceB].map((socket) => waitForEvent(
+    socket,
     "newHost",
-    "external Plex media detection with userInitiated omitted makes B host",
-    (hostId) => hostId === externalB.id,
-  );
-  const externalAReceivesMediaUpdate = waitForEvent(
-    externalA,
-    "mediaUpdate",
-    "external Plex media detection is broadcast with makeHost",
-    (update) => update.id === externalB.id && update.makeHost === true,
-  );
-  externalB.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-external-b" }));
-  await Promise.all([externalBReceivesNewHost, externalAReceivesMediaUpdate]);
-  const externalVerifier = await joinSocket({ username: "AutoHostExternalVerifier", room: autoHostExternalRoomId });
-  assertCondition(externalVerifier.joinResult.hostId === externalB.id, "External Plex media detection should transfer host to B exactly once");
+    `interface playback Auto-Host broadcast to ${socket.joinResult.user.username}`,
+    (hostId) => hostId === interfaceB.id,
+  ));
+  interfaceB.emit("autoHostIntent");
+  await Promise.all(interfaceNewHostEvents);
+  const interfaceHostVerifier = await joinSocket({ username: "InterfaceHostVerifier", room: interfaceExternalRoomId });
+  assertCondition(interfaceHostVerifier.joinResult.hostId === interfaceB.id, "Interface playback should transfer host to B exactly once");
 
-  const bReceivesSyncEchoFromA = waitForEvent(
-    externalB,
+  const interfaceAReceivesMedia = waitForEvent(
+    interfaceA,
     "mediaUpdate",
-    "sync-directed former-host echo is explicitly non-user-initiated",
-    (update) => update.id === externalA.id && update.makeHost === false,
+    "new host media update after interface Auto-Host works normally",
+    (update) => update.id === interfaceB.id && update.makeHost === false && update.media.ratingKey === "interface-external-b",
   );
-  externalA.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-external-b", userInitiated: false }));
-  await bReceivesSyncEchoFromA;
-  const echoVerifier = await joinSocket({ username: "AutoHostEchoVerifier", room: autoHostExternalRoomId });
-  assertCondition(echoVerifier.joinResult.hostId === externalB.id, "Former host sync echo should not reclaim Auto-Host");
+  interfaceB.emit("mediaUpdate", mediaPayload({ mediaId: "interface-external-b" }));
+  await interfaceAReceivesMedia;
 
-  const bAuthoritativeUpdate = waitForEvent(
-    externalA,
+  const interfaceBReceivesSyncEcho = waitForEvent(
+    interfaceB,
     "mediaUpdate",
-    "new host authoritative media update continues normally",
-    (update) => update.id === externalB.id && update.makeHost === false && update.media.ratingKey === "auto-host-external-b-next",
+    "old host sync-directed update cannot reclaim host",
+    (update) => update.id === interfaceA.id && update.makeHost === false,
   );
-  externalB.emit("mediaUpdate", mediaPayload({ mediaId: "auto-host-external-b-next", userInitiated: false }));
-  await bAuthoritativeUpdate;
+  interfaceA.emit("mediaUpdate", mediaPayload({ mediaId: "interface-external-b", userInitiated: false }));
+  await interfaceBReceivesSyncEcho;
+  const interfaceEchoVerifier = await joinSocket({ username: "InterfaceEchoVerifier", room: interfaceExternalRoomId });
+  assertCondition(interfaceEchoVerifier.joinResult.hostId === interfaceB.id, "Old host sync/poll echo should not reclaim host");
 
   const autoHostDisabledRoomId = `${autoHostRoomId}_DISABLED`;
   const disabledA = await joinSocket({ username: "AutoHostDisabledA", room: autoHostDisabledRoomId });
