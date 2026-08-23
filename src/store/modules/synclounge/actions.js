@@ -578,8 +578,12 @@ export default {
         }
         // TODO: fix
       } else {
-        const text = `Failed to find a compatible copy of ${getters.GET_HOST_USER.media.title
-        }. If you have access to the content try manually playing it.`;
+        const { title } = getters.GET_HOST_USER.media;
+        const text = [
+          `Sync-A-Rama could not find a playable copy of ${title}.`,
+          "Confirm that you can access the item's originating Plex server and library,",
+          'then try again.',
+        ].join(' ');
         console.warn(text);
         await dispatch('DISPLAY_NOTIFICATION', {
           text,

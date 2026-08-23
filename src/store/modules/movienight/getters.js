@@ -23,13 +23,16 @@ export default {
     const votesBySocketId = state.activePoll.votesBySocketId || {};
     const approvals = Object.values(votesBySocketId).flat();
 
-    return state.activePoll.candidates
+    const results = state.activePoll.candidates
       .map((candidate) => ({
         ...candidate,
         approvalCount: approvals
           .filter((candidateId) => String(candidateId) === String(candidate.id)).length,
-      }))
-      .sort((a, b) => b.approvalCount - a.approvalCount);
+      }));
+
+    return state.activePoll.status === 'closed'
+      ? results.sort((a, b) => b.approvalCount - a.approvalCount)
+      : results;
   },
 
   IS_NOMINATED: (state) => (nominationKey) => state.nominations
