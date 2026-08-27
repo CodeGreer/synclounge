@@ -168,6 +168,40 @@ export default {
     });
   },
 
+  START_PLAYLIST: async ({ state, dispatch }) => {
+    const firstItem = state.playlist[0];
+
+    if (!firstItem) {
+      return false;
+    }
+
+    await dispatch('SET_PLAYLIST_AUTO_PLAY', true);
+    await dispatch('SET_ACTIVE_PLAYLIST_ITEM', firstItem);
+
+    const metadata = await dispatch('plexservers/FETCH_PLEX_METADATA', {
+      ratingKey: firstItem.ratingKey,
+      machineIdentifier: firstItem.machineIdentifier,
+    }, { root: true });
+
+    await dispatch('plexclients/PLAY_MEDIA', {
+      metadata,
+      mediaIndex: 0,
+      machineIdentifier: metadata.machineIdentifier,
+      offset: 0,
+      userInitiated: true,
+    }, { root: true });
+
+    return true;
+  },
+
+  STOP_PLAYLIST: async ({ dispatch }) => {
+    await dispatch('SET_PLAYLIST_AUTO_PLAY', false);
+    await dispatch('SET_ACTIVE_PLAYLIST_ITEM', null);
+    await dispatch('plexclients/PRESS_STOP', null, { root: true });
+
+    return true;
+  },
+
   START_APPROVAL_POLL_FROM_NOMINATIONS: ({ commit, rootGetters }) => {
     emitOrCommit({
       commit,
@@ -227,26 +261,26 @@ export default {
     const activeItem = getters.GET_ACTIVE_PLAYLIST_ITEM;
 
     if (!metadata || !activeItem) {
-      return;
+      return false;
     }
 
     const shouldControlPlaylist = !rootGetters['synclounge/IS_IN_ROOM']
       || rootGetters['synclounge/AM_I_HOST'];
 
     if (!shouldControlPlaylist) {
-      return;
+      return false;
     }
 
     const endedActiveItem = activeItem.machineIdentifier === metadata.machineIdentifier
       && String(activeItem.ratingKey) === String(metadata.ratingKey);
 
     if (!endedActiveItem) {
-      return;
+      return false;
     }
 
     if (!getters.GET_PLAYLIST_AUTO_PLAY) {
       await dispatch('SET_ACTIVE_PLAYLIST_ITEM', null);
-      return;
+      return false;
     }
 
     const activeIndex = state.playlist.findIndex((item) => item.id === activeItem.id);
@@ -255,8 +289,9 @@ export default {
       : state.playlist[0];
 
     if (!nextItem) {
+      await dispatch('SET_PLAYLIST_AUTO_PLAY', false);
       await dispatch('SET_ACTIVE_PLAYLIST_ITEM', null);
-      return;
+      return false;
     }
 
     await dispatch('SET_ACTIVE_PLAYLIST_ITEM', nextItem);
@@ -273,5 +308,7 @@ export default {
       offset: 0,
       userInitiated: false,
     }, { root: true });
+
+    return true;
   },
 };

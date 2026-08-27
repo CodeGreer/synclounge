@@ -27,16 +27,18 @@
       @change="setPlaylistVisibility"
     />
 
-    <v-switch
-      v-if="canManagePlaylist"
-      dense
-      hide-details
-      inset
+    <v-btn
+      v-if="canManagePlaylist && playlist.length"
+      block
       class="mb-2"
-      label="Auto-play playlist"
-      :input-value="GET_PLAYLIST_AUTO_PLAY"
-      @change="setPlaylistAutoPlay"
-    />
+      :color="playlistIsRunning ? 'error' : 'primary'"
+      @click="togglePlaylistPlayback"
+    >
+      <v-icon left>
+        {{ playlistIsRunning ? 'stop' : 'playlist_play' }}
+      </v-icon>
+      {{ playlistIsRunning ? 'Stop Playlist' : 'Start Playlist' }}
+    </v-btn>
 
     <v-btn
       v-if="canManagePlaylist && playlist.length"
@@ -273,6 +275,10 @@ export default {
       return this.AM_I_HOST || (this.isControllerWindow && this.IS_CONTROLLER_ACTIVE);
     },
 
+    playlistIsRunning() {
+      return Boolean(this.GET_PLAYLIST_AUTO_PLAY && this.GET_ACTIVE_PLAYLIST_ITEM);
+    },
+
     visiblePlaylist() {
       if (this.canManagePlaylist || this.GET_PLAYLIST_VISIBILITY === 'public') {
         return this.playlist;
@@ -312,6 +318,8 @@ export default {
       'SET_PLAYLIST_VISIBILITY',
       'SET_PLAYLIST_AUTO_PLAY',
       'SET_ACTIVE_PLAYLIST_ITEM',
+      'START_PLAYLIST',
+      'STOP_PLAYLIST',
     ]),
 
     isActivePlaylistItem(item) {
@@ -375,13 +383,31 @@ export default {
       this.SET_PLAYLIST_VISIBILITY(visibility);
     },
 
-    setPlaylistAutoPlay(playlistAutoPlay) {
+    async startPlaylist() {
       if (this.isControllerWindow) {
-        this.sendControllerCommand('setPlaylistAutoPlay', { playlistAutoPlay });
+        this.sendControllerCommand('startPlaylist');
         return;
       }
 
-      this.SET_PLAYLIST_AUTO_PLAY(playlistAutoPlay);
+      await this.START_PLAYLIST();
+    },
+
+    async stopPlaylist() {
+      if (this.isControllerWindow) {
+        this.sendControllerCommand('stopPlaylist');
+        return;
+      }
+
+      await this.STOP_PLAYLIST();
+    },
+
+    async togglePlaylistPlayback() {
+      if (this.playlistIsRunning) {
+        await this.stopPlaylist();
+        return;
+      }
+
+      await this.startPlaylist();
     },
 
     clearPlaylist() {
