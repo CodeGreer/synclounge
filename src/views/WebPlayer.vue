@@ -16,15 +16,21 @@
           playsinline="true"
           class="black"
 
-          @pause="HANDLE_PLAYER_PAUSE"
+          @pause="handlePlayerPause"
           @ended="handlePlayerEnded"
-          @playing="HANDLE_PLAYER_PLAYING"
+          @playing="handlePlayerPlaying"
           @seeking="HANDLE_SEEKING"
           @seeked="HANDLE_SEEKED"
           @volumechange="HANDLE_PLAYER_VOLUME_CHANGE"
           @enterpictureinpicture="HANDLE_PICTURE_IN_PICTURE_CHANGE"
           @leavepictureinpicture="HANDLE_PICTURE_IN_PICTURE_CHANGE"
           @timeupdate="handleTimeUpdate"
+        />
+
+        <div
+          v-show="playlistTransitioning"
+          class="playlist-transition-curtain"
+          aria-hidden="true"
         />
 
         <v-fade-transition
@@ -49,9 +55,9 @@
         transition="fade-transition"
       >
         <v-row
-          v-show="ARE_PLAYER_CONTROLS_SHOWN"
+          v-show="ARE_PLAYER_CONTROLS_SHOWN && !playlistTransitioning"
           no-gutters
-          class="pa-3 hidden-xs-only hoverBar"
+          class="pa-3 hidden-xs-only hover-bar"
         >
           <v-col>
             <v-container fluid>
@@ -193,6 +199,8 @@ export default {
   data: () => ({
     videoTimeStamp: 0,
     controlsOffset: 0,
+    playlistTransitioning: false,
+    playlistControlsRevealTimeout: null,
   }),
 
   computed: {
@@ -204,6 +212,11 @@ export default {
       'ARE_PLAYER_CONTROLS_SHOWN',
       'GET_PLAYER_STATE',
       'IS_USING_NATIVE_SUBTITLES',
+    ]),
+
+    ...mapGetters('movienight', [
+      'GET_PLAYLIST_AUTO_PLAY',
+      'GET_ACTIVE_PLAYLIST_ITEM',
     ]),
 
     ...mapGetters('synclounge', [
@@ -322,6 +335,11 @@ export default {
   beforeDestroy() {
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('resize', this.RERENDER_SUBTITLE_CONTAINER);
+
+    if (this.playlistControlsRevealTimeout) {
+      clearTimeout(this.playlistControlsRevealTimeout);
+    }
+
     this.DESTROY_PLAYER_STATE();
   },
 
@@ -337,6 +355,7 @@ export default {
       'HANDLE_PLAYER_PAUSE',
       'HANDLE_PLAYER_VOLUME_CHANGE',
       'HANDLE_PLAYER_CLICK',
+      'HIDE_PLAYER_CONTROLS',
       'HANDLE_SEEKING',
       'HANDLE_SEEKED',
       'HANDLE_PICTURE_IN_PICTURE_CHANGE',
@@ -357,19 +376,90 @@ export default {
 
     ...mapActions('movienight', [
       'HANDLE_PLAYLIST_ITEM_ENDED',
-      'SET_ACTIVE_PLAYLIST_ITEM',
+      'STOP_PLAYLIST',
     ]),
 
     async handleManualStop() {
-      await this.SET_ACTIVE_PLAYLIST_ITEM(null);
-      await this.PRESS_STOP();
+      await this.STOP_PLAYLIST();
+    },
+
+    startPlaylistTransition() {
+      if (this.playlistControlsRevealTimeout) {
+        clearTimeout(this.playlistControlsRevealTimeout);
+        this.playlistControlsRevealTimeout = null;
+      }
+
+      this.playlistTransitioning = true;
+      this.$el?.classList.add(
+        'playlist-transition-active',
+        'playlist-transition-controls-hidden',
+      );
+    },
+
+    finishPlaylistTransition() {
+      this.$el?.classList.remove('playlist-transition-active');
+      this.playlistTransitioning = false;
+
+      this.playlistControlsRevealTimeout = setTimeout(() => {
+        this.$el?.classList.remove('playlist-transition-controls-hidden');
+        this.playlistControlsRevealTimeout = null;
+      }, 500);
+    },
+
+    async handlePlayerPlaying() {
+      if (this.playlistTransitioning) {
+        await this.HIDE_PLAYER_CONTROLS();
+        await this.$nextTick();
+
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(resolve);
+          });
+        });
+
+        this.finishPlaylistTransition();
+      }
+
+      await this.HANDLE_PLAYER_PLAYING();
+    },
+
+    async handlePlayerPause() {
+      const video = this.$refs?.videoPlayer;
+      const duration = video?.duration;
+      const currentTime = video?.currentTime;
+      const remaining = Number.isFinite(duration) && Number.isFinite(currentTime)
+        ? duration - currentTime
+        : Infinity;
+      const isPlaylistEnding = this.GET_PLAYLIST_AUTO_PLAY
+        && this.GET_ACTIVE_PLAYLIST_ITEM
+        && (video?.ended || remaining <= 0.25);
+
+      if (isPlaylistEnding) {
+        this.startPlaylistTransition();
+      }
+
+      await this.HANDLE_PLAYER_PAUSE();
     },
 
     async handlePlayerEnded() {
       const metadata = this.GET_ACTIVE_MEDIA_METADATA;
+      this.startPlaylistTransition();
+      await this.$nextTick();
 
-      await this.PRESS_STOP();
-      await this.HANDLE_PLAYLIST_ITEM_ENDED(metadata);
+      try {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 200);
+        });
+        const playlistContinued = await this.HANDLE_PLAYLIST_ITEM_ENDED(metadata);
+
+        if (!playlistContinued) {
+          this.finishPlaylistTransition();
+          await this.PRESS_STOP();
+        }
+      } catch (error) {
+        this.finishPlaylistTransition();
+        throw error;
+      }
     },
 
     getCastReceiverId() {
@@ -466,13 +556,25 @@ export default {
   height: calc(100vh - 64px);
 }
 
+.playlist-transition-curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: #000;
+  pointer-events: none;
+}
+
+.playlist-transition-active .playlist-transition-curtain {
+  display: block !important;
+}
+
 @media screen and (max-width: 1264px) {
   div.slplayer {
     height: calc(0.5625 * 100vw);
   }
 }
 
-.hoverBar {
+.hover-bar {
   position: absolute;
   background:
     -webkit-gradient(
@@ -487,6 +589,11 @@ export default {
   top: 0;
   left: 0;
   width: 100%;
+}
+
+.playlist-transition-active .hover-bar,
+.playlist-transition-controls-hidden .hover-bar {
+  display: none !important;
 }
 
 .plex-thumb {
@@ -507,6 +614,12 @@ export default {
 </style>
 
 <style>
+.playlist-transition-controls-hidden .shaka-controls-container {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  transition: none !important;
+}
+
 .messages-wrapper {
   max-height: calc(100vh - (0.5625 * 100vw) - 150px);
   overflow: scroll;

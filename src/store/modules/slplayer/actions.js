@@ -5,9 +5,9 @@ import { fetchJson, queryFetch } from '@/utils/fetchutils';
 import {
   play, pause, getDurationMs, getCurrentTimeMs, isTimeInBufferedRange,
   isMediaElementAttached, isPlaying, isPresentationPaused, isBuffering, getVolume, isPaused,
-  waitForMediaElementEvent, destroy, cancelTrickPlay, load, setPlaybackRate, getPlaybackRate,
-  setCurrentTimeMs, setVolume, addEventListener, removeEventListener, areControlsShown,
-  getSmallPlayButton, getBigPlayButton, unload,
+  waitForMediaElementEvent, destroy, cancelTrickPlay, loadPreservingPresentation, setPlaybackRate,
+  getPlaybackRate, setCurrentTimeMs, setVolume, addEventListener, removeEventListener,
+  areControlsShown, hideControlsImmediately, getSmallPlayButton, getBigPlayButton,
 } from '@/player';
 import Deferred from '@/utils/deferredpromise';
 import subtitleActions from './subtitleActions';
@@ -343,6 +343,11 @@ export default {
     }
   },
 
+  HIDE_PLAYER_CONTROLS: ({ commit }) => {
+    hideControlsImmediately();
+    commit('UPDATE_PLAYER_CONTROLS_SHOWN', false);
+  },
+
   START_UPDATE_PLAYER_CONTROLS_SHOWN_INTERVAL: ({ commit, rootGetters }) => {
     commit('SET_PLAYER_CONTROLS_SHOWN_INTERVAL', setInterval(() => {
       commit('UPDATE_PLAYER_CONTROLS_SHOWN', areControlsShown());
@@ -363,8 +368,7 @@ export default {
   LOAD_PLAYER_SRC: async ({ getters }) => {
     // TODO: potentailly unload if already loaded to avoid load interrupted errors
     // However, while its loading, potentially   reporting the old time...
-    await unload();
-    await load(getters.GET_SRC_URL);
+    await loadPreservingPresentation(getters.GET_SRC_URL);
 
     if (getters.GET_OFFSET_MS > 0) {
       setCurrentTimeMs(getters.GET_OFFSET_MS);

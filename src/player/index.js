@@ -9,6 +9,13 @@ export const areControlsShown = () => !getOverlay() || (getOverlay()?.getControl
     && (getOverlay()?.getControls().getControlsContainer().getAttribute('shown') != null
       || getOverlay()?.getControls().getControlsContainer().getAttribute('casting') != null));
 
+export const hideControlsImmediately = () => {
+  const controls = getOverlay()?.getControls();
+
+  controls?.hideUI();
+  controls?.getControlsContainer()?.removeAttribute('shown');
+};
+
 export const getControlsOffset = (fallbackHeight) => (getPlayer()?.getMediaElement()?.offsetHeight
   || fallbackHeight) * 0.025 + 48 || 0;
 
@@ -86,6 +93,42 @@ export const cancelTrickPlay = () => getPlayer().cancelTrickPlay();
 export const load = (...args) => getPlayer().load(...args);
 
 export const unload = (...args) => getPlayer().unload(...args);
+
+export const loadPreservingPresentation = async (...args) => {
+  const controls = getOverlay()?.getControls();
+  const preserveFullscreen = controls?.isFullScreenEnabled?.() === true;
+  const preservePiP = controls?.isPiPEnabled?.() === true;
+
+  if (!preserveFullscreen && !preservePiP) {
+    await unload();
+    await load(...args);
+    return;
+  }
+
+  const originalIsFullScreenEnabled = controls.isFullScreenEnabled;
+  const originalIsPiPEnabled = controls.isPiPEnabled;
+
+  if (preserveFullscreen) {
+    controls.isFullScreenEnabled = () => false;
+  }
+
+  if (preservePiP) {
+    controls.isPiPEnabled = () => false;
+  }
+
+  try {
+    await unload();
+    await load(...args);
+  } finally {
+    if (preserveFullscreen) {
+      controls.isFullScreenEnabled = originalIsFullScreenEnabled;
+    }
+
+    if (preservePiP) {
+      controls.isPiPEnabled = originalIsPiPEnabled;
+    }
+  }
+};
 
 export const getPlaybackRate = () => getPlayer().getPlaybackRate();
 

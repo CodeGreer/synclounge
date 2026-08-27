@@ -254,6 +254,14 @@ export default {
           );
           break;
 
+        case 'startPlaylist':
+          await this.$store.dispatch('movienight/START_PLAYLIST');
+          break;
+
+        case 'stopPlaylist':
+          await this.$store.dispatch('movienight/STOP_PLAYLIST');
+          break;
+
         case 'startApprovalPollFromNominations':
           this.$store.dispatch('movienight/START_APPROVAL_POLL_FROM_NOMINATIONS');
           break;

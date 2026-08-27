@@ -13,8 +13,15 @@ export default (store) => {
       this.button.textContent = 'close';
       this.parent.appendChild(this.button);
 
-      // Listen for clicks on the button to start the next playback
+      // Stop the active playlist cleanly when this player is playing one.
       this.eventManager.listen(this.button, 'click', () => {
+        const activePlaylistItem = store.getters['movienight/GET_ACTIVE_PLAYLIST_ITEM'];
+
+        if (activePlaylistItem) {
+          store.dispatch('movienight/STOP_PLAYLIST');
+          return;
+        }
+
         store.dispatch('slplayer/PRESS_STOP');
       });
     }
